@@ -4,10 +4,10 @@
 #include <string>
 #include <sys/stat.h>
 
+#include "basename.h"
 #include "get_current_dir.h"
 #include "gitlstree.h"
 
-using gitlstree::BaseName;
 using std::cout;
 using std::endl;
 using std::string;

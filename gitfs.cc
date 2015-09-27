@@ -49,13 +49,6 @@ GitTree::GitTree(const char* revision_ref, const string& gitdir)
   fullpath_to_files_[""] = root_.get();
 }
 
-const std::string BaseName(const std::string n) {
-  size_t i = n.rfind("/");
-  if (i == string::npos)
-    return n;
-  return n.substr(i + 1);
-}
-
 void GitTree::LoadDirectory(FileElement::FileElementMap* files,
 			    const string& subdir,
 			    gitxx::Tree* tree) {

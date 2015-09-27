@@ -80,8 +80,6 @@ private:
   std::unique_ptr<FileElement> root_;
 };
 
-const std::string BaseName(const std::string);
-
 } // namespace gitlstree
 #endif
 

@@ -19,6 +19,7 @@ mount-able filesystem.
 #include <unordered_map>
 #include <vector>
 
+#include "basename.h"
 #include "gitlstree.h"
 #include "strutil.h"
 
@@ -39,13 +40,6 @@ GitTree::GitTree(const char* hash, const string& gitdir)
 			      "TODO", 0));
   LoadDirectory(&(root_->files_), "");
   fullpath_to_files_[""] = root_.get();
-}
-
-const std::string BaseName(const std::string n) {
-  size_t i = n.rfind("/");
-  if (i == string::npos)
-    return n;
-  return n.substr(i + 1);
 }
 
 void GitTree::LoadDirectory(FileElement::FileElementMap* files,

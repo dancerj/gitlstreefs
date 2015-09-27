@@ -58,17 +58,19 @@ function RunTest(test, stdout) {
 
 // Rules
 CompileLink('gitfs', ['gitfs', 'gitfs_fusemain', 'strutil',
-		      'get_current_dir', 'gitxx'])
+		      'get_current_dir', 'gitxx', 'basename'])
 CompileLink('gitfs_test', ['gitfs', 'gitfs_test', 'strutil',
-			   'get_current_dir', 'gitxx'])
+			   'get_current_dir', 'gitxx', 'basename'])
 CompileLink('gitlstree_test', ['gitlstree', 'gitlstree_test', 'strutil',
-			       'get_current_dir'])
+			       'get_current_dir', 'basename'])
 CompileLink('gitlstree', ['gitlstree', 'gitlstree_fusemain', 'strutil',
-			  'get_current_dir'])
+			  'get_current_dir', 'basename'])
 CompileLink('ninjafs', ['ninjafs', 'strutil', 'get_current_dir'])
 CompileLink('hello_world', ['hello_world'])
 CompileLink('libgit2test', ['libgit2test', 'gitxx'])
+CompileLink('basename_test', ['basename_test', 'basename'])
 RunTest('gitfs_test')
 RunTest('gitlstree_test')
 RunTest('libgit2test')
+RunTest('basename_test')
 Emit()
