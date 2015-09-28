@@ -7,10 +7,10 @@ FUSE, that works with git and help building.
 Requires libboost-dev, libfuse, libgit2 and zlib as build time library
 dependencies. The build system depends on nodejs and ninja.
 
-  # apt-get install zlib-dev libfuse-dev libgit2-dev nodejs ninja-build libboost-dev
+    # apt-get install zlib-dev libfuse-dev libgit2-dev nodejs ninja-build libboost-dev
 
-  $ ./configure.js
-  $ ninja
+    $ ./configure.js
+    $ ninja
 
 # git file system using libgit2 #
 
@@ -20,8 +20,8 @@ uses libgit2
 Takes the git reposiotory from the current working directory as of
 execution and mounts to the directory given as the first parameter.
 
-  $ ./out/gitfs mountpoint
-  $ fusermount -u mountpoint
+    $ ./out/gitfs mountpoint
+    $ fusermount -u mountpoint
 
 # git file system using git ls-tree #
 
@@ -31,19 +31,19 @@ mountpoint.  uses git ls-tree as backend.
 Takes the git reposiotory from the current working directory as of
 execution and mounts to the directory given as the first parameter.
 
-  $ ./out/gitlstree mountpoint
-  $ fusermount -u mountpoint
+    $ ./out/gitlstree mountpoint
+    $ fusermount -u mountpoint
 
 # ninja file system #
 
 ninjafs -- a filesystem that lists ninja build targets, and builds on demand.
 
-  $ rm out/hello_world  # for demonstration.
-  $ out/ninjafs mountpoint/
-  $ ls mountpoint/
-  $ file mountpoint/out_hello_world
-  $ ./mountpoint/out_hello_world
-  $ fusermount -u mountpoint
+	$ rm out/hello_world  # for demonstration.
+	$ out/ninjafs mountpoint/
+	$ ls mountpoint/
+	$ file mountpoint/out_hello_world
+	$ ./mountpoint/out_hello_world
+	$ fusermount -u mountpoint
 
 
 # Copying #
