@@ -3,25 +3,18 @@
  */
 #define FUSE_USE_VERSION 26
 
-#include <assert.h>
-#include <fuse.h>
-#include <iostream>
-#include <memory>
-#include <mutex>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <functional>
+#include <memory>
 #include <unordered_map>
-#include <stddef.h>
 
-#include "get_current_dir.h"
-#include "strutil.h"
+#include <fuse.h>
 
-using std::cout;
-using std::endl;
 using std::function;
-using std::mutex;
 using std::string;
-using std::unique_lock;
 using std::unique_ptr;
 using std::unordered_map;
 

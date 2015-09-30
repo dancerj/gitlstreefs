@@ -1,8 +1,8 @@
 #if !defined(GITLSTREE_H__)
 #define GITLSTREE_H__
 
-#include <unordered_map>
 #include <mutex>
+#include <unordered_map>
 
 namespace gitlstree {
 

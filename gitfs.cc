@@ -15,13 +15,12 @@ mount-able filesystem.
  */
 
 #include <assert.h>
-#include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <memory>
-#include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <unordered_map>
-#include <vector>
 
 #include "gitfs.h"
 #include "gitxx.h"
@@ -35,7 +34,6 @@ using std::string;
 using std::unique_lock;
 using std::unique_ptr;
 using std::unordered_map;
-using std::vector;
 
 namespace gitfs {
 

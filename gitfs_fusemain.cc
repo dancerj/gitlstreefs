@@ -1,10 +1,10 @@
 #define FUSE_USE_VERSION 26
 
-#include <string.h>
 #include <assert.h>
 #include <fuse.h>
-#include <stdio.h>
 #include <memory>
+#include <stdio.h>
+#include <string.h>
 
 #include "get_current_dir.h"
 #include "gitfs.h"

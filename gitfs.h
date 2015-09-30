@@ -1,8 +1,8 @@
 #if !defined(GITFIND_H__)
 #define GITFIND_H__
 
-#include <unordered_map>
 #include <mutex>
+#include <unordered_map>
 
 #include "gitxx.h"
 
