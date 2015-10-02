@@ -6,7 +6,8 @@ var outdir = "out/";
 
 var data = [
     'cxxflags = -O2 -g --std=c++11 -Wall -Werror -D_FILE_OFFSET_BITS=64',
-    'ldflags = -lpthread -lfuse -lgit2 -lz',
+    // TODO only link what is required for each binary.
+    'ldflags = -lpthread -lfuse -lgit2 -lz ',
     'gxx = g++',
     'gcc = gcc',
     'rule cc',
@@ -23,7 +24,7 @@ var data = [
     'build build.ninja: ninjagenerator configure.js'];
 
 var compile_candidates = {};
-function CompileLink(target, sources) {
+function CompileLink(target, sources, opts) {
     function Link(target, sources) {
 	data.push('build ' + target + ': cclink ' + sources.join(' '))
     }
@@ -32,6 +33,8 @@ function CompileLink(target, sources) {
 	compile_candidates[sources[i]] = true;
 	sources_o.push(outdir + sources[i] + '.o');
     }
+    if (!!opts && opts.extra_objects)
+	sources_o = sources_o.concat(opts.extra_objects);
     Link(outdir + target, sources_o);
 }
 function Emit() {
@@ -48,17 +51,15 @@ function Emit() {
 		     '\n');
 }
 
-function RunTest(test, stdout) {
+function RunTest(test, opts) {
     test = outdir + test;
-    if (stdout === undefined) {
-	stdout = test + '.result';
-    }
+    stdout = test + '.result';
     data.push('build ' + stdout + ': runtest ' + test)
 }
 
-function CompileLinkRunTest(target, sources) {
-    CompileLink(target, sources);
-    RunTest(target);
+function CompileLinkRunTest(target, sources, opts) {
+    CompileLink(target, sources, opts);
+    RunTest(target, opts);
 }
 
 // Rules
@@ -75,4 +76,6 @@ CompileLink('hello_world', ['hello_world'])
 CompileLinkRunTest('libgit2test', ['libgit2test', 'gitxx'])
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
 CompileLink('hello_fuseflags', ['hello_fuseflags'])
+CompileLinkRunTest('github_rest_parser_test', ['github_rest_parser_test'], {
+    extra_objects: ['/usr/lib/libjson_spirit.a']})
 Emit()

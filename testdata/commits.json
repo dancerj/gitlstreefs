@@ -1,0 +1,348 @@
+[
+  {
+    "sha": "4ed9b4ae12ab16975b137a6be5611601cd9684af",
+    "commit": {
+      "author": {
+        "name": "Junichi Uekawa",
+        "email": "dancer@netfort.gr.jp",
+        "date": "2015-09-27T12:17:09Z"
+      },
+      "committer": {
+        "name": "Junichi Uekawa",
+        "email": "dancer@netfort.gr.jp",
+        "date": "2015-09-27T12:17:09Z"
+      },
+      "message": "split out basename",
+      "tree": {
+        "sha": "ca40ff6c6e9c559b4b5cbd88a474b7e7ea10d0fd",
+        "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/trees/ca40ff6c6e9c559b4b5cbd88a474b7e7ea10d0fd"
+      },
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/commits/4ed9b4ae12ab16975b137a6be5611601cd9684af",
+      "comment_count": 0
+    },
+    "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/4ed9b4ae12ab16975b137a6be5611601cd9684af",
+    "html_url": "https://github.com/dancerj/gitlstreefs/commit/4ed9b4ae12ab16975b137a6be5611601cd9684af",
+    "comments_url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/4ed9b4ae12ab16975b137a6be5611601cd9684af/comments",
+    "author": {
+      "login": "dancerj",
+      "id": 1283369,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dancerj",
+      "html_url": "https://github.com/dancerj",
+      "followers_url": "https://api.github.com/users/dancerj/followers",
+      "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+      "organizations_url": "https://api.github.com/users/dancerj/orgs",
+      "repos_url": "https://api.github.com/users/dancerj/repos",
+      "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dancerj/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "dancerj",
+      "id": 1283369,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dancerj",
+      "html_url": "https://github.com/dancerj",
+      "followers_url": "https://api.github.com/users/dancerj/followers",
+      "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+      "organizations_url": "https://api.github.com/users/dancerj/orgs",
+      "repos_url": "https://api.github.com/users/dancerj/repos",
+      "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dancerj/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "6100e8306e6eaeded5ef398643ffc8a4c79a1141",
+        "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/6100e8306e6eaeded5ef398643ffc8a4c79a1141",
+        "html_url": "https://github.com/dancerj/gitlstreefs/commit/6100e8306e6eaeded5ef398643ffc8a4c79a1141"
+      }
+    ]
+  },
+  {
+    "sha": "6100e8306e6eaeded5ef398643ffc8a4c79a1141",
+    "commit": {
+      "author": {
+        "name": "Junichi Uekawa",
+        "email": "dancer@netfort.gr.jp",
+        "date": "2015-09-27T08:23:15Z"
+      },
+      "committer": {
+        "name": "Junichi Uekawa",
+        "email": "dancer@netfort.gr.jp",
+        "date": "2015-09-27T08:23:15Z"
+      },
+      "message": "slap some copyright statement.",
+      "tree": {
+        "sha": "2a7190dbe066f32656fb9fac9409ab2a517ef1ac",
+        "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/trees/2a7190dbe066f32656fb9fac9409ab2a517ef1ac"
+      },
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/commits/6100e8306e6eaeded5ef398643ffc8a4c79a1141",
+      "comment_count": 0
+    },
+    "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/6100e8306e6eaeded5ef398643ffc8a4c79a1141",
+    "html_url": "https://github.com/dancerj/gitlstreefs/commit/6100e8306e6eaeded5ef398643ffc8a4c79a1141",
+    "comments_url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/6100e8306e6eaeded5ef398643ffc8a4c79a1141/comments",
+    "author": {
+      "login": "dancerj",
+      "id": 1283369,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dancerj",
+      "html_url": "https://github.com/dancerj",
+      "followers_url": "https://api.github.com/users/dancerj/followers",
+      "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+      "organizations_url": "https://api.github.com/users/dancerj/orgs",
+      "repos_url": "https://api.github.com/users/dancerj/repos",
+      "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dancerj/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "dancerj",
+      "id": 1283369,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dancerj",
+      "html_url": "https://github.com/dancerj",
+      "followers_url": "https://api.github.com/users/dancerj/followers",
+      "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+      "organizations_url": "https://api.github.com/users/dancerj/orgs",
+      "repos_url": "https://api.github.com/users/dancerj/repos",
+      "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dancerj/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "ed2648220a4755febc01aacc09d07b3d5a58412e",
+        "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/ed2648220a4755febc01aacc09d07b3d5a58412e",
+        "html_url": "https://github.com/dancerj/gitlstreefs/commit/ed2648220a4755febc01aacc09d07b3d5a58412e"
+      }
+    ]
+  },
+  {
+    "sha": "ed2648220a4755febc01aacc09d07b3d5a58412e",
+    "commit": {
+      "author": {
+        "name": "Junichi Uekawa",
+        "email": "dancer@netfort.gr.jp",
+        "date": "2015-09-24T12:02:24Z"
+      },
+      "committer": {
+        "name": "Junichi Uekawa",
+        "email": "dancer@netfort.gr.jp",
+        "date": "2015-09-24T12:02:24Z"
+      },
+      "message": "add notes on build system.",
+      "tree": {
+        "sha": "e8b38cca7e204d49a2bab3ec7b8a2f52a00e0bed",
+        "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/trees/e8b38cca7e204d49a2bab3ec7b8a2f52a00e0bed"
+      },
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/commits/ed2648220a4755febc01aacc09d07b3d5a58412e",
+      "comment_count": 0
+    },
+    "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/ed2648220a4755febc01aacc09d07b3d5a58412e",
+    "html_url": "https://github.com/dancerj/gitlstreefs/commit/ed2648220a4755febc01aacc09d07b3d5a58412e",
+    "comments_url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/ed2648220a4755febc01aacc09d07b3d5a58412e/comments",
+    "author": {
+      "login": "dancerj",
+      "id": 1283369,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dancerj",
+      "html_url": "https://github.com/dancerj",
+      "followers_url": "https://api.github.com/users/dancerj/followers",
+      "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+      "organizations_url": "https://api.github.com/users/dancerj/orgs",
+      "repos_url": "https://api.github.com/users/dancerj/repos",
+      "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dancerj/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "dancerj",
+      "id": 1283369,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dancerj",
+      "html_url": "https://github.com/dancerj",
+      "followers_url": "https://api.github.com/users/dancerj/followers",
+      "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+      "organizations_url": "https://api.github.com/users/dancerj/orgs",
+      "repos_url": "https://api.github.com/users/dancerj/repos",
+      "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dancerj/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "a6d6c4f4afce80f736235d365b0e99c2ce5ee478",
+        "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/a6d6c4f4afce80f736235d365b0e99c2ce5ee478",
+        "html_url": "https://github.com/dancerj/gitlstreefs/commit/a6d6c4f4afce80f736235d365b0e99c2ce5ee478"
+      }
+    ]
+  },
+  {
+    "sha": "a6d6c4f4afce80f736235d365b0e99c2ce5ee478",
+    "commit": {
+      "author": {
+        "name": "Junichi Uekawa",
+        "email": "dancer@netfort.gr.jp",
+        "date": "2015-09-24T12:00:07Z"
+      },
+      "committer": {
+        "name": "Junichi Uekawa",
+        "email": "dancer@netfort.gr.jp",
+        "date": "2015-09-24T12:00:07Z"
+      },
+      "message": "Initial commit of experimental gitfs.",
+      "tree": {
+        "sha": "140be7fb8440cbdac6e8ae9f3cdb533881bbe4e3",
+        "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/trees/140be7fb8440cbdac6e8ae9f3cdb533881bbe4e3"
+      },
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/commits/a6d6c4f4afce80f736235d365b0e99c2ce5ee478",
+      "comment_count": 0
+    },
+    "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/a6d6c4f4afce80f736235d365b0e99c2ce5ee478",
+    "html_url": "https://github.com/dancerj/gitlstreefs/commit/a6d6c4f4afce80f736235d365b0e99c2ce5ee478",
+    "comments_url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/a6d6c4f4afce80f736235d365b0e99c2ce5ee478/comments",
+    "author": {
+      "login": "dancerj",
+      "id": 1283369,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dancerj",
+      "html_url": "https://github.com/dancerj",
+      "followers_url": "https://api.github.com/users/dancerj/followers",
+      "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+      "organizations_url": "https://api.github.com/users/dancerj/orgs",
+      "repos_url": "https://api.github.com/users/dancerj/repos",
+      "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dancerj/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "dancerj",
+      "id": 1283369,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dancerj",
+      "html_url": "https://github.com/dancerj",
+      "followers_url": "https://api.github.com/users/dancerj/followers",
+      "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+      "organizations_url": "https://api.github.com/users/dancerj/orgs",
+      "repos_url": "https://api.github.com/users/dancerj/repos",
+      "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dancerj/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "70a926d68853b09e304b75e5b39c77c0b42e889b",
+        "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/70a926d68853b09e304b75e5b39c77c0b42e889b",
+        "html_url": "https://github.com/dancerj/gitlstreefs/commit/70a926d68853b09e304b75e5b39c77c0b42e889b"
+      }
+    ]
+  },
+  {
+    "sha": "70a926d68853b09e304b75e5b39c77c0b42e889b",
+    "commit": {
+      "author": {
+        "name": "Junichi Uekawa",
+        "email": "dancer@netfort.gr.jp",
+        "date": "2015-09-24T11:51:21Z"
+      },
+      "committer": {
+        "name": "Junichi Uekawa",
+        "email": "dancer@netfort.gr.jp",
+        "date": "2015-09-24T11:51:21Z"
+      },
+      "message": "initial test file to make tests pass.",
+      "tree": {
+        "sha": "6afb1869254f6f02067c345140f18330dc694dd9",
+        "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/trees/6afb1869254f6f02067c345140f18330dc694dd9"
+      },
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/commits/70a926d68853b09e304b75e5b39c77c0b42e889b",
+      "comment_count": 0
+    },
+    "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/70a926d68853b09e304b75e5b39c77c0b42e889b",
+    "html_url": "https://github.com/dancerj/gitlstreefs/commit/70a926d68853b09e304b75e5b39c77c0b42e889b",
+    "comments_url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/70a926d68853b09e304b75e5b39c77c0b42e889b/comments",
+    "author": {
+      "login": "dancerj",
+      "id": 1283369,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dancerj",
+      "html_url": "https://github.com/dancerj",
+      "followers_url": "https://api.github.com/users/dancerj/followers",
+      "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+      "organizations_url": "https://api.github.com/users/dancerj/orgs",
+      "repos_url": "https://api.github.com/users/dancerj/repos",
+      "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dancerj/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "dancerj",
+      "id": 1283369,
+      "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dancerj",
+      "html_url": "https://github.com/dancerj",
+      "followers_url": "https://api.github.com/users/dancerj/followers",
+      "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+      "organizations_url": "https://api.github.com/users/dancerj/orgs",
+      "repos_url": "https://api.github.com/users/dancerj/repos",
+      "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dancerj/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+
+    ]
+  }
+]

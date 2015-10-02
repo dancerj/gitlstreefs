@@ -1,0 +1,222 @@
+{
+  "sha": "4ed9b4ae12ab16975b137a6be5611601cd9684af",
+  "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/trees/4ed9b4ae12ab16975b137a6be5611601cd9684af",
+  "tree": [
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0eca3e92941236b77ad23a02dc0c000cd0da7a18",
+      "size": 46,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/0eca3e92941236b77ad23a02dc0c000cd0da7a18"
+    },
+    {
+      "path": "COPYING",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bdb0020a4cce8c7efbfb0c33fb7882c24abdcdca",
+      "size": 1484,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/bdb0020a4cce8c7efbfb0c33fb7882c24abdcdca"
+    },
+    {
+      "path": "Makefile",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cbcea06f7593b99cce16d0a6e97320b58cafe865",
+      "size": 196,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/cbcea06f7593b99cce16d0a6e97320b58cafe865"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "819293ff81a73db822162d2996bf178d3b52d60f",
+      "size": 1366,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/819293ff81a73db822162d2996bf178d3b52d60f"
+    },
+    {
+      "path": "basename.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e97d5de3fa3606d74bbdca135e40ffa1d76bc70b",
+      "size": 191,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/e97d5de3fa3606d74bbdca135e40ffa1d76bc70b"
+    },
+    {
+      "path": "basename.h",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6c55eb8e12361cafe5a8de2ea12837a1c42c6811",
+      "size": 66,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/6c55eb8e12361cafe5a8de2ea12837a1c42c6811"
+    },
+    {
+      "path": "basename_test.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f134e20ab08c5ad5938c524aa05145818f6d68a9",
+      "size": 222,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/f134e20ab08c5ad5938c524aa05145818f6d68a9"
+    },
+    {
+      "path": "configure.js",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "c2961b21c44fd1b35c966e58d1aab13dddf07252",
+      "size": 2344,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/c2961b21c44fd1b35c966e58d1aab13dddf07252"
+    },
+    {
+      "path": "dummytestdirectory",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "719b158c90d58d8cc3a55bcf770a6c1b97c9f1f0",
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/trees/719b158c90d58d8cc3a55bcf770a6c1b97c9f1f0"
+    },
+    {
+      "path": "get_current_dir.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7331c0afcebfaec5bca247d7ee65b44b9ade9c49",
+      "size": 160,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/7331c0afcebfaec5bca247d7ee65b44b9ade9c49"
+    },
+    {
+      "path": "get_current_dir.h",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "38887fae1c98a81856c448b823f814b98cade925",
+      "size": 29,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/38887fae1c98a81856c448b823f814b98cade925"
+    },
+    {
+      "path": "gitfs.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3b7eaf5128ab772428499a75ae65a1ff16930b74",
+      "size": 4171,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/3b7eaf5128ab772428499a75ae65a1ff16930b74"
+    },
+    {
+      "path": "gitfs.h",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2d84b1730d378810268af2bab198533acdcb21ad",
+      "size": 1878,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/2d84b1730d378810268af2bab198533acdcb21ad"
+    },
+    {
+      "path": "gitfs_fusemain.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4a83e234e5bdf8ee11ee0a02fc7b5e67bbf2f3ef",
+      "size": 1765,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/4a83e234e5bdf8ee11ee0a02fc7b5e67bbf2f3ef"
+    },
+    {
+      "path": "gitfs_test.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f49e76fc934bdb238d923d14124e97b740753f50",
+      "size": 1734,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/f49e76fc934bdb238d923d14124e97b740753f50"
+    },
+    {
+      "path": "gitlstree.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bbb0f6ebf487e4cc4e580d4d309c10cad5632a02",
+      "size": 4398,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/bbb0f6ebf487e4cc4e580d4d309c10cad5632a02"
+    },
+    {
+      "path": "gitlstree.h",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "40c68d09e97b41e85db4f8752581bad7a61a17d6",
+      "size": 2075,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/40c68d09e97b41e85db4f8752581bad7a61a17d6"
+    },
+    {
+      "path": "gitlstree_fusemain.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5ef616c9c5e45cd9a676556314d9b18352436838",
+      "size": 1801,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/5ef616c9c5e45cd9a676556314d9b18352436838"
+    },
+    {
+      "path": "gitlstree_test.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4d67ae2c01dde1820fe862a4eaa0ff4c9b160e8b",
+      "size": 1762,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/4d67ae2c01dde1820fe862a4eaa0ff4c9b160e8b"
+    },
+    {
+      "path": "gitxx.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "652ac27f84b41449573323868f32af27ff27775d",
+      "size": 3650,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/652ac27f84b41449573323868f32af27ff27775d"
+    },
+    {
+      "path": "gitxx.h",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c28527b7a9de9850d3534096f0a1c7b6059419f9",
+      "size": 1295,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/c28527b7a9de9850d3534096f0a1c7b6059419f9"
+    },
+    {
+      "path": "hello_world.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a6c35e4c98cd8813feaaa0201007cd6be1491635",
+      "size": 191,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/a6c35e4c98cd8813feaaa0201007cd6be1491635"
+    },
+    {
+      "path": "libgit2test.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d09d4c6f2fda3290c45191048edcf810a7a9cb2b",
+      "size": 814,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/d09d4c6f2fda3290c45191048edcf810a7a9cb2b"
+    },
+    {
+      "path": "ninjafs.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dfc704b1f113d320e7aa45c8613663ca6e8512e5",
+      "size": 4385,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/dfc704b1f113d320e7aa45c8613663ca6e8512e5"
+    },
+    {
+      "path": "ninjafs.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "572e6942480571101ae47faa8667489e22b26f76",
+      "size": 2934,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/572e6942480571101ae47faa8667489e22b26f76"
+    },
+    {
+      "path": "strutil.cc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ccaa60396b7181790db8b6d03c13acfef741db96",
+      "size": 1157,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/ccaa60396b7181790db8b6d03c13acfef741db96"
+    },
+    {
+      "path": "strutil.h",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1b1d9c583d45648a9748eccec724d7b0d40e7b57",
+      "size": 231,
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/1b1d9c583d45648a9748eccec724d7b0d40e7b57"
+    }
+  ],
+  "truncated": false
+}
