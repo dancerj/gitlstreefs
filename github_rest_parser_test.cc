@@ -11,7 +11,8 @@ using std::ifstream;
 using std::map;
 using std::string;
 
-const Value& GetObjectField(const json_spirit::Object& object, const string& name) {
+const Value& GetObjectField(const json_spirit::Object& object, 
+			    const string& name) {
   auto it = std::find_if(object.begin(), object.end(),
 			 [&name](const json_spirit::Pair& a) -> bool{
 			   return a.name_ == name;
@@ -67,6 +68,7 @@ void ParseTrees() {
 }
 
 int main(int argc, char** argv) {
+  // 1000 runs takes 1 second, mostly inside json_spirit.
   ParseTrees();
   ParseCommits();
 }
