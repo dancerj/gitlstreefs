@@ -4,7 +4,6 @@
 #include <string>
 #include <sys/stat.h>
 
-#include "basename.h"
 #include "get_current_dir.h"
 #include "gitfs.h"
 
@@ -12,12 +11,6 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::unique_ptr;
-
-void BasenameTest() {
-  assert(BaseName("") == "");
-  assert(BaseName("hoge") == "hoge");
-  assert(BaseName("hoge/fuga/doo") == "doo");
-}
 
 void TryReadFileTest(gitfs::GitTree* fs, const string& name) {
   // Try reading a file.
@@ -55,7 +48,6 @@ void ScenarioTest() {
 }
 
 int main(int argc, char** argv) {
-  BasenameTest();
   int iter = argv[1]?atoi(argv[1]):1;
   for (int i = 0; i < iter; ++i) {
     ScenarioTest();

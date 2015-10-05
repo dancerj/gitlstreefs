@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <boost/algorithm/string.hpp>
+#include <functional>
 #include <iostream>
 #include <json_spirit.h>
 #include <map>
@@ -20,6 +21,7 @@
 using json_spirit::Value;
 using std::cout;
 using std::endl;
+using std::function;
 using std::map;
 using std::mutex;
 using std::string;
@@ -40,7 +42,7 @@ const Value& GetObjectField(const json_spirit::Object& object,
   return it->value_;
 }
 
-void ParseCommits(const string& commits_string) {
+string ParseCommits(const string& commits_string) {
   // Try parsing github api v3 trees output.
   Value commits;
   json_spirit::read(commits_string, commits);
@@ -50,10 +52,19 @@ void ParseCommits(const string& commits_string) {
 						"tree").get_obj(),
 				 "sha").get_str();
     cout << "hash: " << hash << endl;
+    return hash;
+    // TODO Return the matching tree hash for revision instead of
+    // returning the first.
   }
+  return "";
 }
 
-void ParseTrees(const string& trees_string) {
+void ParseTrees(const string& trees_string, function<void(const string& path,
+							  int mode,
+							  const GitFileType fstype,
+							  const string& sha,
+							  const int size,
+							  const string& url)> file_handler) {
   // Try parsing github api v3 trees output.
   Value value;
   json_spirit::read(trees_string, value);
@@ -67,60 +78,62 @@ void ParseTrees(const string& trees_string) {
 	// "sha": "0eca3e92941236b77ad23a02dc0c000cd0da7a18",
 	// "size": 46,
 	// "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/0eca3e92941236b77ad23a02dc0c000cd0da7a18"
+
+	// TODO: this is not the most efficient way to parse this
+	// structure.
 	map<string, const Value*> file_property;
 	for (const auto& property : file.get_obj()) {
 	  file_property[property.name_] = &property.value_;
 	}
-	cout << file_property["path"]->get_str() << " "
-	     << file_property["mode"]->get_str() << " "
-	     << file_property["type"]->get_str() << " "
-	     << file_property["sha"]->get_str() << endl;
+	size_t file_size = 0;
 	if (file_property["type"]->get_str() == "blob") {
-	  cout << "size: " << file_property["size"]->get_int() << endl;
+	  file_size = file_property["size"]->get_int();
 	}
+	GitFileType fstype = FileTypeStringToFileType(file_property["type"]->get_str());
+	file_handler(file_property["path"]->get_str(),
+		     strtol(file_property["mode"]->get_str().c_str(), NULL, 8),
+		     fstype,
+		     file_property["sha"]->get_str(),
+		     file_size, 
+		     file_property["url"]->get_str());
       }
       break;
     }
   }
 }
 
-GitTree::GitTree(const char* hash, const string& gitdir)
-  : gitdir_(gitdir), hash_(hash), fullpath_to_files_(), root_() {
+// github_api_prefix such as "https://api.github.com/repos/dancerj/gitlstreefs"
+GitTree::GitTree(const char* hash, const char* github_api_prefix)
+  : hash_(hash), github_api_prefix_(github_api_prefix),
+    fullpath_to_files_(), root_() {
   root_.reset(new FileElement(this, S_IFDIR, TYPE_tree,
 			      "TODO", 0));
-  LoadDirectory(&(root_->files_), "");
+  // TODO respect the commit hash.
+  string commits = PopenAndReadOrDie(string("curl ") + github_api_prefix_ + "/commits");
+  const string tree_hash = ParseCommits(commits);
+
+  LoadDirectory(&(root_->files_), "", tree_hash);
   fullpath_to_files_[""] = root_.get();
 }
 
 void GitTree::LoadDirectory(FileElement::FileElementMap* files,
-			    const string& subdir) {
-  string git_ls_tree = PopenAndReadOrDie(string("git ls-tree -l ") +
-					 hash_ + " " + subdir) ;
-  vector<string> lines;
-
-  boost::algorithm::split(lines, git_ls_tree,
-			  boost::is_any_of("\n"));
-  for (const auto& line : lines)  {
-    vector<string> elements;
-    boost::algorithm::split(elements, line,
-			    boost::is_any_of(" \t"),
-			    boost::algorithm::token_compress_on);
-    if (elements.size() == 5) {
-      GitFileType fstype = FileTypeStringToFileType(elements[1]);
-      const string& file_path = elements[4];
-      string basename = BaseName(file_path);
-      FileElement* fe = new FileElement(this, 
-					strtol(elements[0].c_str(), NULL, 8),
-					fstype,
-					elements[2],
-					atoi(elements[3].c_str()));
-      (*files)[basename].reset(fe);
-      fullpath_to_files_[file_path] = fe;
-      if (fstype == TYPE_tree) {
-	LoadDirectory(&fe->files_, elements[4] + "/");
-      }
-    }
-  }
+			    const string& subdir, const string& tree_hash) {
+  cout << "Loading directory " << subdir << endl;
+  string github_tree = PopenAndReadOrDie(string("curl ") + github_api_prefix_ + "/git/trees/" + tree_hash);
+  ParseTrees(github_tree,
+	     [&](const string& name,
+		 int mode,
+		 const GitFileType fstype,
+		 const string& sha,
+		 const int size,
+		 const string& url){
+	       FileElement* fe = new FileElement(this, mode, fstype, sha, size);
+	       (*files)[name].reset(fe);
+	       fullpath_to_files_[subdir + name] = fe;
+	       if (fstype == TYPE_tree) {
+		 LoadDirectory(&fe->files_, subdir + name + "/", sha);
+	       }
+	     });
 }
 
 // Convert from Git attributes to filesystem attributes.
@@ -189,10 +202,9 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   {
     unique_lock<mutex> l(buf_mutex_);
     if (!buf_.get()) {
-      buf_.reset(new string(PopenAndReadOrDie(string("cd ") +
-					      parent_->gitdir() +
-					      " && git cat-file blob " +
-					      sha1_)));
+      const string& url = parent_->get_github_api_prefix() +
+	"/git/blobs/" + sha1_;
+      buf_.reset(new string(PopenAndReadOrDie(string("curl ") + url)));
     }
   }
   if (offset < static_cast<off_t>(buf_->size())) {

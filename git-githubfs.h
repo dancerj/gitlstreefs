@@ -6,9 +6,6 @@
 
 namespace githubfs {
 
-void ParseTrees(const std::string& trees_string);
-void ParseCommits(const std::string& commits_string);
-
 class GitTree;
 
 enum GitFileType {
@@ -16,6 +13,16 @@ enum GitFileType {
   TYPE_tree = 2,
   TYPE_commit = 3
 };
+
+void ParseTrees(const std::string& trees_string, std::function<void(const std::string& path,
+								    int mode,
+								    const GitFileType type,
+								    const std::string& sha,
+								    const int size,
+								    const std::string& url)> file_handler);
+
+// Parse github commits list and return the tree hash.
+std::string ParseCommits(const std::string& commits_string);
 
 struct FileElement {
 public:
@@ -54,8 +61,9 @@ GitFileType FileTypeStringToFileType(const std::string& file_type_string);
 
 class GitTree {
 public:
-  GitTree(const char* hash, const std::string& gitdir);
+  GitTree(const char* hash, const char* github_api_prefix);
   FileElement* const get(const std::string& fullpath) const {
+    assert(fullpath[0] != '/');
     auto it = fullpath_to_files_.find(fullpath);
     if (it != fullpath_to_files_.end()) {
       return it->second;
@@ -69,14 +77,15 @@ public:
    */
   int Getattr(const std::string& fullpath, struct stat *stbuf) const;
   void dump() const;
-  const std::string& gitdir() const { return gitdir_; }
+
+  const std::string& get_github_api_prefix() const {
+    return github_api_prefix_;
+  }
 private:
-  // Directory for git directory. Needed because fuse chdir to / on
-  // becoming a daemon.
-  const std::string gitdir_;
   const std::string hash_;
+  const std::string github_api_prefix_;
   void LoadDirectory(FileElement::FileElementMap* files,
-		     const std::string& subdir);
+		     const std::string& subdir, const std::string& tree_hash);
   // Full path without starting /
   std::unordered_map<std::string,
 		     FileElement*> fullpath_to_files_;

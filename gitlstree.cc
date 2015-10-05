@@ -44,6 +44,7 @@ GitTree::GitTree(const char* hash, const string& gitdir)
 
 void GitTree::LoadDirectory(FileElement::FileElementMap* files,
 			    const string& subdir) {
+  cout << "Loading directory " << subdir << endl;
   string git_ls_tree = PopenAndReadOrDie(string("git ls-tree -l ") +
 					 hash_ + " " + subdir) ;
   vector<string> lines;
