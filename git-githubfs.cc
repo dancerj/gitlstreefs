@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string>
 #include <sys/stat.h>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -29,6 +30,7 @@ using std::unique_lock;
 using std::unique_ptr;
 using std::unordered_map;
 using std::vector;
+using std::thread;
 
 namespace githubfs {
 
@@ -155,6 +157,7 @@ GitTree::GitTree(const char* hash, const char* github_api_prefix)
 void GitTree::LoadDirectory(FileElement::FileElementMap* files,
 			    const string& subdir, const string& tree_hash) {
   cout << "Loading directory " << subdir << endl;
+  vector<thread> jobs;
   string github_tree = HttpFetch(github_api_prefix_ + "/git/trees/" + tree_hash);
   ParseTrees(github_tree,
 	     [&](const string& name,
@@ -164,12 +167,18 @@ void GitTree::LoadDirectory(FileElement::FileElementMap* files,
 		 const int size,
 		 const string& url){
 	       FileElement* fe = new FileElement(this, mode, fstype, sha, size);
-	       (*files)[name].reset(fe);
-	       fullpath_to_files_[subdir + name] = fe;
+	       {
+		 unique_lock<mutex> l(path_mutex_);
+		 (*files)[name].reset(fe);
+		 fullpath_to_files_[subdir + name] = fe;
+	       }
 	       if (fstype == TYPE_tree) {
-		 LoadDirectory(&fe->files_, subdir + name + "/", sha);
+		 jobs.emplace_back(thread([this, fe, subdir, name, sha](){
+		       LoadDirectory(&fe->files_, subdir + name + "/", sha);
+		     }));
 	       }
 	     });
+  for (auto& job : jobs) { job.join(); }
 }
 
 // Convert from Git attributes to filesystem attributes.

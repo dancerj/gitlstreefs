@@ -98,6 +98,8 @@ private:
   // Full path without starting /
   std::unordered_map<std::string,
 		     FileElement*> fullpath_to_files_;
+  std::mutex path_mutex_{};
+
   std::unique_ptr<FileElement> root_;
 };
 
