@@ -51,7 +51,7 @@ const Value& GetObjectField(const string& name,
 }
 
 string ParseCommits(const string& commits_string) {
-  // Try parsing github api v3 trees output.
+  // Try parsing github api v3 commits output.
   Value commits;
   json_spirit::read(commits_string, commits);
   for (const auto& commit : commits.get_array()) {
@@ -63,10 +63,22 @@ string ParseCommits(const string& commits_string) {
 				 .get_obj()).get_str();
     cout << "hash: " << hash << endl;
     return hash;
-    // TODO Return the matching tree hash for revision instead of
-    // returning the first.
   }
   return "";
+}
+
+string ParseCommit(const string& commit_string) {
+  // Try parsing github api v3 commit output.
+  Value commit;
+  json_spirit::read(commit_string, commit);
+  string hash = GetObjectField("sha",
+			       GetObjectField("tree",
+					      GetObjectField("commit",
+							     commit.get_obj())
+					      .get_obj())
+			       .get_obj()).get_str();
+  cout << "hash: " << hash << endl;
+  return hash;
 }
 
 string base64_decode(string base64) {
@@ -133,9 +145,8 @@ GitTree::GitTree(const char* hash, const char* github_api_prefix)
     fullpath_to_files_(), root_() {
   root_.reset(new FileElement(this, S_IFDIR, TYPE_tree,
 			      "TODO", 0));
-  // TODO respect the commit hash.
-  string commits = HttpFetch(github_api_prefix_ + "/commits");
-  const string tree_hash = ParseCommits(commits);
+  string commit = HttpFetch(github_api_prefix_ + "/commits/" + hash);
+  const string tree_hash = ParseCommit(commit);
 
   LoadDirectory(&(root_->files_), "", tree_hash);
   fullpath_to_files_[""] = root_.get();

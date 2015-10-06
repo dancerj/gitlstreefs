@@ -11,6 +11,7 @@
 using githubfs::GitFileType;
 using githubfs::ParseBlob;
 using githubfs::ParseCommits;
+using githubfs::ParseCommit;
 using githubfs::ParseTrees;
 using json_spirit::Value;
 using std::cout;
@@ -21,10 +22,12 @@ using std::unique_ptr;
 void ParserTest() {
   // 1000 runs takes 1 second, mostly inside json_spirit.
   string commits(ReadFromFileOrDie("testdata/commits.json"));
+  string commit(ReadFromFileOrDie("testdata/commit.json"));
   string trees(ReadFromFileOrDie("testdata/trees.json"));
   string blob(ReadFromFileOrDie("testdata/blob.json"));
 
   ParseCommits(commits);
+  ParseCommit(commit);
   ParseTrees(trees, [](const string& path,
 		       int mode,
 		       const GitFileType fstype,

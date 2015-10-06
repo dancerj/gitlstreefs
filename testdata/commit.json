@@ -1,0 +1,89 @@
+{
+  "sha": "d2e5b8a372396b33cf398ca6f80d29162985b950",
+  "commit": {
+    "author": {
+      "name": "Junichi Uekawa",
+      "email": "dancer@netfort.gr.jp",
+      "date": "2015-10-06T08:26:31Z"
+    },
+    "committer": {
+      "name": "Junichi Uekawa",
+      "email": "dancer@netfort.gr.jp",
+      "date": "2015-10-06T08:26:31Z"
+    },
+    "message": "add curl to list.",
+    "tree": {
+      "sha": "6f1fa3c1d8eafe3cab863d19edec69b45c4bbaca",
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/trees/6f1fa3c1d8eafe3cab863d19edec69b45c4bbaca"
+    },
+    "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/commits/d2e5b8a372396b33cf398ca6f80d29162985b950",
+    "comment_count": 0
+  },
+  "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/d2e5b8a372396b33cf398ca6f80d29162985b950",
+  "html_url": "https://github.com/dancerj/gitlstreefs/commit/d2e5b8a372396b33cf398ca6f80d29162985b950",
+  "comments_url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/d2e5b8a372396b33cf398ca6f80d29162985b950/comments",
+  "author": {
+    "login": "dancerj",
+    "id": 1283369,
+    "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/dancerj",
+    "html_url": "https://github.com/dancerj",
+    "followers_url": "https://api.github.com/users/dancerj/followers",
+    "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+    "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+    "organizations_url": "https://api.github.com/users/dancerj/orgs",
+    "repos_url": "https://api.github.com/users/dancerj/repos",
+    "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/dancerj/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "dancerj",
+    "id": 1283369,
+    "avatar_url": "https://avatars.githubusercontent.com/u/1283369?v=3",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/dancerj",
+    "html_url": "https://github.com/dancerj",
+    "followers_url": "https://api.github.com/users/dancerj/followers",
+    "following_url": "https://api.github.com/users/dancerj/following{/other_user}",
+    "gists_url": "https://api.github.com/users/dancerj/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/dancerj/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/dancerj/subscriptions",
+    "organizations_url": "https://api.github.com/users/dancerj/orgs",
+    "repos_url": "https://api.github.com/users/dancerj/repos",
+    "events_url": "https://api.github.com/users/dancerj/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/dancerj/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "d913266ca07f77700ac8206786d2372dc77f0631",
+      "url": "https://api.github.com/repos/dancerj/gitlstreefs/commits/d913266ca07f77700ac8206786d2372dc77f0631",
+      "html_url": "https://github.com/dancerj/gitlstreefs/commit/d913266ca07f77700ac8206786d2372dc77f0631"
+    }
+  ],
+  "stats": {
+    "total": 2,
+    "additions": 1,
+    "deletions": 1
+  },
+  "files": [
+    {
+      "sha": "481f01587087ae8e16ce7c1a95e907403a564ddf",
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/dancerj/gitlstreefs/blob/d2e5b8a372396b33cf398ca6f80d29162985b950/README.md",
+      "raw_url": "https://github.com/dancerj/gitlstreefs/raw/d2e5b8a372396b33cf398ca6f80d29162985b950/README.md",
+      "contents_url": "https://api.github.com/repos/dancerj/gitlstreefs/contents/README.md?ref=d2e5b8a372396b33cf398ca6f80d29162985b950",
+      "patch": "@@ -7,7 +7,7 @@ FUSE, that works with git and help building.\n Requires libboost-dev, libfuse, libgit2 and zlib as build time library\n dependencies. The build system depends on nodejs and ninja.\n \n-    # apt-get install zlib-dev libfuse-dev libgit2-dev nodejs ninja-build libboost-dev libjson-sprit-dev\n+    # apt-get install zlib-dev libfuse-dev libgit2-dev nodejs ninja-build libboost-dev libjson-sprit-dev curl\n \n     $ ./configure.js\n     $ ninja"
+    }
+  ]
+}

@@ -14,6 +14,8 @@ enum GitFileType {
   TYPE_commit = 3
 };
 
+// Github api v3 response parsers.
+// Parse tree content.
 void ParseTrees(const std::string& trees_string, std::function<void(const std::string& path,
 								    int mode,
 								    const GitFileType type,
@@ -22,8 +24,14 @@ void ParseTrees(const std::string& trees_string, std::function<void(const std::s
 								    const std::string& url)> file_handler);
 
 // Parse github commits list and return the tree hash.
+// for /commits endpoint.
 std::string ParseCommits(const std::string& commits_string);
+// for /commits/hash endpoint.
+std::string ParseCommit(const std::string& commit_string);
+
+// Parse blob.
 std::string ParseBlob(const std::string& blob_string);
+
 
 struct FileElement {
 public:
