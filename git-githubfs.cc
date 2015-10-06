@@ -32,6 +32,14 @@ using std::vector;
 
 namespace githubfs {
 
+namespace {
+string HttpFetch(const string& url) {
+  static const string request_prefix = "curl -A 'git-githubfs(https://github.com/dancerj/gitlstreefs)' ";
+
+  return PopenAndReadOrDie(request_prefix + url);
+}
+} // anonymous
+
 const Value& GetObjectField(const string& name,
 			    const json_spirit::Object& object) {
   auto it = std::find_if(object.begin(), object.end(),
@@ -126,7 +134,7 @@ GitTree::GitTree(const char* hash, const char* github_api_prefix)
   root_.reset(new FileElement(this, S_IFDIR, TYPE_tree,
 			      "TODO", 0));
   // TODO respect the commit hash.
-  string commits = PopenAndReadOrDie(string("curl ") + github_api_prefix_ + "/commits");
+  string commits = HttpFetch(github_api_prefix_ + "/commits");
   const string tree_hash = ParseCommits(commits);
 
   LoadDirectory(&(root_->files_), "", tree_hash);
@@ -136,7 +144,7 @@ GitTree::GitTree(const char* hash, const char* github_api_prefix)
 void GitTree::LoadDirectory(FileElement::FileElementMap* files,
 			    const string& subdir, const string& tree_hash) {
   cout << "Loading directory " << subdir << endl;
-  string github_tree = PopenAndReadOrDie(string("curl ") + github_api_prefix_ + "/git/trees/" + tree_hash);
+  string github_tree = HttpFetch(github_api_prefix_ + "/git/trees/" + tree_hash);
   ParseTrees(github_tree,
 	     [&](const string& name,
 		 int mode,
@@ -221,7 +229,7 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
     if (!buf_.get()) {
       const string& url = parent_->get_github_api_prefix() +
 	"/git/blobs/" + sha1_;
-      string blob_string = PopenAndReadOrDie(string("curl ") + url);
+      string blob_string = HttpFetch(url);
       buf_.reset(new string(ParseBlob(blob_string)));
     }
   }
