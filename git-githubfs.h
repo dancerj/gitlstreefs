@@ -23,6 +23,7 @@ void ParseTrees(const std::string& trees_string, std::function<void(const std::s
 
 // Parse github commits list and return the tree hash.
 std::string ParseCommits(const std::string& commits_string);
+std::string ParseBlob(const std::string& blob_string);
 
 struct FileElement {
 public:

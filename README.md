@@ -34,6 +34,16 @@ execution and mounts to the directory given as the first parameter.
     $ ./out/gitlstree mountpoint
     $ fusermount -u mountpoint
 
+# git file system using github REST API #
+
+git-githubfs -- mounts a filesystem based on github repository. Uses
+github rest API v3.
+
+	$ ./out/git-githubfs --user=dancerj --project=gitlstreefs mountpoint/
+	$ ls mountpoint/
+	$ cat mountpoint/README.md
+    $ fusermount -u mountpoint
+
 # ninja file system #
 
 ninjafs -- a filesystem that lists ninja build targets, and builds on demand.

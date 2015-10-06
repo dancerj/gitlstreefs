@@ -10,11 +10,11 @@
 #include <map>
 #include <memory>
 #include <stdio.h>
+#include <string>
 #include <sys/stat.h>
 #include <unordered_map>
 #include <vector>
 
-#include "basename.h"
 #include "git-githubfs.h"
 #include "strutil.h"
 
@@ -32,8 +32,8 @@ using std::vector;
 
 namespace githubfs {
 
-const Value& GetObjectField(const json_spirit::Object& object,
-			    const string& name) {
+const Value& GetObjectField(const string& name,
+			    const json_spirit::Object& object) {
   auto it = std::find_if(object.begin(), object.end(),
 			 [&name](const json_spirit::Pair& a) -> bool{
 			   return a.name_ == name;
@@ -47,16 +47,33 @@ string ParseCommits(const string& commits_string) {
   Value commits;
   json_spirit::read(commits_string, commits);
   for (const auto& commit : commits.get_array()) {
-    string hash = GetObjectField(GetObjectField(GetObjectField(commit.get_obj(),
-							       "commit").get_obj(),
-						"tree").get_obj(),
-				 "sha").get_str();
+    string hash = GetObjectField("sha",
+				 GetObjectField("tree",
+						GetObjectField("commit",
+							       commit.get_obj())
+						.get_obj())
+				 .get_obj()).get_str();
     cout << "hash: " << hash << endl;
     return hash;
     // TODO Return the matching tree hash for revision instead of
     // returning the first.
   }
   return "";
+}
+
+string base64_decode(string base64) {
+  // TODO there must be a better way to do this.
+  return PopenAndReadOrDie(string("echo '") + base64 + "' | base64 -d ");
+}
+
+string ParseBlob(const string& blob_string) {
+  // Try parsing github api v3 blob output.
+  Value blob;
+  json_spirit::read(blob_string, blob);
+  assert(GetObjectField("encoding", blob.get_obj()).get_str() == "base64");
+  json_spirit::Object& o = blob.get_obj();
+  string base64 = GetObjectField("content", blob.get_obj()).get_str();
+  return base64_decode(base64);
 }
 
 void ParseTrees(const string& trees_string, function<void(const string& path,
@@ -204,7 +221,8 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
     if (!buf_.get()) {
       const string& url = parent_->get_github_api_prefix() +
 	"/git/blobs/" + sha1_;
-      buf_.reset(new string(PopenAndReadOrDie(string("curl ") + url)));
+      string blob_string = PopenAndReadOrDie(string("curl ") + url);
+      buf_.reset(new string(ParseBlob(blob_string)));
     }
   }
   if (offset < static_cast<off_t>(buf_->size())) {

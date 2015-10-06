@@ -77,7 +77,9 @@ CompileLinkRunTest('libgit2test', ['libgit2test', 'gitxx'])
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
 CompileLink('hello_fuseflags', ['hello_fuseflags'])
 CompileLinkRunTest('git-githubfs_test', ['git-githubfs_test', 'git-githubfs',
-					 'basename',
 					 'strutil'], {
+    extra_objects: ['/usr/lib/libjson_spirit.a']})
+CompileLink('git-githubfs', ['git-githubfs_fusemain', 'git-githubfs',
+			     'strutil'], {
     extra_objects: ['/usr/lib/libjson_spirit.a']})
 Emit()

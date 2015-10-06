@@ -9,6 +9,7 @@
 #include "strutil.h"
 
 using githubfs::GitFileType;
+using githubfs::ParseBlob;
 using githubfs::ParseCommits;
 using githubfs::ParseTrees;
 using json_spirit::Value;
@@ -21,6 +22,7 @@ void ParserTest() {
   // 1000 runs takes 1 second, mostly inside json_spirit.
   string commits(ReadFromFileOrDie("testdata/commits.json"));
   string trees(ReadFromFileOrDie("testdata/trees.json"));
+  string blob(ReadFromFileOrDie("testdata/blob.json"));
 
   ParseCommits(commits);
   ParseTrees(trees, [](const string& path,
@@ -31,6 +33,8 @@ void ParserTest() {
 		       const string& url){
 	       cout << path << " " << mode << " " << fstype << " " << sha << " " << size << " " << url << endl;
 	     });
+  string ret = ParseBlob(blob);
+  cout << "blob content: " << ret << endl;
 }
 
 void TryReadFileTest(githubfs::GitTree* fs, const string& name) {
@@ -73,9 +77,9 @@ void ScenarioTest() {
 
 int main(int argc, char** argv) {
   ParserTest();
-  int iter = argv[1]?atoi(argv[1]):1;
+  int iter = argv[1]?atoi(argv[1]):0;
   for (int i = 0; i < iter; ++i) {
-    // TODO: This uses up quota, not a very good idea.
-    // ScenarioTest();
+    // TODO: This uses up quota, so don't run by default.
+    ScenarioTest();
   }
 }
