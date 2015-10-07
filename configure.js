@@ -68,18 +68,21 @@ CompileLink('gitfs', ['gitfs', 'gitfs_fusemain', 'strutil',
 CompileLinkRunTest('gitfs_test', ['gitfs', 'gitfs_test', 'strutil',
 				  'get_current_dir', 'gitxx', 'basename'])
 CompileLinkRunTest('gitlstree_test', ['gitlstree', 'gitlstree_test', 'strutil',
-				      'get_current_dir', 'basename'])
+				      'get_current_dir', 'basename',
+				      'concurrency_limit'])
 CompileLink('gitlstree', ['gitlstree', 'gitlstree_fusemain', 'strutil',
-			  'get_current_dir', 'basename'])
+			  'get_current_dir', 'basename', 'concurrency_limit'])
 CompileLink('ninjafs', ['ninjafs', 'strutil', 'get_current_dir'])
 CompileLink('hello_world', ['hello_world'])
 CompileLinkRunTest('libgit2test', ['libgit2test', 'gitxx'])
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
 CompileLink('hello_fuseflags', ['hello_fuseflags'])
 CompileLinkRunTest('git-githubfs_test', ['git-githubfs_test', 'git-githubfs',
-					 'strutil'], {
+					 'strutil', 'concurrency_limit'], {
     extra_objects: ['/usr/lib/libjson_spirit.a']})
 CompileLink('git-githubfs', ['git-githubfs_fusemain', 'git-githubfs',
-			     'strutil'], {
+			     'strutil', 'concurrency_limit'], {
     extra_objects: ['/usr/lib/libjson_spirit.a']})
+CompileLinkRunTest('concurrency_limit_test', ['concurrency_limit_test',
+					      'concurrency_limit']);
 Emit()

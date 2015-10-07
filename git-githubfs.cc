@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "concurrency_limit.h"
 #include "git-githubfs.h"
 #include "strutil.h"
 
@@ -36,6 +37,7 @@ namespace githubfs {
 
 namespace {
 string HttpFetch(const string& url) {
+  ScopedConcurrencyLimit l;
   static const string request_prefix = "curl -A 'git-githubfs(https://github.com/dancerj/gitlstreefs)' ";
 
   return PopenAndReadOrDie(request_prefix + url);
@@ -156,9 +158,9 @@ GitTree::GitTree(const char* hash, const char* github_api_prefix)
 
 void GitTree::LoadDirectory(FileElement::FileElementMap* files,
 			    const string& subdir, const string& tree_hash) {
-  cout << "Loading directory " << subdir << endl;
   vector<thread> jobs;
   string github_tree = HttpFetch(github_api_prefix_ + "/git/trees/" + tree_hash);
+  cout << "Loaded directory " << subdir << endl;
   ParseTrees(github_tree,
 	     [&](const string& name,
 		 int mode,

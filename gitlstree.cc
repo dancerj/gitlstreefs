@@ -23,6 +23,7 @@ mount-able filesystem.
 #include "basename.h"
 #include "gitlstree.h"
 #include "strutil.h"
+#include "concurrency_limit.h"
 
 using std::cout;
 using std::endl;
@@ -48,6 +49,7 @@ GitTree::GitTree(const char* hash, const char* ssh, const string& gitdir)
 // Maybe run remote command if ssh spec is available.
 string GitTree::RunGitCommand(const string& command) const {
   if (!ssh_.empty()) {
+    ScopedConcurrencyLimit l;
     return PopenAndReadOrDie(string("ssh ") + ssh_ + " 'cd " + gitdir_ + " && "
 			     + command + "'");
   } else {
@@ -58,9 +60,9 @@ string GitTree::RunGitCommand(const string& command) const {
 
 void GitTree::LoadDirectory(FileElement::FileElementMap* files,
 			    const string& subdir) {
-  cout << "Loading directory " << subdir << endl;
   string git_ls_tree = RunGitCommand(string("git ls-tree -l ") +
 				     hash_ + " " + subdir);
+  cout << "Loaded directory " << subdir << endl;
   vector<string> lines;
   vector<thread> jobs;
 
