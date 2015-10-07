@@ -102,7 +102,6 @@ int main(int argc, char *argv[]) {
   o.open = &githubfs::fs_open;
   o.read = &githubfs::fs_read;
 
-
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   githubfs_config conf{};
   fuse_opt_parse(&args, &conf, githubfs_opts, NULL);

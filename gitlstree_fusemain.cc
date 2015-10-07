@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <fuse.h>
 #include <memory>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -72,14 +73,41 @@ static int fs_read(const char *path, char *buf, size_t size, off_t offset,
 }
 }  // namespace gitlstree
 
+struct gitlstree_config {
+  char* ssh{nullptr};
+  char* path{nullptr};
+  char* revision{nullptr};
+};
+
+#define MYFS_OPT(t, p, v) { t, offsetof(gitlstree_config, p), v }
+
+static struct fuse_opt gitlstree_opts[] = {
+  MYFS_OPT("--ssh=%s", ssh, 0),
+  MYFS_OPT("--path=%s", path, 0),
+  MYFS_OPT("--revision=%s", revision, 0),
+  FUSE_OPT_END
+};
 
 int main(int argc, char *argv[]) {
-  gitlstree::fs.reset(new gitlstree::GitTree("HEAD", GetCurrentDir()));
 
   struct fuse_operations o = {};
   o.getattr = &gitlstree::fs_getattr;
   o.readdir = &gitlstree::fs_readdir;
   o.open = &gitlstree::fs_open;
   o.read = &gitlstree::fs_read;
-  return fuse_main(argc, argv, &o, NULL);
+
+  fuse_args args = FUSE_ARGS_INIT(argc, argv);
+  gitlstree_config conf{};
+  fuse_opt_parse(&args, &conf, gitlstree_opts, NULL);
+
+  string revision(conf.revision?conf.revision:"HEAD");
+  string path(conf.path?conf.path:GetCurrentDir());
+
+  gitlstree::fs.reset(new gitlstree::GitTree(revision.c_str(),
+					     conf.ssh,
+					     path));
+
+  int ret = fuse_main(args.argc, args.argv, &o, NULL);
+  fuse_opt_free_args(&args);
+  return ret;
 }

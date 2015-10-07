@@ -23,7 +23,7 @@ execution and mounts to the directory given as the first parameter.
     $ ./out/gitfs mountpoint
     $ fusermount -u mountpoint
 
-# git file system using git ls-tree #
+# git file system using git ls-tree, optionally via ssh #
 
 gitlstree -- mounts a filesystem based on directory and hash, to
 mountpoint.  uses git ls-tree as backend.
@@ -32,6 +32,12 @@ Takes the git reposiotory from the current working directory as of
 execution and mounts to the directory given as the first parameter.
 
     $ ./out/gitlstree mountpoint
+    $ fusermount -u mountpoint
+
+To mount a remote repo via ssh connection, using `ssh SERVER 'cd PATH
+&& git ls-tree'`:
+
+    $ ./out/gitlstree --ssh=server --path=repos/some.git mountpoint/
     $ fusermount -u mountpoint
 
 # git file system using github REST API #

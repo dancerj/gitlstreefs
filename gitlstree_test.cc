@@ -27,7 +27,7 @@ void TryReadFileTest(gitlstree::GitTree* fs, const string& name) {
 }
 
 void ScenarioTest() {
-  unique_ptr<gitlstree::GitTree> fs(new gitlstree::GitTree("HEAD", GetCurrentDir()));
+  unique_ptr<gitlstree::GitTree> fs(new gitlstree::GitTree("HEAD", nullptr, GetCurrentDir()));
   fs->dump();
 
   assert(fs->get("dummytestdirectory/README") != nullptr);

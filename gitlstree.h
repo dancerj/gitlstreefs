@@ -51,7 +51,7 @@ GitFileType FileTypeStringToFileType(const std::string& file_type_string);
 
 class GitTree {
 public:
-  GitTree(const char* hash, const std::string& gitdir);
+  GitTree(const char* hash, const char* ssh, const std::string& gitdir);
   FileElement* const get(const std::string& fullpath) const {
     auto it = fullpath_to_files_.find(fullpath);
     if (it != fullpath_to_files_.end()) {
@@ -67,17 +67,22 @@ public:
   int Getattr(const std::string& fullpath, struct stat *stbuf) const;
   void dump() const;
   const std::string& gitdir() const { return gitdir_; }
+
+  std::string RunGitCommand(const std::string& command) const;
 private:
   // Directory for git directory. Needed because fuse chdir to / on
   // becoming a daemon.
   const std::string gitdir_;
   const std::string hash_;
+  const std::string ssh_;
+
   void LoadDirectory(FileElement::FileElementMap* files,
 		     const std::string& subdir);
   // Full path without starting /
   std::unordered_map<std::string,
 		     FileElement*> fullpath_to_files_;
   std::unique_ptr<FileElement> root_;
+  std::mutex path_mutex_{};
 };
 
 } // namespace gitlstree

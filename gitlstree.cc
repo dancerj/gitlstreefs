@@ -16,6 +16,7 @@ mount-able filesystem.
 #include <memory>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -27,6 +28,7 @@ using std::cout;
 using std::endl;
 using std::mutex;
 using std::string;
+using std::thread;
 using std::unique_lock;
 using std::unique_ptr;
 using std::unordered_map;
@@ -34,20 +36,33 @@ using std::vector;
 
 namespace gitlstree {
 
-GitTree::GitTree(const char* hash, const string& gitdir)
-  : gitdir_(gitdir), hash_(hash), fullpath_to_files_(), root_() {
+GitTree::GitTree(const char* hash, const char* ssh, const string& gitdir)
+  : gitdir_(gitdir), hash_(hash), ssh_(ssh?ssh:""),
+    fullpath_to_files_(), root_() {
   root_.reset(new FileElement(this, S_IFDIR, TYPE_tree,
 			      "TODO", 0));
   LoadDirectory(&(root_->files_), "");
   fullpath_to_files_[""] = root_.get();
 }
 
+// Maybe run remote command if ssh spec is available.
+string GitTree::RunGitCommand(const string& command) const {
+  if (!ssh_.empty()) {
+    return PopenAndReadOrDie(string("ssh ") + ssh_ + " 'cd " + gitdir_ + " && "
+			     + command + "'");
+  } else {
+    return PopenAndReadOrDie("cd " + gitdir_ + " && "
+			     + command);
+  }
+}
+
 void GitTree::LoadDirectory(FileElement::FileElementMap* files,
 			    const string& subdir) {
   cout << "Loading directory " << subdir << endl;
-  string git_ls_tree = PopenAndReadOrDie(string("git ls-tree -l ") +
-					 hash_ + " " + subdir) ;
+  string git_ls_tree = RunGitCommand(string("git ls-tree -l ") +
+				     hash_ + " " + subdir);
   vector<string> lines;
+  vector<thread> jobs;
 
   boost::algorithm::split(lines, git_ls_tree,
 			  boost::is_any_of("\n"));
@@ -65,13 +80,20 @@ void GitTree::LoadDirectory(FileElement::FileElementMap* files,
 					fstype,
 					elements[2],
 					atoi(elements[3].c_str()));
-      (*files)[basename].reset(fe);
-      fullpath_to_files_[file_path] = fe;
+      {
+	unique_lock<mutex> l(path_mutex_);
+	(*files)[basename].reset(fe);
+	fullpath_to_files_[file_path] = fe;
+      }
       if (fstype == TYPE_tree) {
-	LoadDirectory(&fe->files_, elements[4] + "/");
+	string subdir = elements[4] + "/";
+	jobs.emplace_back(thread([this, fe, subdir](){
+	      LoadDirectory(&fe->files_, subdir);
+	    }));
       }
     }
   }
+  for (auto& job : jobs) { job.join(); }
 }
 
 // Convert from Git attributes to filesystem attributes.
@@ -140,10 +162,7 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   {
     unique_lock<mutex> l(buf_mutex_);
     if (!buf_.get()) {
-      buf_.reset(new string(PopenAndReadOrDie(string("cd ") +
-					      parent_->gitdir() +
-					      " && git cat-file blob " +
-					      sha1_)));
+      buf_.reset(new string(parent_->RunGitCommand("git cat-file blob " + sha1_)));
     }
   }
   if (offset < static_cast<off_t>(buf_->size())) {
