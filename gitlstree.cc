@@ -49,7 +49,7 @@ GitTree::GitTree(const char* hash, const char* ssh, const string& gitdir)
 // Maybe run remote command if ssh spec is available.
 string GitTree::RunGitCommand(const string& command) const {
   if (!ssh_.empty()) {
-    ScopedConcurrencyLimit l;
+    ScopedConcurrencyLimit l(command);
     return PopenAndReadOrDie(string("ssh ") + ssh_ + " 'cd " + gitdir_ + " && "
 			     + command + "'");
   } else {

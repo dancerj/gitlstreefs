@@ -1,13 +1,16 @@
 #include <condition_variable>
 #include <mutex>
+#include <set>
 
 class ScopedConcurrencyLimit {
 public:
-  ScopedConcurrencyLimit(); 
+  ScopedConcurrencyLimit(const std::string& message);
   ~ScopedConcurrencyLimit();
 private:
+  void DumpStatus();
   static constexpr size_t kLimit{6};
-  static size_t jobs_;
+  std::string message_;
   static std::mutex m_;
   static std::condition_variable cv_;
+  static std::set<const std::string*> messages_;
 };

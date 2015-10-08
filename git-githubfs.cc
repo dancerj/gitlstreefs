@@ -37,7 +37,7 @@ namespace githubfs {
 
 namespace {
 string HttpFetch(const string& url) {
-  ScopedConcurrencyLimit l;
+  ScopedConcurrencyLimit l(url);
   static const string request_prefix = "curl -A 'git-githubfs(https://github.com/dancerj/gitlstreefs)' ";
 
   return PopenAndReadOrDie(request_prefix + url);

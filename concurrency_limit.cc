@@ -1,29 +1,46 @@
 #include <condition_variable>
+#include <iostream>
 #include <mutex>
 
 #include "concurrency_limit.h"
-
 using std::unique_lock;
 using std::mutex;
 using std::condition_variable;
+using std::string;
+using std::set;
+using std::cout;
 
-ScopedConcurrencyLimit::ScopedConcurrencyLimit() {
+void ScopedConcurrencyLimit::DumpStatus() {
+  // TODO: assert lock is held.
+  string output;
+  for (const string* message : messages_) {
+    output += *message + " ";
+  }
+  output += "                                      ";
+  cout << output.substr(0, 79) << "\r" << std::flush;
+}
+
+ScopedConcurrencyLimit::ScopedConcurrencyLimit(const string& message) :
+  message_(message) {
   unique_lock<mutex> l(m_);
-  if (jobs_ > kLimit) {
+  if (messages_.size() > kLimit) {
+    DumpStatus();
     cv_.wait(l, []{
-	return jobs_ <= kLimit;
+	return messages_.size() <= kLimit;
       });
   }
-  jobs_++;
+  messages_.insert(&message_);
 }
+
 ScopedConcurrencyLimit::~ScopedConcurrencyLimit() {
   {
     unique_lock<mutex> l(m_);
-    jobs_--;
+    messages_.erase(&message_);
+    DumpStatus();
   }
   cv_.notify_one();
 }
 
-size_t ScopedConcurrencyLimit::jobs_{0};
 mutex ScopedConcurrencyLimit::m_{};
 condition_variable ScopedConcurrencyLimit::cv_{};
+set<const string*> ScopedConcurrencyLimit::messages_{};
