@@ -5,7 +5,7 @@ var filename = "build.ninja";
 var outdir = "out/";
 
 var data = [
-    'cxxflags = -O2 -g --std=c++11 -Wall -Werror -D_FILE_OFFSET_BITS=64',
+    'cxxflags = -O2 -g --std=c++14 -Wall -Werror -D_FILE_OFFSET_BITS=64',
     // TODO only link what is required for each binary.
     'ldflags = -lpthread -lfuse -lgit2 -lz ',
     'gxx = g++',
@@ -85,4 +85,6 @@ CompileLink('git-githubfs', ['git-githubfs_fusemain', 'git-githubfs',
     extra_objects: ['/usr/lib/libjson_spirit.a']})
 CompileLinkRunTest('concurrency_limit_test', ['concurrency_limit_test',
 					      'concurrency_limit']);
+CompileLinkRunTest('directory_container_test', ['directory_container_test',
+						'basename']);
 Emit()

@@ -6,6 +6,6 @@ clean:
 	ninja -t clean
 
 check-syntax:
-	$(CXX) -std=c++11 -c $(CFLAGS) $(CHK_SOURCES) -o /dev/null 
+	$(CXX) -std=c++14 -c $(CFLAGS) $(CHK_SOURCES) -o /dev/null 
 
 .PHONY: all clean
