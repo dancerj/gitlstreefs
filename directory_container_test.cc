@@ -52,9 +52,12 @@ public:
     }
     return nullptr;
   }
-  void dump() {
+  void dump(int indent = 0) {
     for (const auto& file: files_) {
-      cout << file.first << endl;
+      cout << string(indent, ' ') << file.first << endl;
+      if (file.second->is_directory()) {
+	static_cast<Directory*>(file.second.get())->dump(indent + 1);
+      }
     }
   }
 private:
@@ -81,32 +84,39 @@ public:
   };
   ~DirectoryContainer() {};
 
+  string StripTrailingSlash(string s) {
+    assert(s.size() >= 1);
+    assert(s[s.size() - 1] == '/');
+    return s.substr(0, s.size() - 1);
+  }
+
   // Maybe recursively create directories up to path, and return the Directory object.
   Directory* MaybeCreateParentDir(const string& dirname) {
-    assert(dirname.size() >= 1);
-    assert(dirname[dirname.size() - 1] == '/');
-    if (dirname == "/") return &root_;
-    Directory* directory = static_cast<Directory*>(files_[dirname]);
-    if (directory) {
-      return directory;
+    if (dirname == "") return &root_;
+    auto it = files_.find(dirname);
+    if (it != files_.end()) {
+      return static_cast<Directory*>(it->second);
     }
 
-    directory = new Directory();
-    string parent(DirName(dirname.substr(0, dirname.size() - 1)));
-    Directory* parent_directory = static_cast<Directory*>(files_[parent]);
-    if (parent_directory == nullptr) {
+    Directory* directory = new Directory();
+    string parent(StripTrailingSlash(DirName(dirname)));
+    auto parent_it = files_.find(parent);
+    Directory* parent_directory;
+    if (parent_it != files_.end()) {
+      parent_directory = static_cast<Directory*>(parent_it->second);
+    } else {
       parent_directory = MaybeCreateParentDir(parent);
     }
     files_[dirname] = directory;
-    parent_directory->add(dirname, unique_ptr<File>(directory));
+    parent_directory->add(BaseName(dirname), unique_ptr<File>(directory));
     return directory;
   }
 
   void add(const string& path, unique_ptr<_File> file) {
-    string dirname(DirName(path));
+    string dirname(StripTrailingSlash(DirName(path)));
     Directory* dir = MaybeCreateParentDir(dirname);
     files_[path] = file.get();
-    dir->add(path, move(file));
+    dir->add(BaseName(path), move(file));
   }
 
   const _File* get(const string& path) {
@@ -147,12 +157,14 @@ int main() {
   d.add("/this/dir", std::make_unique<GitFile>());
   d.add("/the", std::make_unique<GitFile>());
   d.add("/a", std::make_unique<GitFile>());
-  d.add("/hoge/a", std::make_unique<GitFile>());
+  d.add("/hoge/bbb", std::make_unique<GitFile>());
+  d.add("/foo/bbbdir/ccc", std::make_unique<GitFile>());
+  d.add("/hoge/bbbdir/ccc", std::make_unique<GitFile>());
 
   d.dump();
 
-  assert(d.is_directory("/this/"));
-  assert(d.is_directory("/hoge/"));
+  assert(d.is_directory("/this"));
+  assert(d.is_directory("/hoge"));
   assert(!d.is_directory("/hog"));
   assert(!d.is_directory("/a"));
 }
