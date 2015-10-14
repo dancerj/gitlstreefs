@@ -1,17 +1,16 @@
 #if !defined(DIRECTORY_CONTAINER_H__)
 #define DIRECTORY_CONTAINER_H__
 
-#include <sys/types.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <cassert>
 #include <iostream>
 #include <memory>
 #include <unordered_map>
-#include <unordered_map>
 #include <vector>
-
 
 #include "basename.h"
 
@@ -23,7 +22,7 @@ public:
   File() {}
   virtual ~File() {}
 
-  virtual int Getattr(struct stat *stbuf) const = 0;
+  virtual int Getattr(struct stat *stbuf) = 0;
   virtual bool is_directory() const {
     return false;
   }
@@ -34,15 +33,19 @@ public:
   Directory() {}
   virtual ~Directory() {}
 
-  virtual int Getattr(struct stat *stbuf) const {
+  virtual int Getattr(struct stat *stbuf) {
+    stbuf->st_mode = S_IFDIR | 0777;
+    stbuf->st_nlink = 2;
     return 0;
   };
   virtual bool is_directory() const {
     return true;
   }
+
   void add(const std::string& path, std::unique_ptr<File> f) {
     files_[path] = move(f);
   }
+
   File* get(const std::string& path) {
     auto it = files_.find(path);
     if (it != files_.end()) {
@@ -50,6 +53,13 @@ public:
     }
     return nullptr;
   }
+
+  void for_each(std::function<void(const std::string& filename, const File* f)> callback) const {
+    for (const auto& file: files_) {
+      callback(file.first, file.second.get());
+    }
+  }
+
   void dump(int indent = 0) {
     for (const auto& file: files_) {
       std::cout << std::string(indent, ' ') << file.first << std::endl;
@@ -107,7 +117,15 @@ public:
     dir->add(BaseName(path), move(file));
   }
 
-  const _File* get(const std::string& path) {
+  const File* get(const std::string& path) const {
+    auto it = files_.find(path);
+    if (it != files_.end())
+      return it->second;
+    else
+      return nullptr;
+  }
+
+  File* mutable_get(const std::string& path) {
     auto it = files_.find(path);
     if (it != files_.end())
       return it->second;
@@ -122,6 +140,13 @@ public:
     return false;
   }
 
+  int Getattr(const std::string& path, struct stat *stbuf) {
+    memset(stbuf, 0, sizeof(struct stat));
+    File* f = mutable_get(path);
+    if (!f) return -ENOENT;
+    return f->Getattr(stbuf);
+  }
+
   void dump() {
     std::cout << "Files map" << std::endl;
     for (const auto& file : files_) {
@@ -132,8 +157,15 @@ public:
     root_.dump();
   };
 
-  std::vector<std::pair<const std::string&, _File*> > get_dir(const std::string& path);
-  void for_each(const std::string& path, std::function<void(const std::string& full_path, _File* f)>);
+  void for_each(const std::string& path,
+		std::function<void(const std::string& name, const File* f)> callback) const {
+    const Directory* d = dynamic_cast<const Directory*>(get(path));
+    if (d) {
+      d->for_each([&callback](const std::string& name, const File* f){
+	  callback(name, f);
+	});
+    }
+  }
 
 private:
   std::unordered_map<std::string /* fullpath */ , File*> files_;

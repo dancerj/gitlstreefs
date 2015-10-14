@@ -45,22 +45,21 @@ To mount a remote repo via ssh connection, using `ssh SERVER 'cd PATH
 git-githubfs -- mounts a filesystem based on github repository. Uses
 github rest API v3.
 
-	$ ./out/git-githubfs --user=dancerj --project=gitlstreefs mountpoint/
-	$ ls mountpoint/
-	$ cat mountpoint/README.md
+    $ ./out/git-githubfs --user=dancerj --project=gitlstreefs mountpoint/
+    $ ls mountpoint/
+    $ cat mountpoint/README.md
     $ fusermount -u mountpoint
 
 # ninja file system #
 
 ninjafs -- a filesystem that lists ninja build targets, and builds on demand.
 
-	$ rm out/hello_world  # for demonstration.
-	$ out/ninjafs mountpoint/
-	$ ls mountpoint/
-	$ file mountpoint/out_hello_world
-	$ ./mountpoint/out_hello_world
-	$ fusermount -u mountpoint
-
+    $ rm out/hello_world  # for demonstration.
+    $ out/ninjafs mountpoint/
+    $ ls mountpoint/
+    $ file mountpoint/out/hello_world
+    $ ./mountpoint/out/hello_world
+    $ fusermount -u mountpoint
 
 # Copying #
 

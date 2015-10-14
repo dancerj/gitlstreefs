@@ -72,7 +72,8 @@ CompileLinkRunTest('gitlstree_test', ['gitlstree', 'gitlstree_test', 'strutil',
 				      'concurrency_limit'])
 CompileLink('gitlstree', ['gitlstree', 'gitlstree_fusemain', 'strutil',
 			  'get_current_dir', 'basename', 'concurrency_limit'])
-CompileLink('ninjafs', ['ninjafs', 'strutil', 'get_current_dir'])
+CompileLink('ninjafs', ['ninjafs', 'strutil', 'get_current_dir',
+			'basename'])
 CompileLink('hello_world', ['hello_world'])
 CompileLinkRunTest('libgit2test', ['libgit2test', 'gitxx'])
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])

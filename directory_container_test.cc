@@ -24,7 +24,7 @@ class GitFile : public directory_container::File {
 public:
   GitFile() {}
   virtual ~GitFile() {}
-  virtual int Getattr(struct stat *stbuf) const {
+  virtual int Getattr(struct stat *stbuf) {
     return 0;
   }
 };
@@ -35,6 +35,7 @@ int main() {
   d.add("/the", std::make_unique<GitFile>());
   d.add("/a", std::make_unique<GitFile>());
   d.add("/hoge/bbb", std::make_unique<GitFile>());
+  d.add("/hoge/ccc", std::make_unique<GitFile>());
   d.add("/foo/bbbdir/ccc", std::make_unique<GitFile>());
   d.add("/hoge/bbbdir/ccc", std::make_unique<GitFile>());
 
@@ -42,6 +43,13 @@ int main() {
 
   assert(d.is_directory("/this"));
   assert(d.is_directory("/hoge"));
+  assert(d.is_directory("/"));
   assert(!d.is_directory("/hog"));
   assert(!d.is_directory("/a"));
+
+  assert(!d.is_directory("/hoge/ccc"));
+  assert(d.get("/hoge/ccc"));
+  d.for_each("/hoge", [](const string& name, const directory_container::File* f) {
+	cout << "under hoge: " << name << endl;
+      });
 }
