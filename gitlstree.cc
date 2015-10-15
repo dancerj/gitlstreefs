@@ -1,8 +1,8 @@
 /*
  * A prototype tool to mount git filesystem by parsing output of 'git
- * ls-tree -r REVISION'.
+ * ls-tree -l -r REVISION'.
 
-git-ls-tree -l output output contains lines like:
+`git-ls-tree -l -r` output contains lines like:
 100644 blob f313668af32ea3447a594ae1e7d8ac9841fbae7b	sound/README
 
 and that should be mostly enough to obtain information to create a
