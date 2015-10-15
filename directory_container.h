@@ -46,6 +46,7 @@ public:
     stbuf->st_nlink = 2;
     return 0;
   };
+
   virtual bool is_directory() const {
     return true;
   }
@@ -90,12 +91,6 @@ public:
   };
   ~DirectoryContainer() {};
 
-  std::string StripTrailingSlash(std::string s) {
-    assert(s.size() >= 1);
-    assert(s[s.size() - 1] == '/');
-    return s.substr(0, s.size() - 1);
-  }
-
   // Maybe recursively create directories up to path, and return the Directory object.
   Directory* MaybeCreateParentDir(const std::string& dirname) {
     if (dirname == "") return &root_;
@@ -105,7 +100,7 @@ public:
     }
 
     Directory* directory = new Directory();
-    std::string parent(StripTrailingSlash(DirName(dirname)));
+    std::string parent(DirName(dirname));
     auto parent_it = files_.find(parent);
     Directory* parent_directory;
     if (parent_it != files_.end()) {
@@ -120,7 +115,7 @@ public:
 
   void add(const std::string& path, std::unique_ptr<_File> file) {
     std::unique_lock<std::mutex> l(path_mutex_);
-    std::string dirname(StripTrailingSlash(DirName(path)));
+    std::string dirname(DirName(path));
     Directory* dir = MaybeCreateParentDir(dirname);
     files_[path] = file.get();
     dir->add(BaseName(path), move(file));

@@ -9,9 +9,9 @@ void TestBaseName() {
 }
 
 void TestDirName() {
-  assert(DirName("/hoge/fuga") == "/hoge/");
-  assert(DirName("/hoge/fuga/moge") == "/hoge/fuga/");
-  assert(DirName("/moge") == "/");
+  assert(DirName("/hoge/fuga") == "/hoge");
+  assert(DirName("/hoge/fuga/moge") == "/hoge/fuga");
+  assert(DirName("/moge") == "");
 }
 
 int main(int argc, char** argv) {
