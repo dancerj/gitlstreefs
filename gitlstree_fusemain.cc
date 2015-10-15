@@ -15,7 +15,7 @@ using std::unique_ptr;
 
 namespace gitlstree {
 // Global scope to make it accessible from callback.
-unique_ptr<GitTree> fs;
+unique_ptr<FileElement::DirectoryContainer> fs;
 
 static int fs_getattr(const char *path, struct stat *stbuf)
 {
@@ -23,27 +23,15 @@ static int fs_getattr(const char *path, struct stat *stbuf)
 }
 
 static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi)
-{
-  (void) offset;
-  (void) fi;
-
-  if (path == 0 || *path != '/') {
-    return -ENOENT;
-  }
-  // Skip the first "/"
-  string fullpath(path + 1);
-  FileElement* fe = fs->get(fullpath);
-  if (!fe) {
-    return -ENOENT;
-  }
-
+			 off_t offset, struct fuse_file_info *fi) {
   filler(buf, ".", NULL, 0);
   filler(buf, "..", NULL, 0);
-  fe->for_each_filename([&](const string& filename) {
-      filler(buf, filename.c_str(), NULL, 0);
+  const directory_container::Directory* d = dynamic_cast<
+    directory_container::Directory*>(fs->mutable_get(path));
+  if (!d) return -ENOENT;
+  d->for_each([&](const string& s, const directory_container::File* unused){
+      filler(buf, s.c_str(), NULL, 0);
     });
-
   return 0;
 }
 
@@ -52,20 +40,20 @@ static int fs_open(const char *path, struct fuse_file_info *fi)
   if (path == 0 || *path != '/') {
     return -ENOENT;
   }
-  FileElement* fe = fs->get(path + 1);
-  if (fe) {
-    return 0;
-  }
-  return -ENOENT;
+
+  FileElement* f = dynamic_cast<FileElement*>(fs->mutable_get(path));
+  if (!f)
+    return -ENOENT;
+  fi->fh = reinterpret_cast<uint64_t>(f);
+
+  f->Open();
+  return 0;
 }
 
 static int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
-  if (path == 0 || *path != '/') {
-    return -ENOENT;
-  }
-  FileElement* fe = fs->get(path + 1);
+  FileElement* fe = dynamic_cast<FileElement*>(reinterpret_cast<directory_container::File*>(fi->fh));
   if (!fe) {
     return -ENOENT;
   }
@@ -102,10 +90,10 @@ int main(int argc, char *argv[]) {
 
   string revision(conf.revision?conf.revision:"HEAD");
   string path(conf.path?conf.path:GetCurrentDir());
+  string ssh(conf.ssh?conf.ssh:"");
 
-  gitlstree::fs.reset(new gitlstree::GitTree(revision.c_str(),
-					     conf.ssh,
-					     path));
+  gitlstree::fs.reset(new gitlstree::FileElement::DirectoryContainer());
+  gitlstree::LoadDirectory(path, revision, ssh, gitlstree::fs.get());
 
   int ret = fuse_main(args.argc, args.argv, &o, NULL);
   fuse_opt_free_args(&args);

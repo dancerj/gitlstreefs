@@ -12,14 +12,15 @@ using std::endl;
 using std::string;
 using std::unique_ptr;
 
-void TryReadFileTest(gitlstree::GitTree* fs, const string& name) {
+void TryReadFileTest(gitlstree::FileElement::DirectoryContainer* fs, const string& name) {
   // Try reading a file.
   cout << "Try reading: " << name << endl;
   gitlstree::FileElement* fe;;
-  assert((fe = fs->get(name)) != nullptr);
+  assert((fe = dynamic_cast<gitlstree::FileElement*>(fs->mutable_get(name))) != nullptr);
   constexpr size_t size = 4096;
   char buf[size];
   size_t read_size;
+  fe->Open();
   assert((read_size = fe->Read(buf, size, 0)) > 0);
   assert(read_size <= size);
   string f(buf, read_size);
@@ -27,16 +28,16 @@ void TryReadFileTest(gitlstree::GitTree* fs, const string& name) {
 }
 
 void ScenarioTest() {
-  unique_ptr<gitlstree::GitTree> fs(new gitlstree::GitTree("HEAD", nullptr, GetCurrentDir()));
+  unique_ptr<gitlstree::FileElement::DirectoryContainer> fs(new gitlstree::FileElement::DirectoryContainer);
+  gitlstree::LoadDirectory(GetCurrentDir(), "HEAD", "", fs.get());
   fs->dump();
 
-  assert(fs->get("dummytestdirectory/README") != nullptr);
-  assert(fs->get("dummytestdirectory") != nullptr);
-  assert(fs->get("dummytestdirectory")->file_type_ == gitlstree::TYPE_tree);
-  cout << std::oct << fs->get("dummytestdirectory")->attribute_ << endl;
+  assert(fs->get("/dummytestdirectory/README") != nullptr);
+  assert(fs->get("/dummytestdirectory") != nullptr);
+  assert(fs->get("/dummytestdirectory")->is_directory());
 
   // root directory.
-  assert(fs->get("") != nullptr);
+  assert(fs->get("/") != nullptr);
   struct stat st;
   assert(fs->Getattr("/", &st) == 0);
   assert(st.st_nlink == 2);
@@ -44,7 +45,7 @@ void ScenarioTest() {
   assert(fs->Getattr("/dummytestdirectory", &st) == 0);
   assert(fs->Getattr("/dummytestdirectory/", &st) == -ENOENT);
   assert(fs->Getattr("/dummytestdirectory/README", &st) == 0);
-  TryReadFileTest(fs.get(), "dummytestdirectory/README");
+  TryReadFileTest(fs.get(), "/dummytestdirectory/README");
 }
 
 int main(int argc, char** argv) {

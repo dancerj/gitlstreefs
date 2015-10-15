@@ -9,6 +9,7 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -16,12 +17,17 @@
 
 namespace directory_container {
 
-// Some random implementation of an abstract file.
+// Abstract file class, Directory is implemented here, concrete File
+// should be implemented by the user.
 class File {
 public:
   File() {}
   virtual ~File() {}
 
+  /**
+   * @return 0 on success, -errno on fail
+   * @param fullpath Full path starting with "/"
+   */
   virtual int Getattr(struct stat *stbuf) = 0;
   virtual bool is_directory() const {
     return false;
@@ -34,7 +40,9 @@ public:
   virtual ~Directory() {}
 
   virtual int Getattr(struct stat *stbuf) {
-    stbuf->st_mode = S_IFDIR | 0777;
+    stbuf->st_uid = getuid();
+    stbuf->st_gid = getgid();
+    stbuf->st_mode = S_IFDIR | 0755;
     stbuf->st_nlink = 2;
     return 0;
   };
@@ -111,6 +119,7 @@ public:
   }
 
   void add(const std::string& path, std::unique_ptr<_File> file) {
+    std::unique_lock<std::mutex> l(path_mutex_);
     std::string dirname(StripTrailingSlash(DirName(path)));
     Directory* dir = MaybeCreateParentDir(dirname);
     files_[path] = file.get();
@@ -170,6 +179,7 @@ public:
 private:
   std::unordered_map<std::string /* fullpath */ , File*> files_;
   Directory root_;
+  std::mutex path_mutex_{};
 };
 } // namespace directory_container
 
