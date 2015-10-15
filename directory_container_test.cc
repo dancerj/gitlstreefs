@@ -49,7 +49,11 @@ int main() {
 
   assert(!d.is_directory("/hoge/ccc"));
   assert(d.get("/hoge/ccc"));
-  d.for_each("/hoge", [](const string& name, const directory_container::File* f) {
+
+  int count_hoge = 0;
+  d.for_each("/hoge", [&count_hoge](const string& name, const directory_container::File* f) {
 	cout << "under hoge: " << name << endl;
+	count_hoge ++;
       });
+  assert(count_hoge == 3);
 }

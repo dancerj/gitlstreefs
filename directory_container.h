@@ -29,9 +29,6 @@ public:
    * @param fullpath Full path starting with "/"
    */
   virtual int Getattr(struct stat *stbuf) = 0;
-  virtual bool is_directory() const {
-    return false;
-  }
 };
 
 class Directory : public File {
@@ -46,10 +43,6 @@ public:
     stbuf->st_nlink = 2;
     return 0;
   };
-
-  virtual bool is_directory() const {
-    return true;
-  }
 
   void add(const std::string& path, std::unique_ptr<File> f) {
     files_[path] = move(f);
@@ -72,8 +65,9 @@ public:
   void dump(int indent = 0) {
     for (const auto& file: files_) {
       std::cout << std::string(indent, ' ') << file.first << std::endl;
-      if (file.second->is_directory()) {
-	static_cast<Directory*>(file.second.get())->dump(indent + 1);
+      Directory* d = dynamic_cast<Directory*>(file.second.get());
+      if (d) {
+	d->dump(indent + 1);
       }
     }
   }
@@ -90,28 +84,6 @@ public:
     files_["/"] = &root_;
   };
   ~DirectoryContainer() {};
-
-  // Maybe recursively create directories up to path, and return the Directory object.
-  Directory* MaybeCreateParentDir(const std::string& dirname) {
-    if (dirname == "") return &root_;
-    auto it = files_.find(dirname);
-    if (it != files_.end()) {
-      return static_cast<Directory*>(it->second);
-    }
-
-    Directory* directory = new Directory();
-    std::string parent(DirName(dirname));
-    auto parent_it = files_.find(parent);
-    Directory* parent_directory;
-    if (parent_it != files_.end()) {
-      parent_directory = static_cast<Directory*>(parent_it->second);
-    } else {
-      parent_directory = MaybeCreateParentDir(parent);
-    }
-    files_[dirname] = directory;
-    parent_directory->add(BaseName(dirname), std::unique_ptr<File>(directory));
-    return directory;
-  }
 
   void add(const std::string& path, std::unique_ptr<_File> file) {
     std::unique_lock<std::mutex> l(path_mutex_);
@@ -140,7 +112,7 @@ public:
   bool is_directory(const std::string& path) {
     auto it = files_.find(path);
     if (it != files_.end())
-      return it->second->is_directory();
+      return dynamic_cast<Directory*>(it->second) != nullptr;
     return false;
   }
 
@@ -155,7 +127,8 @@ public:
     std::cout << "Files map" << std::endl;
     for (const auto& file : files_) {
       std::cout << file.first << " " << file.second << std::endl;
-      std::cout << "Is directory: " << file.second->is_directory() << std::endl;
+      std::cout << "Is directory: " 
+		<< (dynamic_cast<Directory*>(file.second) != nullptr) << std::endl;
     }
     std::cout << "Directory map" << std::endl;
     root_.dump();
@@ -172,6 +145,28 @@ public:
   }
 
 private:
+  // Maybe recursively create directories up to path, and return the Directory object.
+  Directory* MaybeCreateParentDir(const std::string& dirname) {
+    if (dirname == "") return &root_;
+    auto it = files_.find(dirname);
+    if (it != files_.end()) {
+      return static_cast<Directory*>(it->second);
+    }
+
+    Directory* directory = new Directory();
+    std::string parent(DirName(dirname));
+    auto parent_it = files_.find(parent);
+    Directory* parent_directory;
+    if (parent_it != files_.end()) {
+      parent_directory = static_cast<Directory*>(parent_it->second);
+    } else {
+      parent_directory = MaybeCreateParentDir(parent);
+    }
+    files_[dirname] = directory;
+    parent_directory->add(BaseName(dirname), std::unique_ptr<File>(directory));
+    return directory;
+  }
+
   std::unordered_map<std::string /* fullpath */ , File*> files_;
   Directory root_;
   std::mutex path_mutex_{};

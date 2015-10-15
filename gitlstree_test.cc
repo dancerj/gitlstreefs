@@ -34,7 +34,8 @@ void ScenarioTest() {
 
   assert(fs->get("/dummytestdirectory/README") != nullptr);
   assert(fs->get("/dummytestdirectory") != nullptr);
-  assert(fs->get("/dummytestdirectory")->is_directory());
+  assert(fs->is_directory("/dummytestdirectory"));
+  assert(!fs->is_directory("/dummytestdirectory/README"));
 
   // root directory.
   assert(fs->get("/") != nullptr);
