@@ -38,10 +38,25 @@ using std::vector;
 
 namespace gitlstree {
 
+struct Configuration {
+public:
+  Configuration(const string& my_gitdir, const string& my_ssh) 
+    : gitdir(my_gitdir), ssh(my_ssh) {
+    clock_gettime(CLOCK_REALTIME, &mount_time);
+  }
+  // Directory for git directory. Needed because fuse chdir to / on
+  // becoming a daemon.
+  std::string gitdir;
+  std::string ssh;
+  struct timespec mount_time;
+};
+// Per-mountpoint configuration.
+static unique_ptr<Configuration> configuration{};
+
 int FileElement::Getattr(struct stat *stbuf) {
   stbuf->st_uid = getuid();
   stbuf->st_gid = getgid();
-  // stbuf->st_atim = stbuf->st_mtim = stbuf->st_ctim;
+  stbuf->st_atim = stbuf->st_mtim = stbuf->st_ctim = configuration->mount_time;
   if (attribute_ == S_IFLNK) {
     // symbolic link.
     static_assert(S_IFLNK == 0120000, "symlink stat attribute wrong.");
@@ -54,26 +69,20 @@ int FileElement::Getattr(struct stat *stbuf) {
   return 0;
 }
 
-// Directory for git directory. Needed because fuse chdir to / on
-// becoming a daemon.
-static std::string gitdir;
-static std::string ssh;
-
 // Maybe run remote command if ssh spec is available.
 string RunGitCommand(const string& command) {
-  if (!ssh.empty()) {
+  if (!configuration->ssh.empty()) {
     ScopedConcurrencyLimit l(command);
-    return PopenAndReadOrDie(string("ssh ") + ssh + " 'cd " + gitdir + " && "
+    return PopenAndReadOrDie(string("ssh ") + configuration->ssh + " 'cd " + configuration->gitdir + " && "
 			     + command + "'");
   } else {
-    return PopenAndReadOrDie("cd " + gitdir + " && "
+    return PopenAndReadOrDie("cd " + configuration->gitdir + " && "
 			     + command);
   }
 }
 
 void LoadDirectory(const string& my_gitdir, const string& hash, const string& maybe_ssh, FileElement::DirectoryContainer* container) {
-  gitdir = my_gitdir;
-  ssh = maybe_ssh;
+  configuration.reset(new Configuration(my_gitdir, maybe_ssh));
 
   string git_ls_tree = RunGitCommand(string("git ls-tree -l -r ") +
 				     hash + " " );
