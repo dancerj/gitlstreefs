@@ -99,8 +99,7 @@ void LoadDirectory(const string& my_gitdir, const string& hash, const string& ma
       assert(file_path[0] != '/');  // git ls-tree do not start with /.
       string basename = BaseName(file_path);
       container->add(string("/") + file_path,
-		     make_unique<FileElement>(container,
-					      strtol(elements[0].c_str(), NULL, 8),
+		     make_unique<FileElement>(strtol(elements[0].c_str(), NULL, 8),
 					      fstype,
 					      elements[2],
 					      atoi(elements[3].c_str())));
@@ -109,11 +108,10 @@ void LoadDirectory(const string& my_gitdir, const string& hash, const string& ma
   for (auto& job : jobs) { job.join(); }
 }
 
-FileElement::FileElement(const FileElement::DirectoryContainer* parent, 
-			 int attribute, GitFileType file_type,
+FileElement::FileElement(int attribute, GitFileType file_type,
 			 const std::string& sha1, int size) :
   attribute_(attribute), file_type_(file_type),
-  sha1_(sha1), size_(size), parent_(parent) {}
+  sha1_(sha1), size_(size)  {}
 
 #define TYPE(a) {#a, TYPE_##a}
 static unordered_map<string, GitFileType> file_type_map {
