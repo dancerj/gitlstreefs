@@ -82,6 +82,7 @@ class DirectoryContainer {
 public:
   DirectoryContainer() {
     files_["/"] = &root_;
+    clock_gettime(CLOCK_REALTIME, &mount_time_);
   };
   ~DirectoryContainer() {};
 
@@ -118,6 +119,8 @@ public:
 
   int Getattr(const std::string& path, struct stat *stbuf) {
     memset(stbuf, 0, sizeof(struct stat));
+    stbuf->st_atim = stbuf->st_mtim = stbuf->st_ctim =
+      mount_time_;
     File* f = mutable_get(path);
     if (!f) return -ENOENT;
     return f->Getattr(stbuf);
@@ -170,6 +173,8 @@ private:
   std::unordered_map<std::string /* fullpath */ , File*> files_;
   Directory root_;
   std::mutex path_mutex_{};
+
+  struct timespec mount_time_;
 };
 } // namespace directory_container
 

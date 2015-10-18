@@ -42,13 +42,11 @@ struct Configuration {
 public:
   Configuration(const string& my_gitdir, const string& my_ssh) 
     : gitdir(my_gitdir), ssh(my_ssh) {
-    clock_gettime(CLOCK_REALTIME, &mount_time);
   }
   // Directory for git directory. Needed because fuse chdir to / on
   // becoming a daemon.
-  std::string gitdir;
-  std::string ssh;
-  struct timespec mount_time;
+  const std::string gitdir;
+  const std::string ssh;
 };
 // Per-mountpoint configuration.
 static unique_ptr<Configuration> configuration{};
@@ -56,7 +54,6 @@ static unique_ptr<Configuration> configuration{};
 int FileElement::Getattr(struct stat *stbuf) {
   stbuf->st_uid = getuid();
   stbuf->st_gid = getgid();
-  stbuf->st_atim = stbuf->st_mtim = stbuf->st_ctim = configuration->mount_time;
   if (attribute_ == S_IFLNK) {
     // symbolic link.
     static_assert(S_IFLNK == 0120000, "symlink stat attribute wrong.");
