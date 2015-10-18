@@ -78,7 +78,7 @@ string RunGitCommand(const string& command) {
   }
 }
 
-void LoadDirectory(const string& my_gitdir, const string& hash, const string& maybe_ssh, FileElement::DirectoryContainer* container) {
+void LoadDirectory(const string& my_gitdir, const string& hash, const string& maybe_ssh, directory_container::DirectoryContainer* container) {
   configuration.reset(new Configuration(my_gitdir, maybe_ssh));
 
   string git_ls_tree = RunGitCommand(string("git ls-tree -l -r ") +

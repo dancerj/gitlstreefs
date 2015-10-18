@@ -12,7 +12,7 @@ using std::endl;
 using std::string;
 using std::unique_ptr;
 
-void TryReadFileTest(gitlstree::FileElement::DirectoryContainer* fs, const string& name) {
+void TryReadFileTest(directory_container::DirectoryContainer* fs, const string& name) {
   // Try reading a file.
   cout << "Try reading: " << name << endl;
   gitlstree::FileElement* fe;;
@@ -28,7 +28,7 @@ void TryReadFileTest(gitlstree::FileElement::DirectoryContainer* fs, const strin
 }
 
 void ScenarioTest() {
-  unique_ptr<gitlstree::FileElement::DirectoryContainer> fs(new gitlstree::FileElement::DirectoryContainer);
+  unique_ptr<directory_container::DirectoryContainer> fs(new directory_container::DirectoryContainer);
   gitlstree::LoadDirectory(GetCurrentDir(), "HEAD", "", fs.get());
   fs->dump();
 

@@ -30,7 +30,7 @@ public:
 };
 
 int main() {
-  directory_container::DirectoryContainer<GitFile> d;
+  directory_container::DirectoryContainer d;
   d.add("/this/dir", std::make_unique<GitFile>());
   d.add("/the", std::make_unique<GitFile>());
   d.add("/a", std::make_unique<GitFile>());

@@ -15,7 +15,7 @@ using std::unique_ptr;
 
 namespace gitlstree {
 // Global scope to make it accessible from callback.
-unique_ptr<FileElement::DirectoryContainer> fs;
+unique_ptr<directory_container::DirectoryContainer> fs;
 
 static int fs_getattr(const char *path, struct stat *stbuf)
 {
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
   string path(conf.path?conf.path:GetCurrentDir());
   string ssh(conf.ssh?conf.ssh:"");
 
-  gitlstree::fs.reset(new gitlstree::FileElement::DirectoryContainer());
+  gitlstree::fs.reset(new directory_container::DirectoryContainer());
   gitlstree::LoadDirectory(path, revision, ssh, gitlstree::fs.get());
 
   int ret = fuse_main(args.argc, args.argv, &o, NULL);

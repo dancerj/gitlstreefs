@@ -16,7 +16,6 @@ enum GitFileType {
 
 class FileElement : public directory_container::File {
 public:
-  typedef directory_container::DirectoryContainer<FileElement> DirectoryContainer;
   FileElement(int attribute, GitFileType file_type,
 	      const std::string& sha1, int size);
   void Open();
@@ -39,7 +38,7 @@ GitFileType FileTypeStringToFileType(const std::string& file_type_string);
 void LoadDirectory(const std::string& gitdir, 
 		   const std::string& hash, 
 		   const std::string& maybe_ssh, 
-		   FileElement::DirectoryContainer* container);
+		   directory_container::DirectoryContainer* container);
 
 } // namespace gitlstree
 #endif

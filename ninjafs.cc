@@ -93,7 +93,7 @@ private:
   string original_target_name_{};
 };
 
-unique_ptr<directory_container::DirectoryContainer<NinjaTarget> > fs;
+unique_ptr<directory_container::DirectoryContainer> fs;
 
 void LoadDirectory() {
   string ninja_targets = PopenAndReadOrDie("ninja -t targets all");
@@ -157,7 +157,7 @@ static int fs_read(const char *path, char *target, size_t size, off_t offset,
 using namespace ninjafs;
 
 int main(int argc, char *argv[]) {
-  fs.reset(new directory_container::DirectoryContainer<NinjaTarget>());
+  fs.reset(new directory_container::DirectoryContainer());
   LoadDirectory();
   fs->dump();
 

@@ -77,7 +77,6 @@ private:
   FileElementMap files_{};
 };
 
-template<class _File>
 class DirectoryContainer {
 public:
   DirectoryContainer() {
@@ -86,7 +85,7 @@ public:
   };
   ~DirectoryContainer() {};
 
-  void add(const std::string& path, std::unique_ptr<_File> file) {
+  void add(const std::string& path, std::unique_ptr<File> file) {
     std::unique_lock<std::mutex> l(path_mutex_);
     std::string dirname(DirName(path));
     Directory* dir = MaybeCreateParentDir(dirname);
