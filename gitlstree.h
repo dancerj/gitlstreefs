@@ -1,6 +1,8 @@
 #if !defined(GITLSTREE_H__)
 #define GITLSTREE_H__
 
+#include <sys/ioctl.h>
+
 #include <mutex>
 #include <unordered_map>
 
@@ -21,6 +23,7 @@ public:
   void Open();
   ssize_t Read(char *buf, size_t size, off_t offset);
   virtual int Getattr(struct stat *stbuf);
+  void GetHash(char* hash) const;
 
 private:
   // If file content is read, this should be populated.
@@ -39,6 +42,24 @@ void LoadDirectory(const std::string& gitdir,
 		   const std::string& hash, 
 		   const std::string& maybe_ssh, 
 		   directory_container::DirectoryContainer* container);
+
+struct GetHashIoctlArg {
+public:
+  GetHashIoctlArg() {}
+
+  // Verify that transport worked.
+  static constexpr size_t kSize = 40;
+  void verify() { assert(size == kSize); }
+
+  size_t size{kSize};
+  char hash[kSize + 1]{};
+};
+
+constexpr int IOCTL_MAGIC_NUMBER = 0;
+constexpr int IOCTL_GIT_HASH_COMMAND = 1;
+
+constexpr int IOCTL_GIT_HASH = _IOR(IOCTL_MAGIC_NUMBER,
+				    IOCTL_GIT_HASH_COMMAND, GetHashIoctlArg);
 
 } // namespace gitlstree
 #endif

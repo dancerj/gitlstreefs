@@ -88,4 +88,7 @@ CompileLinkRunTest('concurrency_limit_test', ['concurrency_limit_test',
 					      'concurrency_limit']);
 CompileLinkRunTest('directory_container_test', ['directory_container_test',
 						'basename']);
+
+CompileLink('git_ioctl_client', ['git_ioctl_client']);
+
 Emit()

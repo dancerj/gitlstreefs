@@ -59,6 +59,26 @@ static int fs_read(const char *path, char *buf, size_t size, off_t offset,
   }
   return fe->Read(buf, size, offset);
 }
+
+static int fs_ioctl(const char *path, int cmd, void *arg,
+		    struct fuse_file_info *fi, unsigned int flags, void *data) {
+  if (flags & FUSE_IOCTL_COMPAT)
+    return -ENOSYS;
+
+  FileElement* fe = dynamic_cast<FileElement*>(reinterpret_cast<directory_container::File*>(fi->fh));
+  if (!fe) {
+    return -ENOENT;
+  }
+  switch (cmd) {
+    case IOCTL_GIT_HASH: {
+      gitlstree::GetHashIoctlArg *ioctl_arg = new (data) GetHashIoctlArg();
+      fe->GetHash(ioctl_arg->hash);
+      return 0;
+    }
+  }
+  return -EINVAL;
+}
+
 }  // namespace gitlstree
 
 struct gitlstree_config {
@@ -79,10 +99,12 @@ static struct fuse_opt gitlstree_opts[] = {
 int main(int argc, char *argv[]) {
 
   struct fuse_operations o = {};
+
   o.getattr = &gitlstree::fs_getattr;
-  o.readdir = &gitlstree::fs_readdir;
+  o.ioctl = &gitlstree::fs_ioctl;
   o.open = &gitlstree::fs_open;
   o.read = &gitlstree::fs_read;
+  o.readdir = &gitlstree::fs_readdir;
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   gitlstree_config conf{};

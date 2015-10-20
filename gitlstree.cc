@@ -142,4 +142,8 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   return size;
 }
 
+void FileElement::GetHash(char* hash) const {
+  memcpy(hash, sha1_.data(), 40);
+}
+
 }
