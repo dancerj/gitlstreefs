@@ -90,5 +90,7 @@ CompileLinkRunTest('directory_container_test', ['directory_container_test',
 						'basename']);
 
 CompileLink('git_ioctl_client', ['git_ioctl_client']);
+CompileLinkRunTest('scoped_fd_test', ['scoped_fd_test']);
+CompileLinkRunTest('cached_file', ['cached_file']);
 
 Emit()

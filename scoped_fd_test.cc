@@ -20,7 +20,15 @@ void TestMove() {
   assert(s == 10);
 }
 
+void TestOpenFailAndReset() {
+  ScopedFd fd(-1);
+  assert(fd.get() == -1);
+  fd.reset(open("scoped_fd_test.cc", O_RDONLY));
+  assert(fd.get() != -1);
+}
+
 int main(int argc, char** argv) {
   TestMove();
+  TestOpenFailAndReset();
   return 0;
 }
