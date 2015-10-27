@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include "directory_container.h"
+#include "disallow.h"
 
 namespace gitlstree {
 
@@ -34,6 +35,8 @@ private:
   GitFileType file_type_;
   std::string sha1_;
   int size_;
+
+  DISALLOW_COPY_AND_ASSIGN(FileElement);
 };
 
 GitFileType FileTypeStringToFileType(const std::string& file_type_string);
@@ -53,6 +56,8 @@ public:
 
   size_t size{kSize};
   char hash[kSize + 1]{};
+
+  DISALLOW_COPY_AND_ASSIGN(GetHashIoctlArg);
 };
 
 constexpr int IOCTL_MAGIC_NUMBER = 0;

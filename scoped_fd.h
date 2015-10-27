@@ -1,6 +1,9 @@
 #ifndef __SCOPED_FD_H__
 #define __SCOPED_FD_H__
+
 #include <unistd.h>
+
+#include "disallow.h"
 
 class ScopedFd {
 public:
@@ -42,5 +45,7 @@ public:
     }
     fd_ = -1;
   }
+
+  DISALLOW_COPY_AND_ASSIGN(ScopedFd);
 };
 #endif

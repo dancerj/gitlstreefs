@@ -4,6 +4,8 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "disallow.h"
+
 namespace githubfs {
 
 class GitTree;
@@ -64,6 +66,7 @@ private:
 
   const GitTree* parent_;
   // TODO, do I need any locking?
+  DISALLOW_COPY_AND_ASSIGN(FileElement);
 };
 
 GitFileType FileTypeStringToFileType(const std::string& file_type_string);
@@ -101,6 +104,8 @@ private:
   std::mutex path_mutex_{};
 
   std::unique_ptr<FileElement> root_;
+
+  DISALLOW_COPY_AND_ASSIGN(GitTree);
 };
 
 } // namespace githubfs

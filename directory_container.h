@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "basename.h"
+#include "disallow.h"
 
 namespace directory_container {
 
@@ -29,6 +30,7 @@ public:
    * @param fullpath Full path starting with "/"
    */
   virtual int Getattr(struct stat *stbuf) = 0;
+  DISALLOW_COPY_AND_ASSIGN(File);
 };
 
 class Directory : public File {
@@ -174,6 +176,7 @@ private:
   std::mutex path_mutex_{};
 
   struct timespec mount_time_;
+  DISALLOW_COPY_AND_ASSIGN(DirectoryContainer);
 };
 } // namespace directory_container
 

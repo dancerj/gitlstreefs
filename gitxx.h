@@ -1,6 +1,9 @@
 #ifndef __GITXX_H__
 #define __GITXX_H__
 #include <git2.h>
+
+#include "disallow.h"
+
 namespace gitxx {
 class Repository;
 class Object;
@@ -22,6 +25,8 @@ public:
 private:
   const Repository* repo_;
   git_tree *tree_;
+
+  DISALLOW_COPY_AND_ASSIGN(Tree);
 };
 
 // Representation of a Git object, such as blob...
@@ -37,11 +42,12 @@ public:
 private:
   git_object *obj_;
   const Repository* repo_;
+  DISALLOW_COPY_AND_ASSIGN(Object);
 };
 
 class Repository {
 public:
-  Repository(const std::string& repo_path);
+  explicit Repository(const std::string& repo_path);
   ~Repository();
 
   // Obtain object matching the revision.
@@ -50,6 +56,7 @@ private:
   friend Object;
   friend Tree;
   git_repository *repo;
+  DISALLOW_COPY_AND_ASSIGN(Repository);
 };
 }  // namespace gitxx
 #endif

@@ -4,6 +4,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "disallow.h"
 #include "gitxx.h"
 
 namespace gitfs {
@@ -42,6 +43,8 @@ private:
   const GitTree* parent_;
   const std::unique_ptr<gitxx::Object> object_;
   // TODO, do I need any locking?
+
+  DISALLOW_COPY_AND_ASSIGN(FileElement);
 };
 
 class GitTree {
@@ -70,6 +73,8 @@ private:
   std::unordered_map<std::string,
 		     FileElement*> fullpath_to_files_;
   std::unique_ptr<FileElement> root_;
+
+  DISALLOW_COPY_AND_ASSIGN(GitTree);
 };
 
 } // namespace gitfs
