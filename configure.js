@@ -1,5 +1,5 @@
 #!/usr/bin/env nodejs
-// Test implementation of ninja-generator.
+// Generates Ninja file for building.
 var fs = require("fs");
 var filename = "build.ninja";
 var outdir = "out/";
