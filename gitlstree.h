@@ -24,6 +24,7 @@ public:
   void Open();
   ssize_t Read(char *buf, size_t size, off_t offset);
   virtual int Getattr(struct stat *stbuf);
+  int Release();
   void GetHash(char* hash) const;
 
 private:

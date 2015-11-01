@@ -146,4 +146,10 @@ void FileElement::GetHash(char* hash) const {
   memcpy(hash, sha1_.data(), 40);
 }
 
+int FileElement::Release() {
+  unique_lock<mutex> l(buf_mutex_);
+  buf_.reset();
+  return 0;
+}
+
 }

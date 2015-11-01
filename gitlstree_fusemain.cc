@@ -51,13 +51,21 @@ static int fs_open(const char *path, struct fuse_file_info *fi)
 }
 
 static int fs_read(const char *path, char *buf, size_t size, off_t offset,
-		      struct fuse_file_info *fi)
+		   struct fuse_file_info *fi)
 {
   FileElement* fe = dynamic_cast<FileElement*>(reinterpret_cast<directory_container::File*>(fi->fh));
   if (!fe) {
     return -ENOENT;
   }
   return fe->Read(buf, size, offset);
+}
+
+static int fs_release(const char *path, struct fuse_file_info *fi) {
+  FileElement* fe = dynamic_cast<FileElement*>(reinterpret_cast<directory_container::File*>(fi->fh));
+  if (!fe) {
+    return -ENOENT;
+  }
+  return fe->Release();
 }
 
 static int fs_ioctl(const char *path, int cmd, void *arg,
@@ -105,6 +113,7 @@ int main(int argc, char *argv[]) {
   o.open = &gitlstree::fs_open;
   o.read = &gitlstree::fs_read;
   o.readdir = &gitlstree::fs_readdir;
+  o.release = &gitlstree::fs_release;
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   gitlstree_config conf{};
