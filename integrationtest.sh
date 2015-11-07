@@ -16,7 +16,7 @@ unionfs-fuse tmp=RW:mountpoint mountpoint2
 cd mountpoint2
 mkdir out
 ./configure.js
-ninja || true
+ninja -k10 || true
 ninja out/hello_world
 ./out/hello_world
 cd ..
