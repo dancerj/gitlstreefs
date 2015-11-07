@@ -93,6 +93,7 @@ struct gitlstree_config {
   char* ssh{nullptr};
   char* path{nullptr};
   char* revision{nullptr};
+  char* cache_path{nullptr};
 };
 
 #define MYFS_OPT(t, p, v) { t, offsetof(gitlstree_config, p), v }
@@ -101,6 +102,7 @@ static struct fuse_opt gitlstree_opts[] = {
   MYFS_OPT("--ssh=%s", ssh, 0),
   MYFS_OPT("--path=%s", path, 0),
   MYFS_OPT("--revision=%s", revision, 0),
+  MYFS_OPT("--cache_path=%s", cache_path, 0),
   FUSE_OPT_END
 };
 
@@ -122,9 +124,12 @@ int main(int argc, char *argv[]) {
   string revision(conf.revision?conf.revision:"HEAD");
   string path(conf.path?conf.path:GetCurrentDir());
   string ssh(conf.ssh?conf.ssh:"");
+  string cache_path(conf.cache_path?conf.cache_path:
+		    GetCurrentDir() + "/.cache/");
 
   gitlstree::fs.reset(new directory_container::DirectoryContainer());
-  gitlstree::LoadDirectory(path, revision, ssh, gitlstree::fs.get());
+  gitlstree::LoadDirectory(path, revision, ssh, cache_path, 
+			   gitlstree::fs.get());
 
   int ret = fuse_main(args.argc, args.argv, &o, NULL);
   fuse_opt_free_args(&args);

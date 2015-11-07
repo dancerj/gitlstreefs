@@ -21,9 +21,10 @@ mount-able filesystem.
 #include <vector>
 
 #include "basename.h"
+#include "cached_file.h"
+#include "concurrency_limit.h"
 #include "gitlstree.h"
 #include "strutil.h"
-#include "concurrency_limit.h"
 
 using std::cout;
 using std::endl;
@@ -40,13 +41,15 @@ namespace gitlstree {
 
 struct Configuration {
 public:
-  Configuration(const string& my_gitdir, const string& my_ssh) 
-    : gitdir(my_gitdir), ssh(my_ssh) {
+  Configuration(const string& my_gitdir, const string& my_ssh, 
+		const string& cache_path)
+    : gitdir(my_gitdir), ssh(my_ssh), cache(cache_path) {
   }
   // Directory for git directory. Needed because fuse chdir to / on
   // becoming a daemon.
   const std::string gitdir;
   const std::string ssh;
+  Cache cache;
 };
 // Per-mountpoint configuration.
 static unique_ptr<Configuration> configuration{};
@@ -78,8 +81,10 @@ string RunGitCommand(const string& command) {
   }
 }
 
-void LoadDirectory(const string& my_gitdir, const string& hash, const string& maybe_ssh, directory_container::DirectoryContainer* container) {
-  configuration.reset(new Configuration(my_gitdir, maybe_ssh));
+void LoadDirectory(const string& my_gitdir, const string& hash, 
+		   const string& maybe_ssh, const string& cached_dir, 
+		   directory_container::DirectoryContainer* container) {
+  configuration.reset(new Configuration(my_gitdir, maybe_ssh, cached_dir));
 
   string git_ls_tree = RunGitCommand(string("git ls-tree -l -r ") +
 				     hash + " " );
@@ -127,16 +132,18 @@ GitFileType FileTypeStringToFileType(const string& file_type_string) {
 
 void FileElement::Open() {
   unique_lock<mutex> l(buf_mutex_);
-  if (!buf_.get()) {
-    buf_.reset(new string(RunGitCommand("git cat-file blob " + sha1_)));
+  if (!memory_) {
+    memory_ = configuration->cache.get(sha1_, [this]() -> string {
+	  return string(RunGitCommand("git cat-file blob " + sha1_));
+      });
   }
 }
 
 ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
-  if (offset < static_cast<off_t>(buf_->size())) {
-    if (offset + size > buf_->size())
-      size = buf_->size() - offset;
-    memcpy(target, buf_->c_str() + offset, size);
+  if (offset < static_cast<off_t>(memory_->size())) {
+    if (offset + size > memory_->size())
+      size = memory_->size() - offset;
+    memcpy(target, static_cast<const char*>(memory_->memory()) + offset, size);
   } else
     size = 0;
   return size;
@@ -147,8 +154,7 @@ void FileElement::GetHash(char* hash) const {
 }
 
 int FileElement::Release() {
-  unique_lock<mutex> l(buf_mutex_);
-  buf_.reset();
+  // TODO: do something with cache.
   return 0;
 }
 

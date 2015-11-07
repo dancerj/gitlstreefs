@@ -63,15 +63,29 @@ function CompileLinkRunTest(target, sources, opts) {
 }
 
 // Rules
+CompileLinkRunTest('gitlstree_test',
+		   ['basename',
+		    'cached_file',
+		    'concurrency_limit',
+		    'get_current_dir',
+		    'gitlstree',
+		    'gitlstree_test',
+		    'strutil'])
+
+CompileLink('gitlstree',
+	    ['basename',
+	     'cached_file',
+	     'concurrency_limit',
+	     'get_current_dir',
+	     'gitlstree',
+	     'gitlstree_fusemain',
+	     'strutil'])
+
 CompileLink('gitfs', ['gitfs', 'gitfs_fusemain', 'strutil',
 		      'get_current_dir', 'gitxx', 'basename'])
 CompileLinkRunTest('gitfs_test', ['gitfs', 'gitfs_test', 'strutil',
 				  'get_current_dir', 'gitxx', 'basename'])
-CompileLinkRunTest('gitlstree_test', ['gitlstree', 'gitlstree_test', 'strutil',
-				      'get_current_dir', 'basename',
-				      'concurrency_limit'])
-CompileLink('gitlstree', ['gitlstree', 'gitlstree_fusemain', 'strutil',
-			  'get_current_dir', 'basename', 'concurrency_limit'])
+
 CompileLink('ninjafs', ['ninjafs', 'strutil', 'get_current_dir',
 			'basename'])
 CompileLink('hello_world', ['hello_world'])

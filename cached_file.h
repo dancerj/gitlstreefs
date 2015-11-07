@@ -27,7 +27,7 @@ public:
     DISALLOW_COPY_AND_ASSIGN(Memory);
   };
 
-  Cache(const std::string& cache_dir);
+  explicit Cache(const std::string& cache_dir);
 
   // Get sha1 hash, and use fetch method to fetch if not available already.
   const Memory* get(const std::string& name, std::function<std::string()> fetch);

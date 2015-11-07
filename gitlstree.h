@@ -6,6 +6,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "cached_file.h"
 #include "directory_container.h"
 #include "disallow.h"
 
@@ -29,7 +30,7 @@ public:
 
 private:
   // If file content is read, this should be populated.
-  std::unique_ptr<std::string> buf_{};
+  const Cache::Memory* memory_{};
   std::mutex buf_mutex_{};
 
   int attribute_;
@@ -42,9 +43,10 @@ private:
 
 GitFileType FileTypeStringToFileType(const std::string& file_type_string);
 
-void LoadDirectory(const std::string& gitdir, 
-		   const std::string& hash, 
-		   const std::string& maybe_ssh, 
+void LoadDirectory(const std::string& gitdir,
+		   const std::string& hash,
+		   const std::string& maybe_ssh,
+		   const std::string& cache_dir,
 		   directory_container::DirectoryContainer* container);
 
 struct GetHashIoctlArg {
@@ -69,4 +71,3 @@ constexpr int IOCTL_GIT_HASH = _IOR(IOCTL_MAGIC_NUMBER,
 
 } // namespace gitlstree
 #endif
-

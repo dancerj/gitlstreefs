@@ -29,7 +29,8 @@ void TryReadFileTest(directory_container::DirectoryContainer* fs, const string& 
 
 void ScenarioTest() {
   unique_ptr<directory_container::DirectoryContainer> fs(new directory_container::DirectoryContainer);
-  gitlstree::LoadDirectory(GetCurrentDir(), "HEAD", "", fs.get());
+  gitlstree::LoadDirectory(GetCurrentDir(), "HEAD", "", 
+			   GetCurrentDir() + "/.cache/", fs.get());
   fs->dump();
 
   assert(fs->get("/dummytestdirectory/README") != nullptr);
