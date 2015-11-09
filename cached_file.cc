@@ -46,6 +46,12 @@ size_t Cache::Memory::size() const { return size_; }
 
 Cache::Cache(const string& cache_dir) : cache_dir_(cache_dir) {}
 
+string Cache::GetFileName(const string& name) const {
+  // TODO: maybe like git itself use multiple directories, since huge
+  // directories do not perform well.
+  return cache_dir_ + name;
+}
+
 // Get sha1 hash, and use fetch method to fetch if not available already.
 const Cache::Memory* Cache::get(const string& name, function<string()> fetch) {
   // Check if we've already mapped the cache to memory.
@@ -55,10 +61,10 @@ const Cache::Memory* Cache::get(const string& name, function<string()> fetch) {
   }
 
   // Try if we've cached to file.
-  ScopedFd fd(open((cache_dir_ + name).c_str(), O_RDONLY));
+  ScopedFd fd(open(GetFileName(name).c_str(), O_RDONLY));
   if (fd.get() == -1) {
     // Populate cache.
-    fd.reset(open((cache_dir_ + name).c_str(), O_RDWR | O_CREAT, 0666));
+    fd.reset(open(GetFileName(name).c_str(), O_RDWR | O_CREAT, 0666));
     if (fd.get() == -1) return nullptr;
     string result = fetch();
     write(fd.get(), result.data(), result.size());

@@ -33,6 +33,8 @@ public:
   const Memory* get(const std::string& name, std::function<std::string()> fetch);
 
 private:
+  std::string GetFileName(const std::string& key) const;
+
   std::unordered_map<std::string, Memory> mapped_files_{};
   const std::string cache_dir_;
   DISALLOW_COPY_AND_ASSIGN(Cache);
