@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <fcntl.h>
+#include <sys/file.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -44,7 +45,18 @@ Cache::Memory::~Memory() {
 const void* Cache::Memory::memory() const { return memory_; }
 size_t Cache::Memory::size() const { return size_; }
 
-Cache::Cache(const string& cache_dir) : cache_dir_(cache_dir) {}
+Cache::Cache(const string& cache_dir) : cache_dir_(cache_dir) {
+  file_lock_ = open((cache_dir + "lock").c_str(), O_CREAT|O_RDWR, 0700);
+  // TODO maybe not crashing and giving better error message is
+  // better.
+  assert(file_lock_ != -1);
+  assert(flock(file_lock_, LOCK_EX) != -1);
+}
+
+Cache::~Cache() {
+  assert(flock(file_lock_, LOCK_UN) != -1);
+  close(file_lock_);
+}
 
 string Cache::GetFileName(const string& name) const {
   // TODO: maybe like git itself use multiple directories, since huge
@@ -60,14 +72,17 @@ const Cache::Memory* Cache::get(const string& name, function<string()> fetch) {
     return &it->second;
   }
 
+  string cache_file_name(GetFileName(name));
   // Try if we've cached to file.
-  ScopedFd fd(open(GetFileName(name).c_str(), O_RDONLY));
+  ScopedFd fd(open(cache_file_name.c_str(), O_RDONLY));
   if (fd.get() == -1) {
     // Populate cache.
-    fd.reset(open(GetFileName(name).c_str(), O_RDWR | O_CREAT, 0666));
+    string temporary(GetFileName(name) + ".tmp");
+    fd.reset(open(temporary.c_str(), O_RDWR | O_CREAT, 0666));
     if (fd.get() == -1) return nullptr;
     string result = fetch();
     write(fd.get(), result.data(), result.size());
+    assert(-1 != rename(temporary.c_str(), cache_file_name.c_str()));
   }
   struct stat stbuf;
   fstat(fd.get(), &stbuf);

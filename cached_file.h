@@ -28,6 +28,7 @@ public:
   };
 
   explicit Cache(const std::string& cache_dir);
+  ~Cache();
 
   // Get sha1 hash, and use fetch method to fetch if not available already.
   const Memory* get(const std::string& name, std::function<std::string()> fetch);
@@ -37,6 +38,7 @@ private:
 
   std::unordered_map<std::string, Memory> mapped_files_{};
   const std::string cache_dir_;
+  int file_lock_;
   DISALLOW_COPY_AND_ASSIGN(Cache);
 };
 
