@@ -12,8 +12,7 @@ namespace gitfs {
 class GitTree;
 struct FileElement {
 public:
-  FileElement(GitTree* parent,
-	      int attribute, git_otype file_type,
+  FileElement(int attribute, git_otype file_type,
 	      const std::string& sha1, int size,
 	      std::unique_ptr<gitxx::Object> object);
   int attribute_;
@@ -40,7 +39,6 @@ private:
   std::unique_ptr<std::string> buf_{};
   std::mutex buf_mutex_{};
 
-  const GitTree* parent_;
   const std::unique_ptr<gitxx::Object> object_;
   // TODO, do I need any locking?
 

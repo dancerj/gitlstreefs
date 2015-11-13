@@ -20,8 +20,7 @@ enum GitFileType {
 
 class FileElement : public directory_container::File {
 public:
-  FileElement(int attribute, GitFileType file_type,
-	      const std::string& sha1, int size);
+  FileElement(int attribute, const std::string& sha1, int size);
   void Open();
   ssize_t Read(char *buf, size_t size, off_t offset);
   virtual int Getattr(struct stat *stbuf);
@@ -34,7 +33,6 @@ private:
   std::mutex buf_mutex_{};
 
   int attribute_;
-  GitFileType file_type_;
   std::string sha1_;
   int size_;
 

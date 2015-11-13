@@ -95,7 +95,6 @@ string ParseBlob(const string& blob_string) {
   Value blob;
   json_spirit::read(blob_string, blob);
   assert(GetObjectField("encoding", blob.get_obj()).get_str() == "base64");
-  json_spirit::Object& o = blob.get_obj();
   string base64 = GetObjectField("content", blob.get_obj()).get_str();
   return base64_decode(base64);
 }

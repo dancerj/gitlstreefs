@@ -39,7 +39,7 @@ namespace gitfs {
 
 GitTree::GitTree(const char* revision_ref, const string& gitdir)
   : repo_(gitdir), fullpath_to_files_(), root_() {
-  root_.reset(new FileElement(this, S_IFDIR, GIT_OBJ_TREE,
+  root_.reset(new FileElement(S_IFDIR, GIT_OBJ_TREE,
 			      "TODO", 0, nullptr));
   unique_ptr<gitxx::Object> o(repo_.GetRevision(revision_ref));
   unique_ptr<gitxx::Tree> t(o->GetTreeFromCommit());
@@ -53,8 +53,7 @@ void GitTree::LoadDirectory(FileElement::FileElementMap* files,
   tree->for_each_file([&](const string& name, int attribute,
 			  git_otype file_type, const string& sha1,
 			  int size, unique_ptr<gitxx::Object> object){
-      FileElement* fe = new FileElement(this,
-					attribute,
+      FileElement* fe = new FileElement(attribute,
 					file_type,
 					sha1,
 					size,
@@ -96,11 +95,11 @@ int GitTree::Getattr(const string& fullpath, struct stat *stbuf) const {
   }
 }
 
-FileElement::FileElement(GitTree* parent, int attribute, git_otype file_type,
+FileElement::FileElement(int attribute, git_otype file_type,
 			 const std::string& sha1, int size,
 			 unique_ptr<gitxx::Object> object) :
   attribute_(attribute), file_type_(file_type),
-  sha1_(sha1), size_(size), files_(), parent_(parent), object_(move(object)) {}
+  sha1_(sha1), size_(size), files_(), object_(move(object)) {}
 
 #define TYPE(a) {GIT_OBJ_##a, #a}
 static unordered_map<int, string> file_type_to_string_map {

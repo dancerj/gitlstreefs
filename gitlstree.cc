@@ -99,13 +99,11 @@ void LoadDirectory(const string& my_gitdir, const string& hash,
 			    boost::is_any_of(" \t"),
 			    boost::algorithm::token_compress_on);
     if (elements.size() == 5) {
-      GitFileType fstype = FileTypeStringToFileType(elements[1]);
       const string& file_path = elements[4];
       assert(file_path[0] != '/');  // git ls-tree do not start with /.
       string basename = BaseName(file_path);
       container->add(string("/") + file_path,
 		     make_unique<FileElement>(strtol(elements[0].c_str(), NULL, 8),
-					      fstype,
 					      elements[2],
 					      atoi(elements[3].c_str())));
     }
@@ -113,10 +111,8 @@ void LoadDirectory(const string& my_gitdir, const string& hash,
   for (auto& job : jobs) { job.join(); }
 }
 
-FileElement::FileElement(int attribute, GitFileType file_type,
-			 const std::string& sha1, int size) :
-  attribute_(attribute), file_type_(file_type),
-  sha1_(sha1), size_(size)  {}
+FileElement::FileElement(int attribute, const std::string& sha1, int size) :
+  attribute_(attribute), sha1_(sha1), size_(size)  {}
 
 #define TYPE(a) {#a, TYPE_##a}
 static unordered_map<string, GitFileType> file_type_map {
