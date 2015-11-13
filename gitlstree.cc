@@ -154,7 +154,9 @@ void FileElement::GetHash(char* hash) const {
 }
 
 int FileElement::Release() {
-  // TODO: do something with cache.
+  unique_lock<mutex> l(buf_mutex_);
+  configuration->cache.release(sha1_, memory_);
+  memory_ = nullptr;
   return 0;
 }
 

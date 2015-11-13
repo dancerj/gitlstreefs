@@ -1,6 +1,7 @@
 #ifndef __CACHED_FILE_H__
 #define __CACHED_FILE_H__
 #include <functional>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 
@@ -32,12 +33,16 @@ public:
 
   // Get sha1 hash, and use fetch method to fetch if not available already.
   const Memory* get(const std::string& name, std::function<std::string()> fetch);
+  bool release(const std::string& name, const Memory* item);
 
 private:
   std::string GetFileName(const std::string& key) const;
 
   std::unordered_map<std::string, Memory> mapped_files_{};
+  std::mutex mutex_{};
+
   const std::string cache_dir_;
+  // for directory.
   int file_lock_;
   DISALLOW_COPY_AND_ASSIGN(Cache);
 };

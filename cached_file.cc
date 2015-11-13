@@ -18,8 +18,10 @@
 #include "cached_file.h"
 #include "scoped_fd.h"
 
-using std::string;
 using std::function;
+using std::mutex;
+using std::string;
+using std::unique_lock;
 using std::unordered_map;
 
 Cache::Memory::Memory(void* m, size_t s) : memory_(m), size_(s) {}
@@ -66,6 +68,7 @@ string Cache::GetFileName(const string& name) const {
 
 // Get sha1 hash, and use fetch method to fetch if not available already.
 const Cache::Memory* Cache::get(const string& name, function<string()> fetch) {
+  unique_lock<mutex> l(mutex_);
   // Check if we've already mapped the cache to memory.
   auto it = mapped_files_.find(name);
   if (it != mapped_files_.end()) {
@@ -93,4 +96,17 @@ const Cache::Memory* Cache::get(const string& name, function<string()> fetch) {
   }
   auto emplace_result = mapped_files_.emplace(name, Memory(m, size));
   return &emplace_result.first->second;
+}
+
+bool Cache::release(const string& name, const Cache::Memory* item) {
+  // Delete the name, assert that the value was item.
+  unique_lock<mutex> l(mutex_);
+
+  auto it = mapped_files_.find(name);
+  if (it != mapped_files_.end()) {
+    return false;
+  }
+  assert(&it->second == item);
+  mapped_files_.erase(it);
+  return true;
 }
