@@ -84,6 +84,7 @@ string RunGitCommand(const string& command) {
 void LoadDirectory(const string& my_gitdir, const string& hash, 
 		   const string& maybe_ssh, const string& cached_dir, 
 		   directory_container::DirectoryContainer* container) {
+  configuration.reset(nullptr);
   configuration.reset(new Configuration(my_gitdir, maybe_ssh, cached_dir));
 
   string git_ls_tree = RunGitCommand(string("git ls-tree -l -r ") +
