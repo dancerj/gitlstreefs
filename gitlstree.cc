@@ -70,25 +70,28 @@ int FileElement::Getattr(struct stat *stbuf) {
 }
 
 // Maybe run remote command if ssh spec is available.
-string RunGitCommand(const string& command) {
+string RunGitCommand(const vector<string>& commands) {
   if (!configuration->ssh.empty()) {
+    string command;
+    for (const auto& s: commands) {
+      command += s + " ";
+    }
     ScopedConcurrencyLimit l(command);
-    return PopenAndReadOrDie(string("ssh ") + configuration->ssh + " 'cd " + configuration->gitdir + " && "
-			     + command + "'");
+    return PopenAndReadOrDie2({"ssh", configuration->ssh,
+	  string("cd ") + configuration->gitdir + " && "
+	  + command});
   } else {
-    return PopenAndReadOrDie("cd " + configuration->gitdir + " && "
-			     + command);
+    return PopenAndReadOrDie2(commands, &configuration->gitdir, nullptr);
   }
 }
 
-void LoadDirectory(const string& my_gitdir, const string& hash, 
-		   const string& maybe_ssh, const string& cached_dir, 
+void LoadDirectory(const string& my_gitdir, const string& hash,
+		   const string& maybe_ssh, const string& cached_dir,
 		   directory_container::DirectoryContainer* container) {
   configuration.reset(nullptr);
   configuration.reset(new Configuration(my_gitdir, maybe_ssh, cached_dir));
 
-  string git_ls_tree = RunGitCommand(string("git ls-tree -l -r ") +
-				     hash + " " );
+  string git_ls_tree = RunGitCommand({"git", "ls-tree", "-l", "-r", hash});
   vector<string> lines;
   vector<thread> jobs;
 
@@ -131,7 +134,7 @@ void FileElement::Open() {
   unique_lock<mutex> l(buf_mutex_);
   if (!memory_) {
     memory_ = configuration->cache.get(sha1_, [this]() -> string {
-	  return string(RunGitCommand("git cat-file blob " + sha1_));
+	  return string(RunGitCommand({"git", "cat-file", "blob", sha1_}));
       });
   }
 }

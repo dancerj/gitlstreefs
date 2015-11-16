@@ -86,6 +86,7 @@ CompileLink('gitfs', ['gitfs', 'gitfs_fusemain', 'strutil',
 CompileLinkRunTest('gitfs_test', ['gitfs', 'gitfs_test', 'strutil',
 				  'get_current_dir', 'gitxx', 'basename'])
 
+CompileLinkRunTest('strutil_test', ['strutil', 'strutil_test'])
 CompileLink('ninjafs', ['ninjafs', 'strutil', 'get_current_dir',
 			'basename'])
 CompileLink('hello_world', ['hello_world'])
