@@ -38,9 +38,11 @@ namespace githubfs {
 namespace {
 string HttpFetch(const string& url) {
   ScopedConcurrencyLimit l(url);
-  static const string request_prefix = "curl -A 'git-githubfs(https://github.com/dancerj/gitlstreefs)' ";
-
-  return PopenAndReadOrDie(request_prefix + url);
+  vector<string> request{"curl",
+      "-A",
+      "git-githubfs(https://github.com/dancerj/gitlstreefs)"};
+  request.push_back(url);
+  return PopenAndReadOrDie2(request);
 }
 } // anonymous
 

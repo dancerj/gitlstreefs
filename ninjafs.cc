@@ -65,9 +65,8 @@ public:
     unique_lock<mutex> l(mutex_);
     if (!buf_.get()) {
       // Fill in the content if it didn't exist before.
-      string result = PopenAndReadOrDie(string("cd ") +
-					cwd() + " && ninja " +
-					original_target_name_);
+      string result = PopenAndReadOrDie2({"ninja", original_target_name_},
+					 &cwd());
       buf_.reset(new string);
       *buf_ = ReadFromFileOrDie(cwd() + "/" + original_target_name_);
     }
@@ -96,7 +95,7 @@ private:
 unique_ptr<directory_container::DirectoryContainer> fs;
 
 void LoadDirectory() {
-  string ninja_targets = PopenAndReadOrDie("ninja -t targets all");
+  string ninja_targets = PopenAndReadOrDie2({"ninja", "-t", "targets", "all"});
   vector<string> lines;
   boost::algorithm::split(lines, ninja_targets,
 			  boost::is_any_of("\n"));
