@@ -20,6 +20,8 @@ string base64decode(const string& b64) {
 
   for (size_t position = 0; position < b64.size(); ) {
     uint64_t result = 0;
+    int nchars = -1;  // valid input chars that are not '=', 4 valid
+		      // input chars should give us 3 output chars.
     for (int j = 0; j < 4 && position < b64.size(); ++j) {
       int64_t t = 0;
       do {
@@ -27,14 +29,12 @@ string base64decode(const string& b64) {
       } while (t == kEmptyChar && position < b64.size());
       if (t != kEmptyChar) {
 	result |= (t << ((3 - j) * 6));
+	nchars++;
       }
     }
-    for (int j = 0; j < 3; ++j) {
+    for (int j = 0; j < nchars; ++j) {
       char c = char((result >> ((2 - j) * 8)) & 255);
-      // Append if it's not 0.
-      if (c) {
-	output += c;
-      }
+      output += c;
     }
   }
   return output;

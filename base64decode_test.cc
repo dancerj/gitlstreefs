@@ -11,4 +11,9 @@ int main(int argc, char** argv) {
   assert(base64decode("aGVsbG8gd29ybGQK\n") == "hello world\n");
   assert(base64decode("I2lmICFkZWZpbmVkKFNUUlVUSUxfSF9fKQojZGVmaW5lIFNUUlVUSUxfSF9f\nCiNpbmNsdWRlIDxzdHJpbmc+CnN0ZDo6c3RyaW5nIFJlYWRGcm9tRmlsZU9y\nRGllKGNvbnN0IHN0ZDo6c3RyaW5nJiBmaWxlbmFtZSk7CnN0ZDo6c3RyaW5n\nIFBvcGVuQW5kUmVhZE9yRGllKGNvbnN0IHN0ZDo6c3RyaW5nJiBjb21tYW5k\nLAoJCQkgICAgICBpbnQqIG1heWJlX2V4aXRfY29kZSA9IG51bGxwdHIpOwoj\nZW5kaWYK\n") == "#if !defined(STRUTIL_H__)\n#define STRUTIL_H__\n#include <string>\nstd::string ReadFromFileOrDie(const std::string& filename);\nstd::string PopenAndReadOrDie(const std::string& command,\n			      int* maybe_exit_code = nullptr);\n#endif\n");
 
+  // Make sure === works.
+  assert(base64decode("A===\n").size() == 0);
+  assert(base64decode("AA==\n").size() == 1);
+  assert(base64decode("AAA=\n").size() == 2);
+  assert(base64decode("AAAA\n").size() == 3);
 }
