@@ -93,11 +93,14 @@ CompileLink('hello_world', ['hello_world'])
 CompileLinkRunTest('libgit2test', ['libgit2test', 'gitxx'])
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
 CompileLink('hello_fuseflags', ['hello_fuseflags'])
-CompileLinkRunTest('git-githubfs_test', ['git-githubfs_test', 'git-githubfs',
-					 'strutil', 'concurrency_limit'], {
+CompileLinkRunTest('git-githubfs_test', ['base64decode', 'concurrency_limit',
+					 'git-githubfs_test', 'git-githubfs',
+					 'strutil'], {
     extra_objects: ['/usr/lib/libjson_spirit.a']})
-CompileLink('git-githubfs', ['git-githubfs_fusemain', 'git-githubfs',
-			     'strutil', 'concurrency_limit'], {
+CompileLink('git-githubfs', ['base64decode',
+			     'concurrency_limit', 'git-githubfs_fusemain',
+			     'git-githubfs',
+			     'strutil'], {
     extra_objects: ['/usr/lib/libjson_spirit.a']})
 CompileLinkRunTest('concurrency_limit_test', ['concurrency_limit_test',
 					      'concurrency_limit']);
@@ -107,5 +110,7 @@ CompileLinkRunTest('directory_container_test', ['directory_container_test',
 CompileLink('git_ioctl_client', ['git_ioctl_client']);
 CompileLinkRunTest('scoped_fd_test', ['scoped_fd_test']);
 CompileLinkRunTest('cached_file_test', ['cached_file', 'cached_file_test']);
+CompileLinkRunTest('base64decode_test', ['base64decode',
+					 'base64decode_test']);
 
 Emit()

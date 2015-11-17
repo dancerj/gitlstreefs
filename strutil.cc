@@ -4,9 +4,7 @@
 
 #include <assert.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -28,30 +26,6 @@ std::string ReadFromFileOrDie(const std::string& filename) {
   return retval;
 }
 
-std::string PopenAndReadOrDie(const std::string& command,
-			      int* maybe_exit_code) {
-  string retval;
-  string readbuf;
-  const int bufsize = 4096;
-  readbuf.resize(bufsize);
-  FILE* f = popen(command.c_str(), "r");
-  assert(f != NULL);
-  while(1) {
-    size_t read_length = fread(&readbuf[0], 1, bufsize, f);
-    if (read_length == 0) {
-      // end of file or error, stop reading.
-      assert(feof(f));
-      break;
-    }
-    retval += readbuf.substr(0, read_length);
-  }
-  int exit_code = pclose(f);
-  if (maybe_exit_code)
-    *maybe_exit_code = exit_code;
-
-  return retval;
-}
-
 // A popen implementation that does not require forking a shell. In
 // gitlstreefs benchmarks, we're spending 5% of CPU time initializing
 // shell startup.
@@ -69,8 +43,8 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
     exit(1);
   case 0: {
     // Child process.
+    // Redirect stdout. TODO: what to do with stderr?
     dup2(pipefd[1], 1);
-    dup2(pipefd[1], 2);
     close(pipefd[0]);
     vector<char*> argv;
     for (auto& s: command) {

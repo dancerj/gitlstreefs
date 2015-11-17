@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "base64decode.h"
 #include "concurrency_limit.h"
 #include "git-githubfs.h"
 #include "strutil.h"
@@ -87,18 +88,13 @@ string ParseCommit(const string& commit_string) {
   return hash;
 }
 
-string base64_decode(string base64) {
-  // TODO there must be a better way to do this.
-  return PopenAndReadOrDie(string("echo '") + base64 + "' | base64 -d ");
-}
-
 string ParseBlob(const string& blob_string) {
   // Try parsing github api v3 blob output.
   Value blob;
   json_spirit::read(blob_string, blob);
   assert(GetObjectField("encoding", blob.get_obj()).get_str() == "base64");
   string base64 = GetObjectField("content", blob.get_obj()).get_str();
-  return base64_decode(base64);
+  return base64decode(base64);
 }
 
 void ParseTrees(const string& trees_string, function<void(const string& path,
