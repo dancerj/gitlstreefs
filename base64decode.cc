@@ -20,20 +20,20 @@ string base64decode(const string& b64) {
 
   for (size_t position = 0; position < b64.size(); ) {
     uint64_t result = 0;
-    int nchars = -1;  // valid input chars that are not '=', 4 valid
-		      // input chars should give us 3 output chars.
-    for (int j = 0; j < 4 && position < b64.size(); ++j) {
+    int j;
+    for (j = 0; j < 4 && position < b64.size(); ++j) {
       int64_t t = 0;
       do {
 	t = lookup[b64[position++]];
       } while (t == kEmptyChar && position < b64.size());
       if (t != kEmptyChar) {
 	result |= (t << ((3 - j) * 6));
-	nchars++;
+      } else {
+	break;
       }
     }
-    for (int j = 0; j < nchars; ++j) {
-      char c = char((result >> ((2 - j) * 8)) & 255);
+    for (int k = 0; k < j - 1; ++k) {
+      char c = char((result >> ((2 - k) * 8)) & 255);
       output += c;
     }
   }
