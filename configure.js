@@ -5,7 +5,7 @@ var filename = "build.ninja";
 var outdir = "out/";
 
 var data = [
-    'cxxflags = -O2 -g --std=c++14 -Wall -Werror -D_FILE_OFFSET_BITS=64',
+    'cxxflags = -O2 -g --std=c++14 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I.',
     'ldflags = -lpthread -lfuse',
     'gxx = g++',
     'gcc = gcc',
@@ -83,20 +83,11 @@ CompileLink('gitlstree',
 	     'gitlstree_fusemain',
 	     'strutil'])
 
-CompileLink('gitfs', ['gitfs', 'gitfs_fusemain', 'strutil',
-		      'get_current_dir', 'gitxx', 'basename'],
-	    {cclink: 'cclinkwithgit2'})
-CompileLinkRunTest('gitfs_test', ['gitfs', 'gitfs_test', 'strutil',
-				  'get_current_dir', 'gitxx', 'basename'],
-		   {cclink: 'cclinkwithgit2'})
 CompileLinkRunTest('strutil_test', ['strutil', 'strutil_test'])
 CompileLink('ninjafs', ['ninjafs', 'strutil', 'get_current_dir',
 			'basename'])
 CompileLink('hello_world', ['hello_world'])
-CompileLinkRunTest('libgit2test', ['libgit2test', 'gitxx'],
-		   {cclink: 'cclinkwithgit2'})
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
-CompileLink('hello_fuseflags', ['hello_fuseflags'])
 CompileLinkRunTest('git-githubfs_test', ['base64decode', 'concurrency_limit',
 					 'git-githubfs_test', 'git-githubfs',
 					 'strutil'], {
@@ -116,5 +107,19 @@ CompileLinkRunTest('scoped_fd_test', ['scoped_fd_test']);
 CompileLinkRunTest('cached_file_test', ['cached_file', 'cached_file_test']);
 CompileLinkRunTest('base64decode_test', ['base64decode',
 					 'base64decode_test']);
+
+//Experimental code.
+CompileLink('experimental/gitfs',
+	    ['experimental/gitfs', 'experimental/gitfs_fusemain', 'strutil',
+	     'get_current_dir', 'experimental/gitxx', 'basename'],
+	    {cclink: 'cclinkwithgit2'})
+CompileLinkRunTest('experimental/gitfs_test',
+		   ['experimental/gitfs', 'experimental/gitfs_test', 'strutil',
+		    'get_current_dir', 'experimental/gitxx', 'basename'],
+		   {cclink: 'cclinkwithgit2'})
+CompileLinkRunTest('experimental/libgit2test',
+		   ['experimental/libgit2test', 'experimental/gitxx'],
+		   {cclink: 'cclinkwithgit2'})
+CompileLink('experimental/hello_fuseflags', ['experimental/hello_fuseflags'])
 
 Emit()

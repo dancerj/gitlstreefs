@@ -12,17 +12,6 @@ dependencies. The build system depends on nodejs and ninja.
     $ ./configure.js
     $ ninja
 
-# git file system using libgit2 #
-
-gitfs -- mounts a filesystem based on directory and hash, to mountpoint.
-uses libgit2
-
-Takes the git reposiotory from the current working directory as of
-execution and mounts to the directory given as the first parameter.
-
-    $ ./out/gitfs mountpoint
-    $ fusermount -u mountpoint
-
 # git file system using git ls-tree, optionally via ssh #
 
 gitlstree -- mounts a filesystem based on directory and hash, to
@@ -49,6 +38,21 @@ github rest API v3.
     $ ls mountpoint/
     $ cat mountpoint/README.md
     $ fusermount -u mountpoint
+
+# git file system using libgit2 #
+
+experimental/gitfs -- mounts a filesystem based on directory and hash,
+to mountpoint.  uses libgit2
+
+Takes the git repository from the current working directory as of
+execution and mounts to the directory given as the first parameter.
+
+    $ ./out/experimental/gitfs mountpoint
+    $ fusermount -u mountpoint
+
+Although this was the initial approach, compared to other
+implementations this implementation is slower and consumes more
+memory.
 
 # ninja file system #
 
