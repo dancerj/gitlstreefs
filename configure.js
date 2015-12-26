@@ -6,8 +6,7 @@ var outdir = "out/";
 
 var data = [
     'cxxflags = -O2 -g --std=c++14 -Wall -Werror -D_FILE_OFFSET_BITS=64',
-    // TODO only link what is required for each binary.
-    'ldflags = -lpthread -lfuse -lgit2 -lz ',
+    'ldflags = -lpthread -lfuse',
     'gxx = g++',
     'gcc = gcc',
     'rule cc',
@@ -16,6 +15,8 @@ var data = [
     '  deps = gcc',
     'rule cclink',
     '  command = $gxx $ldflags $in -o $out',
+    'rule cclinkwithgit2',
+    '  command = $gxx $ldflags $in -o $out -lgit2',
     'rule runtest',
     '  command = ./$in > $out.tmp 2>&1 && mv $out.tmp $out || ( cat $out.tmp; exit 1 )',
     'rule ninjagenerator',
@@ -26,7 +27,8 @@ var data = [
 var compile_candidates = {};
 function CompileLink(target, sources, opts) {
     function Link(target, sources) {
-	data.push('build ' + target + ': cclink ' + sources.join(' '))
+	var cclink = (!!opts && opts.cclink) || 'cclink'
+	data.push('build ' + target + ': ' + cclink + ' ' + sources.join(' '))
     }
     var sources_o = [];
     for (var i in sources) {
@@ -82,15 +84,17 @@ CompileLink('gitlstree',
 	     'strutil'])
 
 CompileLink('gitfs', ['gitfs', 'gitfs_fusemain', 'strutil',
-		      'get_current_dir', 'gitxx', 'basename'])
+		      'get_current_dir', 'gitxx', 'basename'],
+	    {cclink: 'cclinkwithgit2'})
 CompileLinkRunTest('gitfs_test', ['gitfs', 'gitfs_test', 'strutil',
-				  'get_current_dir', 'gitxx', 'basename'])
-
+				  'get_current_dir', 'gitxx', 'basename'],
+		   {cclink: 'cclinkwithgit2'})
 CompileLinkRunTest('strutil_test', ['strutil', 'strutil_test'])
 CompileLink('ninjafs', ['ninjafs', 'strutil', 'get_current_dir',
 			'basename'])
 CompileLink('hello_world', ['hello_world'])
-CompileLinkRunTest('libgit2test', ['libgit2test', 'gitxx'])
+CompileLinkRunTest('libgit2test', ['libgit2test', 'gitxx'],
+		   {cclink: 'cclinkwithgit2'})
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
 CompileLink('hello_fuseflags', ['hello_fuseflags'])
 CompileLinkRunTest('git-githubfs_test', ['base64decode', 'concurrency_limit',
