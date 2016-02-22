@@ -17,6 +17,8 @@ var data = [
     '  command = $gxx $ldflags $in -o $out',
     'rule cclinkwithgit2',
     '  command = $gxx $ldflags $in -o $out -lgit2',
+    'rule cclinkcowfs',
+    '  command = $gxx $ldflags $in -o $out -lboost_filesystem -lboost_system -lgcrypt',
     'rule runtest',
     '  command = ./$in > $out.tmp 2>&1 && mv $out.tmp $out || ( cat $out.tmp; exit 1 )',
     'rule ninjagenerator',
@@ -56,7 +58,15 @@ function Emit() {
 function RunTest(test, opts) {
     test = outdir + test;
     stdout = test + '.result';
-    data.push('build ' + stdout + ': runtest ' + test)
+    data.push('build ' + stdout + ': runtest ' + test +
+	      ((!!opts && opts.extra_depends) ? '|' + opts.extra_depends : '' ))
+}
+
+function RunTestScript(test, opts) {
+    test = test;
+    stdout = outdir + test + '.result';
+    data.push('build ' + stdout + ': runtest ' + test +
+	      ((!!opts && opts.extra_depends) ? '|' + opts.extra_depends : '' ))
 }
 
 function CompileLinkRunTest(target, sources, opts) {
@@ -122,5 +132,12 @@ CompileLinkRunTest('experimental/libgit2test',
 		   {cclink: 'cclinkwithgit2'})
 CompileLink('experimental/hello_fuseflags', ['experimental/hello_fuseflags'])
 CompileLink('experimental/unkofs', ['experimental/unkofs'])
-
+CompileLink('cowfs', ['cowfs', 'cowfs_crypt'],
+	    {cclink: 'cclinkcowfs'})
+CompileLinkRunTest('cowfs_crypt_test', ['cowfs_crypt',
+					'cowfs_crypt_test'],
+		   {cclink: 'cclinkcowfs'});
+RunTestScript('cowfs_test.sh', {
+    extra_depends: ['out/cowfs']
+})
 Emit()
