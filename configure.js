@@ -121,5 +121,6 @@ CompileLinkRunTest('experimental/libgit2test',
 		   ['experimental/libgit2test', 'experimental/gitxx'],
 		   {cclink: 'cclinkwithgit2'})
 CompileLink('experimental/hello_fuseflags', ['experimental/hello_fuseflags'])
+CompileLink('experimental/unkofs', ['experimental/unkofs'])
 
 Emit()
