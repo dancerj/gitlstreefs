@@ -113,7 +113,9 @@ static int fs_read(const char *path, char *target, size_t size, off_t offset,
     memcpy(target, "unkounko", 8);
     return 8;
   }
-  return pread(fd, target, size, offset);
+  ssize_t n = pread(fd, target, size, offset);
+  if (n == -1) return -errno;
+  return n;
 }
 
 int main(int argc, char** argv) {
