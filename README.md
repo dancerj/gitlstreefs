@@ -65,6 +65,21 @@ ninjafs -- a filesystem that lists ninja build targets, and builds on demand.
     $ ./mountpoint/out/hello_world
     $ fusermount -u mountpoint
 
+# cow file system #
+
+cowfs -- a filesystem that uses hardlinks and copy-on-write semantics.
+
+A reimplementation of what cowdancer would have probably been, using
+FUSE. Not quite feature complete but basic features started working.
+
+    $ ./cowfs out/cowfstmp/workdir -o nonempty \
+    	  --lock_path=out/cowfstmp/lock \
+	  --underlying_path=out/cowfstmp/workdir \
+	  --repository=out/cowfstmp/repo
+    $ ls -l out/cowfstmp/workdir
+    $ echo "hello world" > out/cowfstmp/workdir
+    $ fusermount -z -u mountpoint
+
 # Copying #
 
 A BSD-style license.
