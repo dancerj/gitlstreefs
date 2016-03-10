@@ -1,7 +1,11 @@
 // content-based cowdancer-like file system.
 //
+// At mount time it would:
 // - hard-links same file based on content
 // - gc to eliminate files no longer referenced.
+//
+// While mounted it would:
+// - try to unlink the hardlinks before modification.
 #define FUSE_USE_VERSION 26
 
 #include <assert.h>
@@ -48,6 +52,17 @@ string GetRelativePath(const char* path) {
   }
   return path + 1;
 }
+
+class ScopedFd {
+public:
+  explicit ScopedFd(int fd) : fd_(fd) {}
+  ~ScopedFd() {
+    if (fd_ != -1) close(fd_);
+  }
+  int get() const { return fd_; }
+private:
+  int fd_;
+};
 
 class ScopedRelativeFileFd {
 public:
@@ -165,42 +180,61 @@ bool HardlinkOneFile(const string& from, const string& to) {
 
 bool MaybeBreakHardlink(int dirfd, const string& target) {
   string to_tmp(target + ".tmp");
-  int from_fd = openat(dirfd, target.c_str(), O_RDONLY, 0);
-  if (from_fd == -1) {
-    if (errno == ENOENT) {
-      // File not existing is okay, O_CREAT maybe specified.
+
+  {
+    ScopedFd from_fd(openat(dirfd, target.c_str(), O_RDONLY, 0));
+
+    if (from_fd.get() == -1) {
+      if (errno == ENOENT) {
+	// File not existing is okay, O_CREAT maybe specified.
+	return true;
+      }
+      perror("open failed and not ENOENT");
+      return false;
+    }
+    // TODO: O_TRUNC might be an optimization.
+    struct stat st{};
+    if (-1 == fstat(from_fd.get(), &st)) {
+      // I wonder why fstat can fail here.
+      perror("fstat");
+      return false;
+    }
+
+    // 0 is not an expected value, does the file system support hardlink?
+    if (st.st_nlink == 0) {
+      cout << "0 hardlink doesn't sound like a good filesystem." << endl;
+      return false;
+    }
+
+    if (st.st_nlink == 1) {
+      // I don't need to break links if count is 1.
       return true;
     }
+
+    ScopedFd to_fd(openat(dirfd, to_tmp.c_str(), O_WRONLY | O_CREAT, st.st_mode));
+    if (to_fd.get() == -1) {
+      perror(("open " + to_tmp).c_str());
+      return false;
+    }
+
+    char buf[BUFSIZ];
+    ssize_t nread;
+    while ((nread = read(from_fd.get(), buf, sizeof buf)) != 0) {
+      if (nread == -1) {
+	perror("read");
+	return false;
+      }
+      if (nread != write(to_fd.get(), buf, sizeof buf)) {
+	perror("write");
+	return false;
+      }
+    }
+  }
+
+  if (-1 == renameat(dirfd, to_tmp.c_str(), dirfd, target.c_str())) {
+    perror("renameat");
     return false;
   }
-  // TODO: O_TRUNC might be an optimization.
-  struct stat st{};
-  if (-1 == fstat(from_fd, &st)) {
-    return true;
-  }
-
-  // 0 is not an expected value, does the file system support hardlink?
-  assert(st.st_nlink != 0);
-
-  if (st.st_nlink == 1) {
-    // I don't need to break links if count is 1.
-    return true;
-  }
-
-  int to_fd = openat(dirfd, to_tmp.c_str(), O_WRONLY | O_CREAT, st.st_mode);
-  assert(to_fd != -1);
-
-  char buf[BUFSIZ];
-  ssize_t nread;
-  while ((nread = read(from_fd, buf, sizeof buf)) != 0) {
-    assert(nread != -1);
-    assert(nread == write(to_fd, buf, sizeof buf));
-  }
-
-  assert(-1 != close(to_fd));
-  assert(-1 != close(from_fd));
-
-  assert(-1 != renameat(dirfd, to_tmp.c_str(), dirfd, target.c_str()));
   return true;
 }
 
@@ -294,7 +328,9 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
 
   if ((fi->flags & O_ACCMODE) != O_RDONLY) {
     // Break hardlink on open if necessary.
-    assert(MaybeBreakHardlink(premount_dirfd, path));
+    if (!MaybeBreakHardlink(premount_dirfd, path)) {
+      return -EIO;
+    }
   }
   int fd = openat(premount_dirfd, relative_path.c_str(),
 		  fi->flags,
