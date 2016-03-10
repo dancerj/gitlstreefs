@@ -237,18 +237,28 @@ void HardlinkTree(const string& repo, const string& directory) {
   }
 }
 
+#define WRAP_ERRNO(f)				\
+  if(-1 == f) {					\
+    return -errno;				\
+  } else{					\
+    return 0;					\
+  }
+#define WRAP_ERRNO_OR_RESULT(T, f)				\
+  T res = f;							\
+  if(-1 == res) {						\
+    return -errno;						\
+  } else {							\
+    return res;							\
+  }
+
 static int fs_getattr(const char *path, struct stat *stbuf) {
   memset(stbuf, 0, sizeof(struct stat));
   if (*path == 0)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
 
-  if (-1 == fstatat(premount_dirfd, relative_path.c_str(),
-		    stbuf, AT_SYMLINK_NOFOLLOW)) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(fstatat(premount_dirfd, relative_path.c_str(),
+		     stbuf, AT_SYMLINK_NOFOLLOW));
 }
 
 static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
@@ -302,12 +312,7 @@ static int fs_read(const char *path, char *target, size_t size, off_t offset,
   if (fd == -1)
     return -ENOENT;
 
-  ssize_t n = pread(fd, target, size, offset);
-  if (n == -1) {
-    return -errno;
-  } else {
-    return n;
-  }
+  WRAP_ERRNO_OR_RESULT(ssize_t, pread(fd, target, size, offset));
 }
 
 static int fs_write(const char *path, const char *buf, size_t size,
@@ -316,33 +321,21 @@ static int fs_write(const char *path, const char *buf, size_t size,
   if (fd == -1)
     return -ENOENT;
 
-  ssize_t n = pwrite(fd, buf, size, offset);
-  if (n == -1) {
-    return -errno;
-  } else {
-    return n;
-  }
+  WRAP_ERRNO_OR_RESULT(ssize_t, pwrite(fd, buf, size, offset));
 }
 
 static int fs_release(const char *path, struct fuse_file_info *fi) {
   int fd = fi->fh;
   if (fd == -1)
     return -ENOENT;
-  if (close(fd) == -1) {
-    return -errno;
-  }
-  return 0;
+  WRAP_ERRNO(close(fd));
 }
 
 static int fs_mknod(const char *path, mode_t mode, dev_t rdev) {
   if (*path == 0)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
-  if (mknodat(premount_dirfd, relative_path.c_str(), mode, rdev) == -1) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(mknodat(premount_dirfd, relative_path.c_str(), mode, rdev));
 }
 
 static int fs_chmod(const char *path, mode_t mode)
@@ -350,12 +343,8 @@ static int fs_chmod(const char *path, mode_t mode)
   if (*path == 0)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
-  if (fchmodat(premount_dirfd,
-	       relative_path.c_str(), mode, AT_SYMLINK_NOFOLLOW) == -1) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(fchmodat(premount_dirfd,
+		      relative_path.c_str(), mode, AT_SYMLINK_NOFOLLOW));
 }
 
 static int fs_chown(const char *path, uid_t uid, gid_t gid)
@@ -363,24 +352,16 @@ static int fs_chown(const char *path, uid_t uid, gid_t gid)
   if (*path == 0)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
-  if (fchownat(premount_dirfd,
-	       relative_path.c_str(), uid, gid, AT_SYMLINK_NOFOLLOW) == -1) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(fchownat(premount_dirfd,
+		      relative_path.c_str(), uid, gid, AT_SYMLINK_NOFOLLOW));
 }
 
 static int fs_utimens(const char *path, const struct timespec ts[2]) {
   if (*path == 0)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
-  if (utimensat(premount_dirfd,
-		relative_path.c_str(), ts, AT_SYMLINK_NOFOLLOW) == -1) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(utimensat(premount_dirfd,
+		       relative_path.c_str(), ts, AT_SYMLINK_NOFOLLOW));
 }
 
 static int fs_truncate(const char *path, off_t size) {
@@ -388,22 +369,14 @@ static int fs_truncate(const char *path, off_t size) {
   if (fd.get() == -1) {
     return -fd.get_errno();
   }
-  if (ftruncate(fd.get(), size)) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(ftruncate(fd.get(), size));
 }
 
 static int fs_unlink(const char *path) {
   if (*path == 0)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
-  if (unlinkat(premount_dirfd, relative_path.c_str(), 0) == -1) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(unlinkat(premount_dirfd, relative_path.c_str(), 0));
 }
 
 static int fs_rename(const char *from, const char *to) {
@@ -413,33 +386,21 @@ static int fs_rename(const char *from, const char *to) {
     return -ENOENT;
   string from_s(GetRelativePath(from));
   string to_s(GetRelativePath(to));
-  if (renameat(premount_dirfd, from_s.c_str(), premount_dirfd, to_s.c_str()) == -1) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(renameat(premount_dirfd, from_s.c_str(), premount_dirfd, to_s.c_str()));
 }
 
 static int fs_mkdir(const char *path, mode_t mode) {
   if (*path == 0)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
-  if (mkdirat(premount_dirfd, relative_path.c_str(), mode) == -1) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(mkdirat(premount_dirfd, relative_path.c_str(), mode));
 }
 
 static int fs_rmdir(const char *path) {
   if (*path == 0)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
-  if (unlinkat(premount_dirfd, relative_path.c_str(), AT_REMOVEDIR) == -1) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(unlinkat(premount_dirfd, relative_path.c_str(), AT_REMOVEDIR));
 }
 
 static int fs_readlink(const char *path, char *buf, size_t size) {
@@ -462,19 +423,11 @@ static int fs_symlink(const char *from, const char *to) {
   if (*to == 0)
     return -ENOENT;
   string to_s(GetRelativePath(to));
-  if (symlinkat(from, premount_dirfd, to_s.c_str()) == -1) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(symlinkat(from, premount_dirfd, to_s.c_str()));
 }
 
 static int fs_statfs(const char *path, struct statvfs *stbuf) {
-  if (-1 == fstatvfs(premount_dirfd, stbuf)) {
-    return -errno;
-  } else {
-    return 0;
-  }
+  WRAP_ERRNO(fstatvfs(premount_dirfd, stbuf));
 }
 
 struct cowfs_config {
@@ -491,34 +444,37 @@ static struct fuse_opt cowfs_opts[] = {
   MYFS_OPT("--underlying_path=%s", underlying_path, 0),
   FUSE_OPT_END
 };
+#undef MYFS_OPT
 
 int main(int argc, char** argv) {
 
   struct fuse_operations o = {};
-  o.getattr = &fs_getattr;
-  o.readdir = &fs_readdir;
-  o.open = &fs_open;
-  o.read = &fs_read;
-  o.write = &fs_write;
-  o.release = &fs_release;
-  o.mknod = &fs_mknod;
-  o.mkdir = &fs_mkdir;
-  o.rmdir = &fs_rmdir;
-  o.chmod = &fs_chmod;
-  o.chown = &fs_chown;
-  o.utimens = &fs_utimens;
-  o.truncate = &fs_truncate;
-  o.unlink = &fs_unlink;
-  o.rename = &fs_rename;
-  o.readlink = &fs_readlink;
-  o.symlink = &fs_symlink;
-  o.statfs = &fs_statfs;
-  // o.fsync = &fs_fsync;
-  // o.fallocate = &fs_fallocate;
-  // o.setxattr = &fs_setxattr;
-  // o.getxattr = &fs_getxattr;
-  // o.listxattr = &fs_listxattr;
-  // o.removexattr = &fs_removexattr;
+#define DEFINE_HANDLER(n) o.n = &fs_##n
+  DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(readdir);
+  DEFINE_HANDLER(open);
+  DEFINE_HANDLER(read);
+  DEFINE_HANDLER(write);
+  DEFINE_HANDLER(release);
+  DEFINE_HANDLER(mknod);
+  DEFINE_HANDLER(mkdir);
+  DEFINE_HANDLER(rmdir);
+  DEFINE_HANDLER(chmod);
+  DEFINE_HANDLER(chown);
+  DEFINE_HANDLER(utimens);
+  DEFINE_HANDLER(truncate);
+  DEFINE_HANDLER(unlink);
+  DEFINE_HANDLER(rename);
+  DEFINE_HANDLER(readlink);
+  DEFINE_HANDLER(symlink);
+  DEFINE_HANDLER(statfs);
+  // DEFINE_HANDLER(fsync);
+  // DEFINE_HANDLER(fallocate);
+  // DEFINE_HANDLER(setxattr);
+  // DEFINE_HANDLER(getxattr);
+  // DEFINE_HANDLER(listxattr);
+  // DEFINE_HANDLER(removexattr);
+#undef DEFINE_HANDLER
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   cowfs_config conf{};
