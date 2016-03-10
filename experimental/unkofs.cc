@@ -8,18 +8,21 @@
 
 #include <assert.h>
 #include <dirent.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <fuse.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-#include <errno.h>
 
 #include <string>
 
 // Directory before mount.
 int premount_dirfd = -1;
+
+// File descriptor value for our special pseudo-file. Arbitrary value
+// that probably doesn't get used by open().
 const int kFdUnko = 0;
 
 using std::string;
