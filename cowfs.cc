@@ -20,6 +20,7 @@
 
 #include "cowfs_crypt.h"
 #include "disallow.h"
+#include "scoped_fd.h"
 
 namespace fs = boost::filesystem; // std::experimental::filesystem;
 using std::cerr;
@@ -42,17 +43,6 @@ string GetRelativePath(const char* path) {
   }
   return path + 1;
 }
-
-class ScopedFd {
-public:
-  explicit ScopedFd(int fd) : fd_(fd) {}
-  ~ScopedFd() {
-    if (fd_ != -1) close(fd_);
-  }
-  int get() const { return fd_; }
-private:
-  int fd_;
-};
 
 class ScopedRelativeFileFd {
 public:
