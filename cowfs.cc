@@ -18,7 +18,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <syslog.h>
 #include <unistd.h>
 
 #include <boost/filesystem.hpp>
@@ -523,7 +522,6 @@ int main(int argc, char** argv) {
   HardlinkTree(conf.repository, conf.underlying_path);
   premount_dirfd = open(conf.underlying_path, O_PATH|O_DIRECTORY);
   assert(premount_dirfd != -1);
-  openlog(argv[0], LOG_CONS|LOG_NDELAY|LOG_PID, LOG_USER);
 
   int ret = fuse_main(args.argc, args.argv, &o, NULL);
   fuse_opt_free_args(&args);
