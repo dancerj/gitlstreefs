@@ -12,29 +12,20 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <fuse.h>
-#include <stdio.h>
 #include <sys/file.h>
-#include <sys/stat.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
 #include <boost/filesystem.hpp>
 #include <iostream>
-#include <memory>
 #include <string>
 
 #include "cowfs_crypt.h"
 #include "disallow.h"
 
 namespace fs = boost::filesystem; // std::experimental::filesystem;
+using std::cerr;
 using std::cout;
 using std::endl;
 using std::string;
-using std::unique_ptr;
-using std::to_string;
-using std::cerr;
 
 // Directory before mount.
 int premount_dirfd = -1;
