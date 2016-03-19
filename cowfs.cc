@@ -204,12 +204,13 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
 	perror("read");
 	return false;
       }
-      if (nread != write(to_fd.get(), buf, sizeof buf)) {
+      if (nread != write(to_fd.get(), buf, nread)) {
 	perror("write");
 	return false;
       }
     }
   }
+  // TODO: update metadata.
 
   if (-1 == renameat(dirfd, to_tmp.c_str(), dirfd, target.c_str())) {
     perror("renameat");
