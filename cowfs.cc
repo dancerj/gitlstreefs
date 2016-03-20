@@ -20,6 +20,7 @@
 
 #include "cowfs_crypt.h"
 #include "disallow.h"
+#include "file_copy.h"
 #include "scoped_fd.h"
 
 namespace fs = boost::filesystem; // std::experimental::filesystem;
@@ -190,25 +191,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
       // I don't need to break links if count is 1.
       return true;
     }
-
-    ScopedFd to_fd(openat(dirfd, to_tmp.c_str(), O_WRONLY | O_CREAT, st.st_mode));
-    if (to_fd.get() == -1) {
-      perror(("open " + to_tmp).c_str());
-      return false;
-    }
-
-    char buf[BUFSIZ];
-    ssize_t nread;
-    while ((nread = read(from_fd.get(), buf, sizeof buf)) != 0) {
-      if (nread == -1) {
-	perror("read");
-	return false;
-      }
-      if (nread != write(to_fd.get(), buf, nread)) {
-	perror("write");
-	return false;
-      }
-    }
+    FileCopyInternal(dirfd, from_fd.get(), st, to_tmp);
   }
   // TODO: update metadata.
 
