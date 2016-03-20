@@ -33,6 +33,18 @@ bool FileCopyInternal(int dirfd, int from_fd, const struct stat& st,
       return false;
     }
   }
+  if (-1 == fchmod(to_fd.get(), st.st_mode)) {
+    perror("fchmod");
+    return false;
+  }
+  if (-1 == futimens(to_fd.get(), &st.st_mtim)) {
+    perror("futimens");
+    return false;
+  }
+  if (-1 == fchown(to_fd.get(), st.st_uid, st.st_gid)) {
+    perror("fchown");
+    return false;
+  }
   return true;
 }
 
