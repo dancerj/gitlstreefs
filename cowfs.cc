@@ -134,14 +134,13 @@ void GcTree(const string& repo) {
 }
 
 string ReadFile(const string& filename) {
-  int fd = open(filename.c_str(), O_RDONLY);
-  assert(fd != -1);
+  ScopedFd fd(open(filename.c_str(), O_RDONLY));
+  assert(fd.get() != -1);
   struct stat s;
   string buf;
-  assert(-1 != fstat(fd, &s));
+  assert(-1 != fstat(fd.get(), &s));
   buf.resize(s.st_size);
-  assert(-1 != read(fd, &buf[0], s.st_size));
-  assert(-1 != close(fd));
+  assert(s.st_size == read(fd.get(), &buf[0], s.st_size));
   return buf;
 }
 
