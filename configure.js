@@ -132,6 +132,10 @@ CompileLinkRunTest('experimental/libgit2test',
 		   {cclink: 'cclinkwithgit2'})
 CompileLink('experimental/hello_fuseflags', ['experimental/hello_fuseflags'])
 CompileLink('experimental/unkofs', ['experimental/unkofs'])
+CompileLink('experimental/globfs', ['experimental/globfs'])
+RunTestScript('experimental/globfs_test.sh', {
+    extra_depends: ['out/experimental/globfs']
+})
 CompileLink('cowfs', ['cowfs', 'cowfs_crypt', 'file_copy'],
 	    {cclink: 'cclinkcowfs'})
 CompileLinkRunTest('cowfs_crypt_test', ['cowfs_crypt',
