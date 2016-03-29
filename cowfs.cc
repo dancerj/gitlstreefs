@@ -21,6 +21,7 @@
 #include "cowfs_crypt.h"
 #include "disallow.h"
 #include "file_copy.h"
+#include "relative_path.h"
 #include "scoped_fd.h"
 
 namespace fs = boost::filesystem; // std::experimental::filesystem;
@@ -31,19 +32,6 @@ using std::string;
 
 // Directory before mount.
 int premount_dirfd = -1;
-
-string GetRelativePath(const char* path) {
-  // Input is /absolute/path/below
-  // convert to a relative path.
-
-  assert(*path != 0);
-
-  if(path[1] == 0) {
-    // special-case / ? "" isn't a good relative path.
-    return "./";
-  }
-  return path + 1;
-}
 
 class ScopedRelativeFileFd {
 public:

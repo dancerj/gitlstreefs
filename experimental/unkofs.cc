@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "../relative_path.h"
+
 // Directory before mount.
 int premount_dirfd = -1;
 
@@ -26,21 +28,6 @@ int premount_dirfd = -1;
 const int kFdUnko = 0;
 
 using std::string;
-
-string GetRelativePath(const char* path) {
-  // Input is /absolute/path/below
-  // convert to a relative path.
-
-  if (*path == 0) {
-    // Probably not a good idea.
-    return "";
-  }
-  if(path[1] == 0) {
-    // special-case / ?
-    return "./";
-  }
-  return path + 1;
-}
 
 static int fs_getattr(const char *path, struct stat *stbuf) {
   memset(stbuf, 0, sizeof(struct stat));
