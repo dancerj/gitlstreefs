@@ -21,4 +21,11 @@ if cat $TESTDIR/COPYING; then
 else
     echo "Failure is success."
 fi
+
+if stat $TESTDIR/COPYING; then
+    exit 1  # shouldn't be possible to read this file.
+else
+    echo "Failure is success."
+fi
+
 grep cowfs $TESTDIR/cowfs.cc
