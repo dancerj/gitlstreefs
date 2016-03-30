@@ -1,7 +1,6 @@
-// Proof of concept that you can overlay mountpoint over existing
-// directory and still read it.
+// A filesystem that filters filenames with a glob.
 //
-// globfs mountpoint
+// globfs mountpoint --glob_pattern='hoge*' --underlying_path=./
 #define FUSE_USE_VERSION 26
 
 #include <assert.h>
