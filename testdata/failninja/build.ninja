@@ -1,0 +1,4 @@
+rule fail
+  command = echo 'bunch of error message' ; false
+build does_not_exist: fail build.ninja
+

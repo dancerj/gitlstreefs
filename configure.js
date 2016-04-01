@@ -96,6 +96,9 @@ CompileLink('gitlstree',
 CompileLinkRunTest('strutil_test', ['strutil', 'strutil_test'])
 CompileLink('ninjafs', ['ninjafs', 'strutil', 'get_current_dir',
 			'basename'])
+RunTestScript('ninjafs_test.sh', {
+    extra_depends: ['out/ninjafs']
+})
 CompileLink('hello_world', ['hello_world'])
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
 CompileLinkRunTest('git-githubfs_test', ['base64decode', 'concurrency_limit',

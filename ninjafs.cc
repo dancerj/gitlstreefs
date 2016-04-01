@@ -46,9 +46,9 @@ public:
   virtual ~NinjaLog() {}
 
   virtual int Getattr(struct stat *stbuf) {
+    unique_lock<mutex> l(mutex_);
     stbuf->st_mode = S_IFREG | 0555;
     stbuf->st_nlink = 1;
-    unique_lock<mutex> l(mutex_);
     stbuf->st_size = log_.size();
     return 0;
   }
@@ -70,6 +70,7 @@ public:
   }
 
   void UpdateLog(const string&& log) {
+    unique_lock<mutex> l(mutex_);
     log_ = move(log);
   }
 
@@ -128,6 +129,10 @@ public:
 
   virtual ssize_t Read(char *target, size_t size, off_t offset) {
     // Fill in the response
+    if (!buf_.get()) {
+      // If buffer is empty, give back error.
+      return -EIO;
+    }
     unique_lock<mutex> l(mutex_);
     if (offset < static_cast<off_t>(buf_->size())) {
       if (offset + size > buf_->size())
@@ -137,6 +142,7 @@ public:
       size = 0;
     return size;
   }
+
 private:
   // If file was created already, this is not null.
   unique_ptr<string> buf_{};
