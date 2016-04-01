@@ -231,7 +231,6 @@ int main(int argc, char *argv[]) {
     cout << "Failed to run ninja to obtain target." << endl;
     return 1;
   }
-  fs->dump();
 
   struct fuse_operations o = {};
   o.getattr = &fs_getattr;
