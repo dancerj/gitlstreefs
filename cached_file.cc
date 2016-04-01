@@ -48,7 +48,8 @@ const void* Cache::Memory::memory() const { return memory_; }
 size_t Cache::Memory::size() const { return size_; }
 
 Cache::Cache(const string& cache_dir) : cache_dir_(cache_dir) {
-  file_lock_ = open((cache_dir + "lock").c_str(), O_CREAT|O_RDWR, 0700);
+  file_lock_ = open((cache_dir + "lock").c_str(),
+		    O_CREAT|O_RDWR|O_CLOEXEC, 0700);
   // TODO maybe not crashing and giving better error message is
   // better.
   assert(file_lock_ != -1);
