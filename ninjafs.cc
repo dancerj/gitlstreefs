@@ -109,6 +109,7 @@ public:
     if (!buf_.get()) {
       int exit_code;
       // Fill in the content if it didn't exist before.
+      assert(ninja_log);  // Initialization should have set this value.
       ninja_log->UpdateLog(PopenAndReadOrDie2({"ninja", original_target_name_},
 					      &cwd(), &exit_code));
 
@@ -152,12 +153,18 @@ private:
 
 unique_ptr<directory_container::DirectoryContainer> fs;
 
-void LoadDirectory() {
+bool LoadDirectory() {
   // NinjaLog is globally referenced but make it owned by filesystem.
   ninja_log = new NinjaLog();
   fs->add("/ninja.log", unique_ptr<NinjaLog>(ninja_log));
 
-  string ninja_targets = PopenAndReadOrDie2({"ninja", "-t", "targets", "all"});
+  int status;
+  string ninja_targets = PopenAndReadOrDie2({"ninja", "-t", "targets", "all"},
+					    nullptr, 
+					    &status);
+  if (status) {
+    return false;
+  }
   vector<string> lines;
   boost::algorithm::split(lines, ninja_targets,
 			  boost::is_any_of("\n"));
@@ -173,6 +180,7 @@ void LoadDirectory() {
       fs->add(string("/") + filename, make_unique<NinjaTarget>(filename));
     }
   }
+  return true;
 }
 
 static int fs_getattr(const char *path, struct stat *stbuf) {
@@ -219,7 +227,10 @@ using namespace ninjafs;
 
 int main(int argc, char *argv[]) {
   fs.reset(new directory_container::DirectoryContainer());
-  LoadDirectory();
+  if (!LoadDirectory()) {
+    cout << "Failed to run ninja to obtain target." << endl;
+    return 1;
+  }
   fs->dump();
 
   struct fuse_operations o = {};

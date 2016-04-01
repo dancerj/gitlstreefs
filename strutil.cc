@@ -32,6 +32,7 @@ std::string ReadFromFileOrDie(const std::string& filename) {
 std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
 			       const string* cwd,
 			       int* maybe_exit_code) {
+  string retval;  // only used on successful exit from parent.
   pid_t pid;
   int pipefd[2];
   assert(0 == pipe(pipefd));
@@ -47,6 +48,7 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
     dup2(pipefd[1], 1);
     dup2(pipefd[1], 2);
     close(pipefd[0]);
+    close(pipefd[1]);
     vector<char*> argv;
     for (auto& s: command) {
       // Const cast is necessary because the interface requires
@@ -68,7 +70,6 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
   default: {
     // Parent process.
     close(pipefd[1]);
-    string retval;
     string readbuf;
     const int bufsize = 4096;
     readbuf.resize(bufsize);
@@ -89,8 +90,7 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
     assert(WIFEXITED(status));
     if (maybe_exit_code)
       *maybe_exit_code = WEXITSTATUS(status);
-
-    return retval;
   }
   }
+  return retval;
 }
