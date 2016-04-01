@@ -56,7 +56,9 @@ memory.
 
 # ninja file system #
 
-ninjafs -- a filesystem that lists ninja build targets, and builds on demand.
+ninjafs -- a filesystem that lists ninja build targets, and builds on
+demand.  Will return IO error when build fails, you can inspect
+/ninja.log to see what the error message was.
 
     $ rm out/hello_world  # for demonstration.
     $ out/ninjafs mountpoint/

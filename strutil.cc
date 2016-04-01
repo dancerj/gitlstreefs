@@ -43,8 +43,9 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
     exit(1);
   case 0: {
     // Child process.
-    // Redirect stdout. TODO: what to do with stderr?
+    // Redirect stdout and stderr, and merge them. Do I care if I have stderr?
     dup2(pipefd[1], 1);
+    dup2(pipefd[1], 2);
     close(pipefd[0]);
     vector<char*> argv;
     for (auto& s: command) {

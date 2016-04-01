@@ -38,11 +38,54 @@ namespace ninjafs {
 // become a daemon and chdir(/), so this is important.
 static string original_cwd(GetCurrentDir());
 
+// We will hold the build log in memory and provide the contents per
+// request from user, via a /ninja.log node.
+class NinjaLog : public directory_container::File{
+public:
+  NinjaLog() : log_(), mutex_() {}
+  virtual ~NinjaLog() {}
+
+  virtual int Getattr(struct stat *stbuf) {
+    stbuf->st_mode = S_IFREG | 0555;
+    stbuf->st_nlink = 1;
+    unique_lock<mutex> l(mutex_);
+    stbuf->st_size = log_.size();
+    return 0;
+  }
+
+  virtual int Open() {
+    return 0;
+  }
+
+  virtual ssize_t Read(char *target, size_t size, off_t offset) {
+    // Fill in the response
+    unique_lock<mutex> l(mutex_);
+    if (offset < static_cast<off_t>(log_.size())) {
+      if (offset + size > log_.size())
+	size = log_.size() - offset;
+      memcpy(target, log_.c_str() + offset, size);
+    } else
+      size = 0;
+    return size;
+  }
+
+  void UpdateLog(const string&& log) {
+    log_ = move(log);
+  }
+
+private:
+  string log_;
+  mutex mutex_{};
+};
+
+// TODO: this is a weak global pointer referencing to a unique_ptr.
+NinjaLog* ninja_log = nullptr;
+
 // Concrete class.
 class NinjaTarget : public directory_container::File {
 public:
   NinjaTarget(const string& original_target_name) :
-    original_target_name_(original_target_name){}
+    original_target_name_(original_target_name) {}
   virtual ~NinjaTarget() {}
   virtual int Getattr(struct stat *stbuf) {
     stbuf->st_mode = S_IFREG | 0555;
@@ -65,11 +108,20 @@ public:
   virtual int Open() {
     unique_lock<mutex> l(mutex_);
     if (!buf_.get()) {
+      int exit_code;
       // Fill in the content if it didn't exist before.
-      string result = PopenAndReadOrDie2({"ninja", original_target_name_},
-					 &cwd());
-      buf_.reset(new string);
-      *buf_ = ReadFromFileOrDie(cwd() + "/" + original_target_name_);
+      ninja_log->UpdateLog(PopenAndReadOrDie2({"ninja", original_target_name_},
+					      &cwd(), &exit_code));
+
+      if (exit_code == 0) {
+	// success.
+	buf_.reset(new string);
+	*buf_ = ReadFromFileOrDie(cwd() + "/" + original_target_name_);
+      } else {
+	return -EIO;  // Return IO error on build failure.
+      }
+    } else {
+      // TODO, do I need / want to ever invalidate the cache?
     }
     return 0;
   }
@@ -97,6 +149,10 @@ private:
 unique_ptr<directory_container::DirectoryContainer> fs;
 
 void LoadDirectory() {
+  // NinjaLog is globally referenced but make it owned by filesystem.
+  ninja_log = new NinjaLog();
+  fs->add("/ninja.log", unique_ptr<NinjaLog>(ninja_log));
+
   string ninja_targets = PopenAndReadOrDie2({"ninja", "-t", "targets", "all"});
   vector<string> lines;
   boost::algorithm::split(lines, ninja_targets,
@@ -140,8 +196,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
     return -ENOENT;
   fi->fh = reinterpret_cast<uint64_t>(f);
 
-  f->Open();
-  return 0;
+  return f->Open();
 }
 
 static int fs_read(const char *path, char *target, size_t size, off_t offset,
