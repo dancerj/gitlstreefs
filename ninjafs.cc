@@ -15,22 +15,22 @@
 #include <string.h>
 #include <unordered_map>
 
+#include "directory_container.h"
 #include "get_current_dir.h"
 #include "strutil.h"
-#include "directory_container.h"
 
 using std::cout;
 using std::endl;
 using std::function;
+using std::make_unique;
+using std::mutex;
 using std::mutex;
 using std::string;
+using std::unique_lock;
 using std::unique_lock;
 using std::unique_ptr;
 using std::unordered_map;
 using std::vector;
-using std::make_unique;
-using std::unique_lock;
-using std::mutex;
 
 namespace ninjafs {
 
