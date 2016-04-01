@@ -61,7 +61,8 @@ public:
     // TODO;
     return original_cwd;
   }
-  void Open() {
+
+  virtual int Open() {
     unique_lock<mutex> l(mutex_);
     if (!buf_.get()) {
       // Fill in the content if it didn't exist before.
@@ -70,9 +71,10 @@ public:
       buf_.reset(new string);
       *buf_ = ReadFromFileOrDie(cwd() + "/" + original_target_name_);
     }
+    return 0;
   }
 
-  ssize_t Read(const char *path, char *target, size_t size, off_t offset) {
+  virtual ssize_t Read(char *target, size_t size, off_t offset) {
     // Fill in the response
     unique_lock<mutex> l(mutex_);
     if (offset < static_cast<off_t>(buf_->size())) {
@@ -133,7 +135,7 @@ static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 static int fs_open(const char *path, struct fuse_file_info *fi) {
   if (*path == 0)
     return -ENOENT;
-  NinjaTarget* f = dynamic_cast<NinjaTarget*>(fs->mutable_get(path));
+  directory_container::File* f = fs->mutable_get(path);
   if (!f)
     return -ENOENT;
   fi->fh = reinterpret_cast<uint64_t>(f);
@@ -144,11 +146,12 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
 
 static int fs_read(const char *path, char *target, size_t size, off_t offset,
 		   struct fuse_file_info *fi) {
-  NinjaTarget* f = dynamic_cast<NinjaTarget*>(reinterpret_cast<directory_container::File*>(fi->fh));
+  directory_container::File* f =
+    reinterpret_cast<directory_container::File*>(fi->fh);
   if (!f)
     return -ENOENT;
 
-  return f->Read(path, target, size, offset);
+  return f->Read(target, size, offset);
 }
 
 } // anonymous namespace

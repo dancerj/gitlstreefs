@@ -26,10 +26,17 @@ public:
   virtual ~File() {}
 
   /**
-   * @return 0 on success, -errno on fail
-   * @param fullpath Full path starting with "/"
+   * @return 0 on success, -errno on fail.
    */
   virtual int Getattr(struct stat *stbuf) = 0;
+
+  /**
+   * @return >= 0 on success, -errno on fail.
+   */
+  virtual ssize_t Read(char *buf, size_t size, off_t offset) = 0;
+
+  virtual int Open() = 0;
+
   DISALLOW_COPY_AND_ASSIGN(File);
 };
 
@@ -46,6 +53,14 @@ public:
     return 0;
   };
 
+  virtual ssize_t Read(char *buf, size_t size, off_t offset) {
+    // Can't read from a directory.
+    return -EINVAL;
+  }
+  virtual int Open() {
+    // Can't open a directory?
+    return -EINVAL;
+  }
   void add(const std::string& path, std::unique_ptr<File> f) {
     files_[path] = move(f);
   }
@@ -73,6 +88,7 @@ public:
       }
     }
   }
+
 private:
   typedef std::unordered_map<std::string,
 			     std::unique_ptr<File> > FileElementMap;

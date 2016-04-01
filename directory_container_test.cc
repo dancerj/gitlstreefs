@@ -27,6 +27,12 @@ public:
   virtual int Getattr(struct stat *stbuf) {
     return 0;
   }
+  virtual ssize_t Read(char *buf, size_t size, off_t offset) {
+    return -EINVAL;
+  }
+  virtual int Open() {
+    return -EINVAL;
+  };
 };
 
 int main() {

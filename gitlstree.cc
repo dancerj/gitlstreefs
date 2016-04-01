@@ -130,13 +130,14 @@ GitFileType FileTypeStringToFileType(const string& file_type_string) {
   return file_type_map.find(file_type_string)->second;
 }
 
-void FileElement::Open() {
+int FileElement::Open() {
   unique_lock<mutex> l(buf_mutex_);
   if (!memory_) {
     memory_ = configuration->cache.get(sha1_, [this]() -> string {
 	  return string(RunGitCommand({"git", "cat-file", "blob", sha1_}));
       });
   }
+  return 0;
 }
 
 ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
