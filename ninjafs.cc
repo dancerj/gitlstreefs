@@ -36,6 +36,9 @@ namespace ninjafs {
 // become a daemon and chdir(/), so this is important.
 static string original_cwd(GetCurrentDir());
 
+// A mutex to guard multiple ninja executions.
+mutex global_ninja_mutex;
+
 // We will hold the build log in memory and provide the contents per
 // request from user, via a /ninja.log node.
 class NinjaLog : public directory_container::File{
@@ -110,6 +113,7 @@ public:
       int exit_code;
       // Fill in the content if it didn't exist before.
       assert(ninja_log);  // Initialization should have set this value.
+      unique_lock<mutex> l(global_ninja_mutex);
       ninja_log->UpdateLog(PopenAndReadOrDie2({"ninja", original_target_name_},
 					      &cwd(), &exit_code));
 
