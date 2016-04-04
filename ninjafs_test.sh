@@ -12,8 +12,9 @@ trap cleanup exit
 mkdir $TESTDIR || true
 
 (
-    cd ./testdata/failninja/ &&
-	../../out/ninjafs ../../$TESTDIR -o attr_timeout=0
+    cd ./testdata/failninja/
+    ninja -t clean
+    ../../out/ninjafs ../../$TESTDIR -o attr_timeout=0
 )
 ls -l $TESTDIR/
 if cat $TESTDIR/does_not_exist; then
@@ -29,4 +30,9 @@ file $TESTDIR/ninja.log
 ls -l $TESTDIR/ninja.log
 cat $TESTDIR/ninja.log
 grep 'bunch of error message' $TESTDIR/ninja.log
+
+cat $TESTDIR/slow &
+sleep 1
+cat $TESTDIR/fast &
+wait
 

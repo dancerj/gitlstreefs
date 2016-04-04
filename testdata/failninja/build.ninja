@@ -1,4 +1,9 @@
 rule fail
   command = echo 'bunch of error message' ; false
+rule slow
+  command = sleep 5s; echo slow > $out
+rule fast
+  command = sleep 1s; echo fast > $out
 build does_not_exist: fail build.ninja
-
+build slow: slow build.ninja
+build fast: fast build.ninja
