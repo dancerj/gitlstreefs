@@ -32,7 +32,7 @@ public:
   ~Cache();
 
   // Get sha1 hash, and use fetch method to fetch if not available already.
-  const Memory* get(const std::string& name, std::function<std::string()> fetch);
+  const Memory* get(const std::string& name, std::function<bool(std::string*)> fetch);
   bool release(const std::string& name, const Memory* item);
 
 private:

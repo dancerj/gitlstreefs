@@ -68,7 +68,8 @@ void Cache::GetFileName(const string& name,
 }
 
 // Get sha1 hash, and use fetch method to fetch if not available already.
-const Cache::Memory* Cache::get(const string& name, function<string()> fetch) {
+const Cache::Memory* Cache::get(const string& name,
+				function<bool(string*)> fetch) {
   unique_lock<mutex> l(mutex_);
   // Check if we've already mapped the cache to memory.
   auto it = mapped_files_.find(name);
@@ -88,13 +89,18 @@ const Cache::Memory* Cache::get(const string& name, function<string()> fetch) {
   ScopedFd fd(open(cache_file_path.c_str(), O_RDONLY));
   if (fd.get() == -1) {
     // Populate cache.
+    string result;
+    if (!fetch(&result)) {
+      // Uncached fetching failed.
+      return nullptr;
+    }
+
     string temporary(cache_file_path + ".tmp");
     fd.reset(open(temporary.c_str(), O_RDWR | O_CREAT, 0666));
     if (fd.get() == -1) {
       perror((string("open ") + temporary).c_str());
       return nullptr;
     }
-    string result = fetch();
     assert(result.size() ==
 	   static_cast<size_t>(write(fd.get(), result.data(), result.size())));
     assert(-1 != rename(temporary.c_str(), cache_file_path.c_str()));

@@ -140,10 +140,16 @@ GitFileType FileTypeStringToFileType(const string& file_type_string) {
 int FileElement::Open() {
   unique_lock<mutex> l(buf_mutex_);
   if (!memory_) {
-    memory_ = configuration->cache.get(sha1_, [this]() -> string {
-	return string(RunGitCommand({"git", "cat-file", "blob", sha1_},
-				    nullptr));
+    memory_ = configuration->cache.get(sha1_, [this](string* ret) -> bool {
+	int exit_code;
+	*ret = string(RunGitCommand({"git", "cat-file", "blob", sha1_},
+				    &exit_code));
+	return exit_code == 0;
       });
+    if (!memory_) {
+      // If still failed, something failed in the process.
+      return -EIO;
+    }
   }
   return 0;
 }
