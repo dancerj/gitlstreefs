@@ -128,8 +128,11 @@ int main(int argc, char *argv[]) {
 		    GetCurrentDir() + "/.cache/");
 
   gitlstree::fs.reset(new directory_container::DirectoryContainer());
-  gitlstree::LoadDirectory(path, revision, ssh, cache_path, 
-			   gitlstree::fs.get());
+  if (!gitlstree::LoadDirectory(path, revision, ssh, cache_path,
+				gitlstree::fs.get())) {
+    fprintf(stderr, "Loading directory %s failed\n", path.c_str());
+    return 1;
+  }
 
   int ret = fuse_main(args.argc, args.argv, &o, NULL);
   fuse_opt_free_args(&args);

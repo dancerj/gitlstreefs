@@ -41,7 +41,7 @@ private:
 
 GitFileType FileTypeStringToFileType(const std::string& file_type_string);
 
-void LoadDirectory(const std::string& gitdir,
+bool LoadDirectory(const std::string& gitdir,
 		   const std::string& hash,
 		   const std::string& maybe_ssh,
 		   const std::string& cache_dir,

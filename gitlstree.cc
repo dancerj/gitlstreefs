@@ -70,7 +70,7 @@ int FileElement::Getattr(struct stat *stbuf) {
 }
 
 // Maybe run remote command if ssh spec is available.
-string RunGitCommand(const vector<string>& commands) {
+string RunGitCommand(const vector<string>& commands, int* exit_code) {
   if (!configuration->ssh.empty()) {
     string command;
     for (const auto& s: commands) {
@@ -79,19 +79,25 @@ string RunGitCommand(const vector<string>& commands) {
     ScopedConcurrencyLimit l(command);
     return PopenAndReadOrDie2({"ssh", configuration->ssh,
 	  string("cd ") + configuration->gitdir + " && "
-	  + command});
+	  + command}, nullptr, exit_code);
   } else {
-    return PopenAndReadOrDie2(commands, &configuration->gitdir, nullptr);
+    return PopenAndReadOrDie2(commands, &configuration->gitdir, exit_code);
   }
 }
 
-void LoadDirectory(const string& my_gitdir, const string& hash,
+bool LoadDirectory(const string& my_gitdir, const string& hash,
 		   const string& maybe_ssh, const string& cached_dir,
 		   directory_container::DirectoryContainer* container) {
   configuration.reset(nullptr);
   configuration.reset(new Configuration(my_gitdir, maybe_ssh, cached_dir));
 
-  string git_ls_tree = RunGitCommand({"git", "ls-tree", "-l", "-r", hash});
+  int exit_code;
+  string git_ls_tree(RunGitCommand({"git", "ls-tree", "-l", "-r", hash}, &exit_code));
+  if (exit_code != 0) {
+    // Failed to load directory.
+    return false;
+  }
+
   vector<string> lines;
   vector<thread> jobs;
 
@@ -113,6 +119,7 @@ void LoadDirectory(const string& my_gitdir, const string& hash,
     }
   }
   for (auto& job : jobs) { job.join(); }
+  return true;
 }
 
 FileElement::FileElement(int attribute, const std::string& sha1, int size) :
@@ -134,7 +141,8 @@ int FileElement::Open() {
   unique_lock<mutex> l(buf_mutex_);
   if (!memory_) {
     memory_ = configuration->cache.get(sha1_, [this]() -> string {
-	  return string(RunGitCommand({"git", "cat-file", "blob", sha1_}));
+	return string(RunGitCommand({"git", "cat-file", "blob", sha1_},
+				    nullptr));
       });
   }
   return 0;
