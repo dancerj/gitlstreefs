@@ -36,7 +36,7 @@ public:
   bool release(const std::string& name, const Memory* item);
 
 private:
-  std::string GetFileName(const std::string& key) const;
+  void GetFileName(const std::string& key, std::string*, std::string*) const;
 
   std::unordered_map<std::string, Memory> mapped_files_{};
   std::mutex mutex_{};

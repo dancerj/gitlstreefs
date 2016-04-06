@@ -61,10 +61,10 @@ Cache::~Cache() {
   close(file_lock_);
 }
 
-string Cache::GetFileName(const string& name) const {
-  // TODO: maybe like git itself use multiple directories, since huge
-  // directories do not perform well.
-  return cache_dir_ + name;
+void Cache::GetFileName(const string& name, 
+			string* dir_name, string* file_name) const {
+  *dir_name = cache_dir_ + name.substr(0, 2);
+  *file_name = name.substr(2);
 }
 
 // Get sha1 hash, and use fetch method to fetch if not available already.
@@ -76,23 +76,34 @@ const Cache::Memory* Cache::get(const string& name, function<string()> fetch) {
     return &it->second;
   }
 
-  string cache_file_name(GetFileName(name));
+  string cache_file_dir;
+  string cache_file_name;
+  GetFileName(name, &cache_file_dir, &cache_file_name);
+  string cache_file_path(cache_file_dir + "/" + cache_file_name);
+  if (-1 == mkdir(cache_file_dir.c_str(), 0700) && (errno != EEXIST)) {
+    perror((string("mkdir ") + cache_file_dir).c_str());
+    return nullptr;
+  }
   // Try if we've cached to file.
-  ScopedFd fd(open(cache_file_name.c_str(), O_RDONLY));
+  ScopedFd fd(open(cache_file_path.c_str(), O_RDONLY));
   if (fd.get() == -1) {
     // Populate cache.
-    string temporary(GetFileName(name) + ".tmp");
+    string temporary(cache_file_path + ".tmp");
     fd.reset(open(temporary.c_str(), O_RDWR | O_CREAT, 0666));
-    if (fd.get() == -1) return nullptr;
+    if (fd.get() == -1) {
+      perror((string("open ") + temporary).c_str());
+      return nullptr;
+    }
     string result = fetch();
     write(fd.get(), result.data(), result.size());
-    assert(-1 != rename(temporary.c_str(), cache_file_name.c_str()));
+    assert(-1 != rename(temporary.c_str(), cache_file_path.c_str()));
   }
   struct stat stbuf;
   fstat(fd.get(), &stbuf);
   size_t size = stbuf.st_size;
   void* m = mmap(nullptr, size, PROT_READ, MAP_SHARED, fd.get(), 0);
   if (m == MAP_FAILED) {
+    perror(("mmap " + cache_file_path).c_str());
     return nullptr;
   }
   auto emplace_result = mapped_files_.emplace(name, Memory(m, size));
