@@ -6,7 +6,7 @@ var outdir = "out/";
 
 var data = [
     'cxxflags = -O2 -g --std=c++14 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I.',
-    'ldflags = -lpthread -lfuse',
+    'ldflags = -pthread -lfuse',
     'gxx = g++',
     'gcc = gcc',
     'rule cc',
@@ -14,11 +14,11 @@ var data = [
     '  depfile = $out.d',
     '  deps = gcc',
     'rule cclink',
-    '  command = $gxx $ldflags $in -o $out',
+    '  command = $gxx $in -o $out $ldflags',
     'rule cclinkwithgit2',
-    '  command = $gxx $ldflags $in -o $out -lgit2',
+    '  command = $gxx $in -o $out -lgit2 $ldflags',
     'rule cclinkcowfs',
-    '  command = $gxx $ldflags $in -o $out -lboost_filesystem -lboost_system -lgcrypt',
+    '  command = $gxx $in -o $out -lboost_filesystem -lboost_system -lgcrypt $ldflags',
     'rule runtest',
     '  command = ./$in > $out.tmp 2>&1 && mv $out.tmp $out || ( cat $out.tmp; exit 1 )',
     'rule ninjagenerator',
