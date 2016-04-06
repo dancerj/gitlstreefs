@@ -95,7 +95,8 @@ const Cache::Memory* Cache::get(const string& name, function<string()> fetch) {
       return nullptr;
     }
     string result = fetch();
-    write(fd.get(), result.data(), result.size());
+    assert(result.size() ==
+	   static_cast<size_t>(write(fd.get(), result.data(), result.size())));
     assert(-1 != rename(temporary.c_str(), cache_file_path.c_str()));
   }
   struct stat stbuf;
