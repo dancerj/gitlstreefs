@@ -205,7 +205,7 @@ void HardlinkTree(const string& repo, const string& directory) {
 	     << " " << dir_name << "/" << file_name << endl;
 	string repo_filename(repo + "/" + dir_name + "/" + file_name);
 	struct stat st;
-	if (stat(repo_filename.c_str(), &st) == -1 && errno == ENOENT) {
+	if (lstat(repo_filename.c_str(), &st) == -1 && errno == ENOENT) {
 	  // If it doesn't exist, we hardlink to there.
 	  // First try to make subdirectory if it doesn't exist.
 	  // TODO: what's a reasonable umask for this repo?
@@ -331,7 +331,7 @@ static int fs_chmod(const char *path, mode_t mode)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
   WRAP_ERRNO(fchmodat(premount_dirfd,
-		      relative_path.c_str(), mode, AT_SYMLINK_NOFOLLOW));
+   		      relative_path.c_str(), mode, 0));
 }
 
 static int fs_chown(const char *path, uid_t uid, gid_t gid)

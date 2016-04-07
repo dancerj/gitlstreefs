@@ -18,9 +18,9 @@ echo old > $TESTDIR/workdir/existing_file
 out/cowfs $TESTDIR/workdir -o nonempty \
 	  --lock_path=out/cowfstmp/lock \
 	  --underlying_path=out/cowfstmp/workdir \
-	  --repository=out/cowfstmp/repo
-# out/cowfs $TESTDIR/workdir -o nonempty -d &
-# sleep 1
+	  --repository=out/cowfstmp/repo \
+	  -d &
+sleep 1
 
 diff README.md $TESTDIR/workdir/README.md
 touch $TESTDIR/workdir/new_file
@@ -43,3 +43,7 @@ ls -l $TESTDIR/workdir/newsymlink
 grep newnewer $TESTDIR/workdir/newsymlink
 
 df -h $TESTDIR/workdir/
+
+echo hogefuga > $TESTDIR/workdir/do_chmod
+chmod 0700 $TESTDIR/workdir/do_chmod
+
