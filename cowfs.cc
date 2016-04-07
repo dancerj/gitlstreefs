@@ -108,7 +108,7 @@ void GcTree(const string& repo) {
   for(auto it = fs::recursive_directory_iterator(repo); it != end; ++it) {
     // it points to a directory_entry().
     fs::path p(*it);
-    if (fs::is_regular_file(p)) {
+    if (fs::is_regular_file(p) && !fs::is_symlink(p)) {
       // cout << p.string() << " nlink=" << fs::hard_link_count(p) << endl;
       if (fs::hard_link_count(p) == 1) {
 	// This is a stale file
@@ -196,7 +196,7 @@ void HardlinkTree(const string& repo, const string& directory) {
   for(auto it = fs::recursive_directory_iterator(directory); it != end; ++it) {
     // it points to a directory_entry().
     fs::path p(*it);
-    if (fs::is_regular_file(p)) {
+    if (fs::is_regular_file(p) && !fs::is_symlink(p)) {
       if (fs::hard_link_count(p) == 1) {
 	string dir_name, file_name;
 	gcrypt_string_get_git_style_relpath(&dir_name, &file_name,
@@ -467,6 +467,12 @@ int main(int argc, char** argv) {
   cowfs_config conf{};
   fuse_opt_parse(&args, &conf, cowfs_opts, NULL);
 
+  if (!conf.underlying_path || !conf.lock_path || !conf.repository) {
+    cerr << argv[0]
+	 << " [mountpoint] --lock_path= --underlying_path= --repository= "
+	 << endl;
+    return 1;
+  }
   assert(conf.underlying_path);
   assert(conf.lock_path);
   ScopedLock fslock(conf.lock_path, "cowfs");
