@@ -74,13 +74,23 @@ cowfs -- a filesystem that uses hardlinks and copy-on-write semantics.
 A reimplementation of what cowdancer would have probably been, using
 FUSE. Not quite feature complete but basic features started working.
 
-    $ ./cowfs out/cowfstmp/workdir -o nonempty \
+    $ ./out/cowfs out/cowfstmp/workdir -o nonempty \
     	  --lock_path=out/cowfstmp/lock \
 	  --underlying_path=out/cowfstmp/workdir \
 	  --repository=out/cowfstmp/repo
     $ ls -l out/cowfstmp/workdir
     $ echo "hello world" > out/cowfstmp/workdir
     $ fusermount -z -u mountpoint
+
+Some extra mount options are required along with running as root to
+get a full system running. Namely allow_other, dev, suid. Say we have
+a chroot inside out/sid-chroot/chroot:
+
+    $ sudo ./out/cowfs --lock_path=out/sid-chroot/lock \
+      --underlying_path=out/sid-chroot/chroot \
+      --repository=out/sid-chroot/repo \
+      out/sid-chroot/chroot \
+      -o nonempty,allow_other,dev,suid
 
 # Copying #
 
