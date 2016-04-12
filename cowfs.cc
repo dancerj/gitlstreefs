@@ -29,6 +29,7 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::string;
+using std::vector;
 
 // Directory before mount.
 int premount_dirfd = -1;
@@ -105,6 +106,7 @@ private:
 void GcTree(const string& repo) {
   cout << "GCing things we don't need" << endl;
   auto end = fs::recursive_directory_iterator();
+  vector<string> to_delete{};
   for(auto it = fs::recursive_directory_iterator(repo); it != end; ++it) {
     // it points to a directory_entry().
     fs::path p(*it);
@@ -112,11 +114,14 @@ void GcTree(const string& repo) {
       // cout << p.string() << " nlink=" << fs::hard_link_count(p) << endl;
       if (fs::hard_link_count(p) == 1) {
 	// This is a stale file
-	cout << p.string() << " is no longer needed " << endl;
-	if (-1 == unlink(p.string().c_str())) {
-	  perror((string("unlink ") + p.string()).c_str());
-	}
+	to_delete.emplace_back(p.string());
       }
+    }
+  }
+  for (const auto& s: to_delete) {
+    if (-1 == unlink(s.c_str())) {
+      cout << s << " is no longer needed " << endl;
+      perror((string("unlink ") + s).c_str());
     }
   }
 }
