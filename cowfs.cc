@@ -442,24 +442,24 @@ int main(int argc, char** argv) {
 
   struct fuse_operations o = {};
 #define DEFINE_HANDLER(n) o.n = &fs_##n
-  DEFINE_HANDLER(getattr);
-  DEFINE_HANDLER(readdir);
-  DEFINE_HANDLER(open);
-  DEFINE_HANDLER(read);
-  DEFINE_HANDLER(write);
-  DEFINE_HANDLER(release);
-  DEFINE_HANDLER(mknod);
-  DEFINE_HANDLER(mkdir);
-  DEFINE_HANDLER(rmdir);
   DEFINE_HANDLER(chmod);
   DEFINE_HANDLER(chown);
-  DEFINE_HANDLER(utimens);
+  DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(mkdir);
+  DEFINE_HANDLER(mknod);
+  DEFINE_HANDLER(open);
+  DEFINE_HANDLER(read);
+  DEFINE_HANDLER(readdir);
+  DEFINE_HANDLER(readlink);
+  DEFINE_HANDLER(release);
+  DEFINE_HANDLER(rename);
+  DEFINE_HANDLER(rmdir);
+  DEFINE_HANDLER(statfs);
+  DEFINE_HANDLER(symlink);
   DEFINE_HANDLER(truncate);
   DEFINE_HANDLER(unlink);
-  DEFINE_HANDLER(rename);
-  DEFINE_HANDLER(readlink);
-  DEFINE_HANDLER(symlink);
-  DEFINE_HANDLER(statfs);
+  DEFINE_HANDLER(utimens);
+  DEFINE_HANDLER(write);
   // DEFINE_HANDLER(fsync);
   // DEFINE_HANDLER(fallocate);
   // DEFINE_HANDLER(setxattr);
