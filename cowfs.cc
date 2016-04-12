@@ -418,6 +418,17 @@ static int fs_symlink(const char *from, const char *to) {
   WRAP_ERRNO(symlinkat(from, premount_dirfd, to_s.c_str()));
 }
 
+static int fs_link(const char *from, const char *to) {
+  if (*from == 0)
+    return -ENOENT;
+  if (*to == 0)
+    return -ENOENT;
+  string from_s(GetRelativePath(from));
+  string to_s(GetRelativePath(to));
+  WRAP_ERRNO(linkat(premount_dirfd, from_s.c_str(),
+ 		    premount_dirfd, to_s.c_str(), 0));
+}
+
 static int fs_statfs(const char *path, struct statvfs *stbuf) {
   WRAP_ERRNO(fstatvfs(premount_dirfd, stbuf));
 }
@@ -445,6 +456,7 @@ int main(int argc, char** argv) {
   DEFINE_HANDLER(chmod);
   DEFINE_HANDLER(chown);
   DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(link);
   DEFINE_HANDLER(mkdir);
   DEFINE_HANDLER(mknod);
   DEFINE_HANDLER(open);

@@ -47,3 +47,5 @@ df -h $TESTDIR/workdir/
 echo hogefuga > $TESTDIR/workdir/do_chmod
 chmod 0700 $TESTDIR/workdir/do_chmod
 
+rm -f $TESTDIR/workdir/do_link
+ln $TESTDIR/workdir/do_chmod $TESTDIR/workdir/do_link
