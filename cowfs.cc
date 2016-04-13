@@ -126,8 +126,8 @@ void GcTree(const string& repo) {
   }
 }
 
-string ReadFile(const string& filename) {
-  ScopedFd fd(open(filename.c_str(), O_RDONLY));
+string ReadFile(int dirfd, const string& filename) {
+  ScopedFd fd(openat(dirfd, filename.c_str(), O_RDONLY));
   assert(fd.get() != -1);
   struct stat s;
   string buf;
@@ -138,14 +138,15 @@ string ReadFile(const string& filename) {
 }
 
 // Not using dirfd.
-bool HardlinkOneFile(const string& from, const string& to) {
+bool HardlinkOneFile(int dirfd_from, const string& from,
+		     int dirfd_to, const string& to) {
   string to_tmp(to + ".tmp");
-  if (-1 == link(from.c_str(), to_tmp.c_str())) {
-    perror("link");
+  if (-1 == linkat(dirfd_from, from.c_str(), dirfd_to, to_tmp.c_str(), 0)) {
+    perror("linkat");
     return false;
   }
-  if (-1 == rename(to_tmp.c_str(), to.c_str())) {
-    perror("rename");
+  if (-1 == renameat(dirfd_to, to_tmp.c_str(), dirfd_to, to.c_str())) {
+    perror("renameat");
     return false;
   }
   return true;
@@ -194,6 +195,30 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
   return true;
 }
 
+bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename,
+				 const string& repo) {
+  string repo_dir_name, repo_file_name;
+  gcrypt_string_get_git_style_relpath(&repo_dir_name, &repo_file_name,
+				      ReadFile(target_dirfd, target_filename));
+  string repo_file_path(repo + "/" + repo_dir_name + "/" + repo_file_name);
+  struct stat st;
+  if (lstat(repo_file_path.c_str(), &st) == -1 && errno == ENOENT) {
+    // If it doesn't exist, we hardlink to there.
+    // First try to make subdirectory if it doesn't exist.
+    // TODO: what's a reasonable umask for this repo?
+    if (mkdir((repo + "/" + repo_dir_name).c_str(), 0700) == -1) {
+      if (errno != EEXIST) return false;
+    }
+    if (!HardlinkOneFile(target_dirfd, target_filename, AT_FDCWD, repo_file_path))
+      return false;
+  } else {
+    // Hardlink from repo.
+    if (!HardlinkOneFile(AT_FDCWD, repo_file_path, target_dirfd, target_filename))
+      return false;
+  }
+  return true;
+}
+
 void HardlinkTree(const string& repo, const string& directory) {
   cout << "Hardlinking files we do need" << endl;
 
@@ -203,25 +228,7 @@ void HardlinkTree(const string& repo, const string& directory) {
     fs::path p(*it);
     if (fs::is_regular_file(p) && !fs::is_symlink(p)) {
       if (fs::hard_link_count(p) == 1) {
-	string dir_name, file_name;
-	gcrypt_string_get_git_style_relpath(&dir_name, &file_name,
-					    ReadFile(p.string()));
-	cout << p.string() << " nlink=" << fs::hard_link_count(p)
-	     << " " << dir_name << "/" << file_name << endl;
-	string repo_filename(repo + "/" + dir_name + "/" + file_name);
-	struct stat st;
-	if (lstat(repo_filename.c_str(), &st) == -1 && errno == ENOENT) {
-	  // If it doesn't exist, we hardlink to there.
-	  // First try to make subdirectory if it doesn't exist.
-	  // TODO: what's a reasonable umask for this repo?
-	  if (mkdir((repo + "/" + dir_name).c_str(), 0700) == -1) {
-	    assert(errno == EEXIST);
-	  }
-	  assert(HardlinkOneFile(p.string(), repo_filename));
-	} else {
-	  // Hardlink from repo.
-	  assert(HardlinkOneFile(repo_filename, p.string()));
-	}
+	assert(FindOutRepoAndMaybeHardlink(AT_FDCWD, p.string(), repo));
       }
     }
   }
@@ -319,8 +326,17 @@ static int fs_write(const char *path, const char *buf, size_t size,
 static int fs_release(const char *path, struct fuse_file_info *fi) {
   int fd = fi->fh;
   if (fd == -1)
-    return -ENOENT;
-  WRAP_ERRNO(close(fd));
+    return -EBADF;
+  if (*path == 0)
+    return -EBADF;
+  string relative_path(GetRelativePath(path));
+
+  int ret = close(fd);
+  if (-1 == ret) ret = -errno;
+
+  // TODO: Dedup
+
+  return ret;
 }
 
 static int fs_mknod(const char *path, mode_t mode, dev_t rdev) {
