@@ -7,7 +7,16 @@ FUSE, that works with git and help building.
 Requires libboost-dev, libfuse, libgit2 and zlib as build time library
 dependencies. The build system depends on nodejs and ninja.
 
-    # apt-get install zlib1g-dev libfuse-dev libgit2-dev nodejs ninja-build libboost-dev libboost-filesystem-dev libjson-spirit-dev curl
+    # apt-get install \
+      curl \
+      libboost-dev \
+      libboost-filesystem-dev \
+      libfuse-dev \
+      libgit2-dev \
+      libjson-spirit-dev \
+      ninja-build \
+      nodejs \
+      zlib1g-dev
 
     $ ./configure.js
     $ ninja
