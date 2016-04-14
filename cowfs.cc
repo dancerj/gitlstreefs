@@ -31,8 +31,11 @@ using std::endl;
 using std::string;
 using std::vector;
 
+namespace {
 // Directory before mount.
 int premount_dirfd = -1;
+string repository_path;
+}  // anonymous namespace
 
 class ScopedRelativeFileFd {
 public:
@@ -137,10 +140,13 @@ string ReadFile(int dirfd, const string& filename) {
   return buf;
 }
 
-// Not using dirfd.
 bool HardlinkOneFile(int dirfd_from, const string& from,
 		     int dirfd_to, const string& to) {
   string to_tmp(to + ".tmp");
+  if (-1 == unlinkat(dirfd_to, to_tmp.c_str(), 0) && errno != ENOENT) {
+    perror("unlinkat");
+    return false;
+  }
   if (-1 == linkat(dirfd_from, from.c_str(), dirfd_to, to_tmp.c_str(), 0)) {
     perror("linkat");
     return false;
@@ -334,8 +340,9 @@ static int fs_release(const char *path, struct fuse_file_info *fi) {
   int ret = close(fd);
   if (-1 == ret) ret = -errno;
 
-  // TODO: Dedup
-
+  assert(repository_path.size() > 0);
+  FindOutRepoAndMaybeHardlink(premount_dirfd, relative_path.c_str(),
+			      repository_path);
   return ret;
 }
 
@@ -509,6 +516,7 @@ int main(int argc, char** argv) {
   assert(conf.underlying_path);
   assert(conf.lock_path);
   ScopedLock fslock(conf.lock_path, "cowfs");
+  repository_path = conf.repository;
   GcTree(conf.repository);
   HardlinkTree(conf.repository, conf.underlying_path);
   premount_dirfd = open(conf.underlying_path, O_PATH|O_DIRECTORY);
