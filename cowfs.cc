@@ -190,9 +190,10 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
       // I don't need to break links if count is 1.
       return true;
     }
-    FileCopyInternal(dirfd, from_fd.get(), st, to_tmp);
-  }
-  // TODO: update metadata.
+    if (!FileCopyInternal(dirfd, from_fd.get(), st, to_tmp)) {
+      return false;
+    }
+  }  // close target file.
 
   if (-1 == renameat(dirfd, to_tmp.c_str(), dirfd, target.c_str())) {
     perror("renameat");
