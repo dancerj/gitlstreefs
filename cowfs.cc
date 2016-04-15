@@ -218,16 +218,19 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
     }
     if (!HardlinkOneFile(target_dirfd, target_filename, AT_FDCWD, repo_file_path))
       return false;
+    cout << "New file " << target_filename << endl;
   } else {
     // Hardlink from repo.
     if (!HardlinkOneFile(AT_FDCWD, repo_file_path, target_dirfd, target_filename))
       return false;
+    cout << "Deduped " << target_filename << endl;
   }
   return true;
 }
 
 void HardlinkTree(const string& repo, const string& directory) {
   cout << "Hardlinking files we do need" << endl;
+  vector<string> to_hardlink{};
 
   auto end = fs::recursive_directory_iterator();
   for(auto it = fs::recursive_directory_iterator(directory); it != end; ++it) {
@@ -235,9 +238,12 @@ void HardlinkTree(const string& repo, const string& directory) {
     fs::path p(*it);
     if (fs::is_regular_file(p) && !fs::is_symlink(p)) {
       if (fs::hard_link_count(p) == 1) {
-	assert(FindOutRepoAndMaybeHardlink(AT_FDCWD, p.string(), repo));
+	to_hardlink.emplace_back(p.string());
       }
     }
+  }
+  for (const auto& s: to_hardlink) {
+    assert(FindOutRepoAndMaybeHardlink(AT_FDCWD, s, repo));
   }
 }
 
