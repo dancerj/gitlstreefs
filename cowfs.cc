@@ -145,10 +145,15 @@ public:
   ScopedTempFile(int dirfd, const string& basename) :
     dirfd_(dirfd), name_(basename + ".tmp") {}
   ~ScopedTempFile() {
-    if (-1 == unlinkat(dirfd_, name_.c_str(), 0)) {
-      perror("unlinkat tmpfile");
+    if (name_.size() > 0) {
+      if (-1 == unlinkat(dirfd_, name_.c_str(), 0)) {
+	perror("unlinkat tmpfile");
+      }
     }
   }
+  void clear() {
+    name_.clear();
+  };
   const string& get() const { return name_; };
   const char* c_str() const { return name_.c_str(); };
 private:
@@ -172,6 +177,7 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
     perror("renameat");
     return false;
   }
+  to_tmp.clear();
   return true;
 }
 
@@ -216,6 +222,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
     perror("renameat");
     return false;
   }
+  to_tmp.clear();
   return true;
 }
 
