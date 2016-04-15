@@ -1,7 +1,8 @@
-#include <string>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <string>
+#include <sys/sendfile.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "file_copy.h"
 #include "scoped_fd.h"
@@ -21,17 +22,13 @@ bool FileCopyInternal(int dirfd, int from_fd, const struct stat& st,
     return false;
   }
 
-  char buf[1024 * 1024];
-  ssize_t nread;
-  while ((nread = read(from_fd, buf, sizeof buf)) != 0) {
-    if (nread == -1) {
-      perror("read");
-      return false;
-    }
-    if (nread != write(to_fd.get(), buf, nread)) {
-      perror("write");
-      return false;
-    }
+  ssize_t read_bytes = sendfile(to_fd.get(), from_fd, NULL, st.st_size);
+  if (read_bytes == -1) {
+    perror("sendfile");
+    return false;
+  }
+  if(read_bytes != st.st_size) {
+    return false;
   }
   if (-1 == fchmod(to_fd.get(), st.st_mode)) {
     perror("fchmod");
