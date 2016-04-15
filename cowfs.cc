@@ -140,14 +140,31 @@ string ReadFile(int dirfd, const string& filename) {
   return buf;
 }
 
+class ScopedTempFile {
+public:
+  ScopedTempFile(int dirfd, const string& basename) :
+    dirfd_(dirfd), name_(basename + ".tmp") {}
+  ~ScopedTempFile() {
+    if (-1 == unlinkat(dirfd_, name_.c_str(), 0)) {
+      perror("unlinkat tmpfile");
+    }
+  }
+  const string& get() const { return name_; };
+  const char* c_str() const { return name_.c_str(); };
+private:
+  int dirfd_;
+  string name_;
+};
+
 bool HardlinkOneFile(int dirfd_from, const string& from,
 		     int dirfd_to, const string& to) {
-  string to_tmp(to + ".tmp");
+  ScopedTempFile to_tmp(dirfd_to, to);
   if (-1 == unlinkat(dirfd_to, to_tmp.c_str(), 0) && errno != ENOENT) {
     perror("unlinkat");
     return false;
   }
-  if (-1 == linkat(dirfd_from, from.c_str(), dirfd_to, to_tmp.c_str(), 0)) {
+  if (-1 == linkat(dirfd_from, from.c_str(), dirfd_to,
+		   to_tmp.c_str(), 0)) {
     perror("linkat");
     return false;
   }
@@ -159,7 +176,7 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
 }
 
 bool MaybeBreakHardlink(int dirfd, const string& target) {
-  string to_tmp(target + ".tmp");
+  ScopedTempFile to_tmp(dirfd, target);
 
   {
     ScopedFd from_fd(openat(dirfd, target.c_str(), O_RDONLY, 0));
@@ -190,7 +207,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
       // I don't need to break links if count is 1.
       return true;
     }
-    if (!FileCopyInternal(dirfd, from_fd.get(), st, to_tmp)) {
+    if (!FileCopyInternal(dirfd, from_fd.get(), st, to_tmp.get())) {
       return false;
     }
   }  // close target file.
