@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <fuse.h>
 #include <sys/file.h>
+#include <sys/sysinfo.h>
 
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -257,7 +258,7 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
 
 void HardlinkTree(const string& repo, const string& directory) {
   cout << "Hardlinking files we do need" << endl;
-  int ncpu = 4;  // Todo: do not hardcode.
+  int ncpu = get_nprocs();
   vector<vector<string> > to_hardlink(ncpu);
   int cpu = 0;
   auto end = fs::recursive_directory_iterator();
