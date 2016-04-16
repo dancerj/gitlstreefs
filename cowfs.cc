@@ -16,7 +16,9 @@
 
 #include <boost/filesystem.hpp>
 #include <iostream>
+#include <map>
 #include <string>
+#include <thread>
 
 #include "cowfs_crypt.h"
 #include "disallow.h"
@@ -29,6 +31,7 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::string;
+using std::thread;
 using std::vector;
 
 namespace {
@@ -254,21 +257,31 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
 
 void HardlinkTree(const string& repo, const string& directory) {
   cout << "Hardlinking files we do need" << endl;
-  vector<string> to_hardlink{};
-
+  int ncpu = 4;  // Todo: do not hardcode.
+  vector<vector<string> > to_hardlink(ncpu);
+  int cpu = 0;
   auto end = fs::recursive_directory_iterator();
   for(auto it = fs::recursive_directory_iterator(directory); it != end; ++it) {
     // it points to a directory_entry().
     fs::path p(*it);
     if (fs::is_regular_file(p) && !fs::is_symlink(p)) {
       if (fs::hard_link_count(p) == 1) {
-	to_hardlink.emplace_back(p.string());
+	to_hardlink[cpu].emplace_back(p.string());
+	++cpu;
+	cpu %= ncpu;
       }
     }
   }
-  for (const auto& s: to_hardlink) {
-    assert(FindOutRepoAndMaybeHardlink(AT_FDCWD, s, repo));
+  vector<thread> jobs;
+  for (int i = 0; i < ncpu; ++i) {
+    jobs.emplace_back(thread(bind([i, &repo](const vector<string>* tasks){
+	    for (const auto& s: *tasks) {
+	      assert(FindOutRepoAndMaybeHardlink(AT_FDCWD, s, repo));
+	    }
+	    cout << "task " << i << " with " << tasks->size() << " tasks" << endl;
+	  }, &to_hardlink[i])));
   }
+  for (auto& job : jobs) { job.join(); }
 }
 
 #define WRAP_ERRNO(f)				\
