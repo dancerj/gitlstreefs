@@ -7,11 +7,11 @@ cleanup() {
 cleanup
 trap cleanup exit
 
+rm -rf $TESTDIR/{workdir,repo}
 mkdir -p $TESTDIR/{workdir,repo}
 
 # preparation before test.
 cp README.md $TESTDIR/workdir/
-rm -f $TESTDIR/workdir/new_file
 echo old > $TESTDIR/workdir/existing_file
 
 # start file system
