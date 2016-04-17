@@ -49,3 +49,8 @@ chmod 0700 $TESTDIR/workdir/do_chmod
 
 rm -f $TESTDIR/workdir/do_link
 ln $TESTDIR/workdir/do_chmod $TESTDIR/workdir/do_link
+
+echo -n only-content > $TESTDIR/workdir/only_file
+echo -n only-content >> $TESTDIR/workdir/only_file
+
+
