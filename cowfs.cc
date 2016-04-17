@@ -151,7 +151,8 @@ public:
   ~ScopedTempFile() {
     if (name_.size() > 0) {
       if (-1 == unlinkat(dirfd_, name_.c_str(), 0)) {
-	perror("unlinkat tmpfile");
+	perror(("unlinkat tmpfile " + name_).c_str());
+	abort();   // Logic error somewhere or a race condition.
       }
     }
   }
@@ -186,47 +187,49 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
 }
 
 bool MaybeBreakHardlink(int dirfd, const string& target) {
-  ScopedTempFile to_tmp(dirfd, target);
+  ScopedFd from_fd(openat(dirfd, target.c_str(), O_RDONLY, 0));
 
-  {
-    ScopedFd from_fd(openat(dirfd, target.c_str(), O_RDONLY, 0));
-
-    if (from_fd.get() == -1) {
-      if (errno == ENOENT) {
-	// File not existing is okay, O_CREAT maybe specified.
-	return true;
-      }
-      perror("open failed and not ENOENT");
-      return false;
-    }
-    // TODO: O_TRUNC might be an optimization.
-    struct stat st{};
-    if (-1 == fstat(from_fd.get(), &st)) {
-      // I wonder why fstat can fail here.
-      perror("fstat");
-      return false;
-    }
-
-    // 0 is not an expected value, does the file system support hardlink?
-    if (st.st_nlink == 0) {
-      cout << "0 hardlink doesn't sound like a good filesystem." << endl;
-      return false;
-    }
-
-    if (st.st_nlink == 1) {
-      // I don't need to break links if count is 1.
+  if (from_fd.get() == -1) {
+    if (errno == ENOENT) {
+      // File not existing is okay, O_CREAT maybe specified.
       return true;
     }
-    if (!FileCopyInternal(dirfd, from_fd.get(), st, to_tmp.get())) {
-      return false;
-    }
-  }  // close target file.
+    perror("open failed and not ENOENT");
+    return false;
+  }
+  // TODO: O_TRUNC might be an optimization.
+  struct stat st{};
+  if (-1 == fstat(from_fd.get(), &st)) {
+    // I wonder why fstat can fail here.
+    perror("fstat");
+    return false;
+  }
+
+  // 0 is not an expected value, does the file system support hardlink?
+  if (st.st_nlink == 0) {
+    cout << "0 hardlink doesn't sound like a good filesystem." << endl;
+    return false;
+  }
+
+  if (st.st_nlink == 1) {
+    // I don't need to break links if count is 1.
+    return true;
+  }
+
+  ScopedTempFile to_tmp(dirfd, target);
+  if (!FileCopyInternal(dirfd, from_fd.get(), st, to_tmp.get())) {
+    // Copy did not succeed?
+    to_tmp.clear();
+    return false;
+  }
+  from_fd.clear();
 
   if (-1 == renameat(dirfd, to_tmp.c_str(), dirfd, target.c_str())) {
     perror("renameat");
     return false;
   }
   to_tmp.clear();
+
   return true;
 }
 

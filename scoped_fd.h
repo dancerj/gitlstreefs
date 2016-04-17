@@ -33,6 +33,10 @@ public:
     fd_ = fd;
   }
 
+  void clear() {
+    reset(-1);
+  }
+
   int get() const { return fd_; }
 
  private:
