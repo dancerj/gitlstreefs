@@ -521,6 +521,7 @@ static struct fuse_opt cowfs_opts[] = {
 #undef MYFS_OPT
 
 int main(int argc, char** argv) {
+  assert(init_gcrypt());  // Initialize gcrypt before starting threads.
 
   struct fuse_operations o = {};
 #define DEFINE_HANDLER(n) o.n = &fs_##n

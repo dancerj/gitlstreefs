@@ -6,6 +6,15 @@
 #include "cowfs_crypt.h"
 using std::string;
 
+bool init_gcrypt() {
+  if (!gcry_check_version(GCRYPT_VERSION)) {
+    return false;
+  }
+  gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
+  gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
+  return true;
+}
+
 static string hex_string_representation(unsigned char* buf, size_t len) {
   string result;
   char h[] = "0123456789abcdef";
@@ -17,7 +26,7 @@ static string hex_string_representation(unsigned char* buf, size_t len) {
 }
 
 string gcrypt_string(const string& buf) {
-  gcry_md_hd_t hd;
+  gcry_md_hd_t hd{};
   assert(0 == gcry_md_open(&hd, GCRY_MD_SHA1, 0));
   gcry_md_write(hd, buf.c_str(), buf.size());
   unsigned char* result = gcry_md_read(hd, GCRY_MD_SHA1);
