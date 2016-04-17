@@ -146,8 +146,13 @@ string ReadFile(int dirfd, const string& filename) {
 
 class ScopedTempFile {
 public:
-  ScopedTempFile(int dirfd, const string& basename) :
-    dirfd_(dirfd), name_(basename + ".tmp") {}
+  ScopedTempFile(int dirfd, const string& basename, const string& opt) :
+    dirfd_(dirfd), name_(basename + ".tmp" + opt) {
+    if (-1 == unlinkat(dirfd, name_.c_str(), 0) && errno != ENOENT) {
+      perror("unlinkat");
+      abort();  // Probably a race condition?
+    }
+  }
   ~ScopedTempFile() {
     if (name_.size() > 0) {
       if (-1 == unlinkat(dirfd_, name_.c_str(), 0)) {
@@ -168,11 +173,7 @@ private:
 
 bool HardlinkOneFile(int dirfd_from, const string& from,
 		     int dirfd_to, const string& to) {
-  ScopedTempFile to_tmp(dirfd_to, to);
-  if (-1 == unlinkat(dirfd_to, to_tmp.c_str(), 0) && errno != ENOENT) {
-    perror("unlinkat");
-    return false;
-  }
+  ScopedTempFile to_tmp(dirfd_to, to, "of");
   if (-1 == linkat(dirfd_from, from.c_str(), dirfd_to,
 		   to_tmp.c_str(), 0)) {
     perror("linkat");
@@ -186,6 +187,39 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
   return true;
 }
 
+string GetRepoItemPath(int dirfd, string relative_path) {
+  string repo_dir_name, repo_file_name;
+  gcrypt_string_get_git_style_relpath(&repo_dir_name, &repo_file_name,
+				      ReadFile(dirfd, relative_path));
+  return repository_path  + "/" + repo_dir_name + "/" + repo_file_name;
+}
+
+bool GarbageCollectOneRepoFile(const string& repo_file_path) {
+  struct stat st;
+  if (lstat(repo_file_path.c_str(), &st) != -1 && st.st_nlink == 1) {
+    if (-1 == unlink(repo_file_path.c_str())) {
+      perror("unlink garbage collection ");
+      return false;
+    }
+    cout << "Garbage collected repo file " << repo_file_path << endl;
+  }
+return true;
+}
+
+bool GarbageCollectOneRepoForTargetFile(int dirfd, const string& target) {
+  // Now, the file in the repository might be the only copy of the
+  // data. Remove it if so, that we don't need to wait until GC.
+  // TODO: repository-critical section.
+
+  // TODO: I'm reading the file into memory and then trying to use
+  // sendfile on it again; is that efficient?
+  string repo_file_path(GetRepoItemPath(premount_dirfd, target));
+  return GarbageCollectOneRepoFile(repo_file_path);
+}
+
+// Called on open, which may end up modifying the content of the
+// file. We will un-dedupe the files so that one file can be modified
+// while leaving the other intact.
 bool MaybeBreakHardlink(int dirfd, const string& target) {
   ScopedFd from_fd(openat(dirfd, target.c_str(), O_RDONLY, 0));
 
@@ -216,20 +250,25 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
     return true;
   }
 
-  ScopedTempFile to_tmp(dirfd, target);
+  ScopedTempFile to_tmp(dirfd, target, "mb");
   if (!FileCopyInternal(dirfd, from_fd.get(), st, to_tmp.get())) {
     // Copy did not succeed?
+    cerr << "Copy failed " << target << " " << to_tmp.get() << endl;
     to_tmp.clear();
     return false;
   }
   from_fd.clear();
 
+  // Rename the new file to target location.
   if (-1 == renameat(dirfd, to_tmp.c_str(), dirfd, target.c_str())) {
     perror("renameat");
     return false;
   }
   to_tmp.clear();
 
+  if (!GarbageCollectOneRepoForTargetFile(dirfd, target)) {
+    return false;
+  }
   return true;
 }
 
@@ -254,7 +293,7 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
     // Hardlink from repo.
     if (!HardlinkOneFile(AT_FDCWD, repo_file_path, target_dirfd, target_filename))
       return false;
-    cout << "Deduped " << target_filename << endl;
+    cout << "Deduped " << target_filename << " " << repo_file_path << endl;
   }
   return true;
 }
@@ -383,14 +422,17 @@ static int fs_release(const char *path, struct fuse_file_info *fi) {
     return -EBADF;
   if (*path == 0)
     return -EBADF;
-  string relative_path(GetRelativePath(path));
+  bool mutable_access = ((fcntl(fd, F_GETFL) & O_ACCMODE) != O_RDONLY);
 
   int ret = close(fd);
   if (-1 == ret) ret = -errno;
 
-  assert(repository_path.size() > 0);
-  FindOutRepoAndMaybeHardlink(premount_dirfd, relative_path.c_str(),
-			      repository_path);
+  if (mutable_access) {
+    assert(repository_path.size() > 0);
+    string relative_path(GetRelativePath(path));
+    assert(FindOutRepoAndMaybeHardlink(premount_dirfd, relative_path.c_str(),
+				       repository_path));
+  }
   return ret;
 }
 
@@ -439,7 +481,13 @@ static int fs_unlink(const char *path) {
   if (*path == 0)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
-  WRAP_ERRNO(unlinkat(premount_dirfd, relative_path.c_str(), 0));
+  string repo_file_path(GetRepoItemPath(premount_dirfd, relative_path));
+  int ret = unlinkat(premount_dirfd, relative_path.c_str(), 0);
+  if (-1 == ret) ret = -errno;
+
+  assert(GarbageCollectOneRepoFile(repo_file_path));
+
+  return ret;
 }
 
 static int fs_rename(const char *from, const char *to) {
@@ -565,7 +613,7 @@ int main(int argc, char** argv) {
   assert(conf.underlying_path);
   assert(conf.lock_path);
   ScopedLock fslock(conf.lock_path, "cowfs");
-  repository_path = conf.repository;
+  repository_path = fs::canonical(conf.repository).string();
   GcTree(conf.repository);
   HardlinkTree(conf.repository, conf.underlying_path);
   premount_dirfd = open(conf.underlying_path, O_PATH|O_DIRECTORY);
