@@ -342,7 +342,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
 
   if ((fi->flags & O_ACCMODE) != O_RDONLY) {
     // Break hardlink on open if necessary.
-    if (!MaybeBreakHardlink(premount_dirfd, path)) {
+    if (!MaybeBreakHardlink(premount_dirfd, relative_path)) {
       return -EIO;
     }
   }
