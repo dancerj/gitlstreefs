@@ -203,7 +203,7 @@ bool GarbageCollectOneRepoFile(const string& repo_file_path) {
     }
     cout << "Garbage collected repo file " << repo_file_path << endl;
   }
-return true;
+  return true;
 }
 
 bool GarbageCollectOneRepoForTargetFile(int dirfd, const string& target) {
