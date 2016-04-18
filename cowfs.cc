@@ -42,33 +42,6 @@ int premount_dirfd = -1;
 string repository_path;
 }  // anonymous namespace
 
-class ScopedRelativeFileFd {
-public:
-  ScopedRelativeFileFd(const char* path, int mode) : fd_(-1), errno_(0) {
-    if (*path == 0) {
-      errno_ = ENOENT;
-      return;
-    }
-    string relative_path(GetRelativePath(path));
-    fd_ = openat(premount_dirfd, relative_path.c_str(), mode);
-    if (fd_ == -1) {
-      errno_ = errno;
-    }
-  }
-
-  ~ScopedRelativeFileFd() {
-    if (fd_ != -1) {
-      close(fd_);
-    }
-  }
-
-  int get() const { return fd_; }
-  int get_errno() const { return errno_; }
-private:
-  int fd_;
-  int errno_;
-};
-
 class ScopedLock {
 public:
   ScopedLock(const string& path, const string& message)
@@ -461,9 +434,12 @@ static int fs_utimens(const char *path, const struct timespec ts[2]) {
 }
 
 static int fs_truncate(const char *path, off_t size) {
-  ScopedRelativeFileFd fd(path, O_WRONLY);
+  if (*path == 0)
+    return -ENOENT;
+  string relative_path(GetRelativePath(path));
+  ScopedFd fd(openat(premount_dirfd, relative_path.c_str(), O_WRONLY));
   if (fd.get() == -1) {
-    return -fd.get_errno();
+    return -errno;
   }
   WRAP_ERRNO(ftruncate(fd.get(), size));
 }
