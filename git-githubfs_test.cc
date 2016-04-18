@@ -1,9 +1,10 @@
+#include <fcntl.h>
 #include <fstream>
 #include <iostream>
 #include <json_spirit.h>
+#include <memory>
 #include <string>
 #include <sys/stat.h>
-#include <memory>
 
 #include "git-githubfs.h"
 #include "strutil.h"
@@ -21,10 +22,10 @@ using std::unique_ptr;
 
 void ParserTest() {
   // 1000 runs takes 1 second, mostly inside json_spirit.
-  string commits(ReadFromFileOrDie("testdata/commits.json"));
-  string commit(ReadFromFileOrDie("testdata/commit.json"));
-  string trees(ReadFromFileOrDie("testdata/trees.json"));
-  string blob(ReadFromFileOrDie("testdata/blob.json"));
+  string commits(ReadFromFileOrDie(AT_FDCWD, "testdata/commits.json"));
+  string commit(ReadFromFileOrDie(AT_FDCWD, "testdata/commit.json"));
+  string trees(ReadFromFileOrDie(AT_FDCWD, "testdata/trees.json"));
+  string blob(ReadFromFileOrDie(AT_FDCWD, "testdata/blob.json"));
 
   ParseCommits(commits);
   ParseCommit(commit);

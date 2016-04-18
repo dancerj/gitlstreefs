@@ -26,6 +26,7 @@
 #include "file_copy.h"
 #include "relative_path.h"
 #include "scoped_fd.h"
+#include "strutil.h"
 
 namespace fs = boost::filesystem; // std::experimental::filesystem;
 using std::cerr;
@@ -133,17 +134,6 @@ void GcTree(const string& repo) {
   }
 }
 
-string ReadFile(int dirfd, const string& filename) {
-  ScopedFd fd(openat(dirfd, filename.c_str(), O_RDONLY));
-  assert(fd.get() != -1);
-  struct stat s;
-  string buf;
-  assert(-1 != fstat(fd.get(), &s));
-  buf.resize(s.st_size);
-  assert(s.st_size == read(fd.get(), &buf[0], s.st_size));
-  return buf;
-}
-
 class ScopedTempFile {
 public:
   ScopedTempFile(int dirfd, const string& basename, const string& opt) :
@@ -190,7 +180,7 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
 string GetRepoItemPath(int dirfd, string relative_path) {
   string repo_dir_name, repo_file_name;
   gcrypt_string_get_git_style_relpath(&repo_dir_name, &repo_file_name,
-				      ReadFile(dirfd, relative_path));
+				      ReadFromFileOrDie(dirfd, relative_path));
   return repository_path  + "/" + repo_dir_name + "/" + repo_file_name;
 }
 
@@ -276,7 +266,8 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
 				 const string& repo) {
   string repo_dir_name, repo_file_name;
   gcrypt_string_get_git_style_relpath(&repo_dir_name, &repo_file_name,
-				      ReadFile(target_dirfd, target_filename));
+				      ReadFromFileOrDie(target_dirfd,
+							target_filename));
   string repo_file_path(repo + "/" + repo_dir_name + "/" + repo_file_name);
   struct stat st;
   if (lstat(repo_file_path.c_str(), &st) == -1 && errno == ENOENT) {

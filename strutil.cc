@@ -11,18 +11,23 @@
 #include <vector>
 #include <string>
 
+#include "scoped_fd.h"
+
 using namespace std;
 
-std::string ReadFromFileOrDie(const std::string& filename) {
+std::string ReadFromFileOrDie(int dirfd, const std::string& filename) {
   string retval;
-  int fd = open(filename.c_str(), O_RDONLY);
-  assert(fd != -1);
+  ScopedFd fd(openat(dirfd, filename.c_str(), O_RDONLY));
+  if (fd.get() == -1) {
+    perror(("open ReadFile " + filename).c_str());
+    abort();
+  }
   struct stat st;
-  int stat_result = fstat(fd, &st);
+  int stat_result = fstat(fd.get(), &st);
   assert(stat_result != -1);
   retval.resize(st.st_size, '-');
-  ssize_t read_length = read(fd, &retval[0], st.st_size);
-  assert(-1 != read_length);
+  ssize_t read_length = read(fd.get(), &retval[0], st.st_size);
+  assert(st.st_size == read_length);
   return retval;
 }
 

@@ -120,7 +120,7 @@ public:
       if (exit_code == 0) {
 	// success.
 	buf_.reset(new string);
-	*buf_ = ReadFromFileOrDie(cwd() + "/" + original_target_name_);
+	*buf_ = ReadFromFileOrDie(AT_FDCWD, cwd() + "/" + original_target_name_);
       } else {
 	return -EIO;  // Return IO error on build failure.
       }
