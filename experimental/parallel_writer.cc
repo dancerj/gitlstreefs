@@ -22,19 +22,25 @@ const char kData[] = "This is one kind of data";
 const int kIteration = 100;
 const int kFiles = 100;
 
+
+#define ASSERT_ERRNO(A) if ((A) == -1) {   \
+    perror(#A);				   \
+    abort();				   \
+  }
+
 void writer(int i) {
   for (int iteration = 0; iteration < kIteration; ++iteration) {
     string filename("test" + to_string(i));
     {
       ScopedFd fd(open(filename.c_str(), O_TRUNC|O_WRONLY|O_CREAT, 0777));
-      assert(-1 != fd.get());
-      assert(-1 != write(fd.get(), kData, sizeof kData));
+      ASSERT_ERRNO(fd.get());
+      ASSERT_ERRNO(write(fd.get(), kData, sizeof kData));
     }
     {
       ScopedFd fd(open(filename.c_str(), O_WRONLY));
-      assert(-1 != fd.get());
-      assert(-1 != lseek(fd.get(), 0, SEEK_END));
-      assert(-1 != write(fd.get(), kData, sizeof kData));
+      ASSERT_ERRNO(fd.get());
+      ASSERT_ERRNO(lseek(fd.get(), 0, SEEK_END));
+      ASSERT_ERRNO(write(fd.get(), kData, sizeof kData));
     }
   }
 }
