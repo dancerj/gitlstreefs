@@ -14,6 +14,7 @@
 #include <fuse.h>
 #include <sys/file.h>
 #include <sys/sysinfo.h>
+#include <syslog.h>
 
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -235,6 +236,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
   return true;
 }
 
+// This part may run as daemon, error failure is not visible.
 bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename,
 				 const string& repo) {
   string repo_dir_name, repo_file_name;
@@ -262,6 +264,8 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
   return true;
 }
 
+// This is an offline process at startup not running as a daemon, so
+// this can fail with an error message.
 void HardlinkTree(const string& repo, const string& directory) {
   cout << "Hardlinking files we do need" << endl;
   int ncpu = get_nprocs();
@@ -394,8 +398,10 @@ static int fs_release(const char *path, struct fuse_file_info *fi) {
   if (mutable_access) {
     assert(repository_path.size() > 0);
     string relative_path(GetRelativePath(path));
-    assert(FindOutRepoAndMaybeHardlink(premount_dirfd, relative_path.c_str(),
-				       repository_path));
+    if (!FindOutRepoAndMaybeHardlink(premount_dirfd, relative_path.c_str(),
+				     repository_path)) {
+      syslog(LOG_ERR, "FindOutRepoAndMaybeHardlink failed");
+    }
   }
   return ret;
 }
@@ -452,7 +458,9 @@ static int fs_unlink(const char *path) {
   int ret = unlinkat(premount_dirfd, relative_path.c_str(), 0);
   if (-1 == ret) ret = -errno;
 
-  assert(GarbageCollectOneRepoFile(repo_file_path));
+  if (!GarbageCollectOneRepoFile(repo_file_path)) {
+    syslog(LOG_ERR, "GarbageCollectOneRepoFile failed");
+  }
 
   return ret;
 }
@@ -537,6 +545,7 @@ static struct fuse_opt cowfs_opts[] = {
 
 int main(int argc, char** argv) {
   assert(init_gcrypt());  // Initialize gcrypt before starting threads.
+  openlog("cowfs", LOG_PERROR | LOG_PID, LOG_USER);
 
   struct fuse_operations o = {};
 #define DEFINE_HANDLER(n) o.n = &fs_##n

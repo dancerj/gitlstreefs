@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include <vector>
@@ -15,7 +16,7 @@
 
 using namespace std;
 
-#define ABORT_ON_ERROR(A) if ((A) == -1) { perror(#A); abort(); }
+#define ABORT_ON_ERROR(A) if ((A) == -1) { perror(#A); syslog(LOG_ERR, #A); abort(); }
 
 std::string ReadFromFileOrDie(int dirfd, const std::string& filename) {
   string retval;
