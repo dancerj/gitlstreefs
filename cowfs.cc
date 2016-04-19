@@ -151,10 +151,13 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
   return true;
 }
 
+// Return empty on error.
 string GetRepoItemPath(int dirfd, string relative_path) {
-  string repo_dir_name, repo_file_name;
-  gcrypt_string_get_git_style_relpath(&repo_dir_name, &repo_file_name,
-				      ReadFromFileOrDie(dirfd, relative_path));
+  string buf, repo_dir_name, repo_file_name;
+  if (!ReadFromFile(dirfd, relative_path, &buf)) {
+    return "";
+  }
+  gcrypt_string_get_git_style_relpath(&repo_dir_name, &repo_file_name, buf);
   return repository_path  + "/" + repo_dir_name + "/" + repo_file_name;
 }
 
@@ -178,6 +181,10 @@ bool GarbageCollectOneRepoForTargetFile(int dirfd, const string& target) {
   // TODO: I'm reading the file into memory and then trying to use
   // sendfile on it again; is that efficient?
   string repo_file_path(GetRepoItemPath(premount_dirfd, target));
+  if (repo_file_path.size() == 0) {
+    // soft-fail?
+    return false;
+  }
   return GarbageCollectOneRepoFile(repo_file_path);
 }
 
@@ -239,10 +246,12 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
 // This part may run as daemon, error failure is not visible.
 bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename,
 				 const string& repo) {
-  string repo_dir_name, repo_file_name;
-  gcrypt_string_get_git_style_relpath(&repo_dir_name, &repo_file_name,
-				      ReadFromFileOrDie(target_dirfd,
-							target_filename));
+  string buf, repo_dir_name, repo_file_name;
+  if (!ReadFromFile(target_dirfd, target_filename, &buf)) {
+    // Can't read from file.
+    return false;
+  }
+  gcrypt_string_get_git_style_relpath(&repo_dir_name, &repo_file_name, buf);
   string repo_file_path(repo + "/" + repo_dir_name + "/" + repo_file_name);
   struct stat st;
   if (lstat(repo_file_path.c_str(), &st) == -1 && errno == ENOENT) {

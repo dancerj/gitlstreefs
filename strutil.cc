@@ -16,22 +16,37 @@
 
 using namespace std;
 
-#define ABORT_ON_ERROR(A) if ((A) == -1) { perror(#A); syslog(LOG_ERR, #A); abort(); }
+#define ABORT_ON_ERROR(A) if ((A) == -1) { \
+    perror(#A);				   \
+    syslog(LOG_ERR, #A);		   \
+    abort();				   \
+  }
 
-std::string ReadFromFileOrDie(int dirfd, const std::string& filename) {
-  string retval;
+#define FALSE_ON_ERROR(A) if ((A) == -1) { \
+    perror(#A);				   \
+    syslog(LOG_ERR, #A);		   \
+    return false;			   \
+  }
+
+bool ReadFromFile(int dirfd, const std::string& filename, string* result) {
   ScopedFd fd(openat(dirfd, filename.c_str(), O_RDONLY));
   if (fd.get() == -1) {
     perror(("open ReadFile " + filename).c_str());
     abort();
   }
   struct stat st;
-  ABORT_ON_ERROR(fstat(fd.get(), &st));
-  retval.resize(st.st_size, '-');
+  FALSE_ON_ERROR(fstat(fd.get(), &st));
+  result->resize(st.st_size, '-');
   ssize_t read_length;
-  ABORT_ON_ERROR(read_length = read(fd.get(), &retval[0], st.st_size));
-  assert(st.st_size == read_length);
-  return retval;
+  FALSE_ON_ERROR(read_length = read(fd.get(), &(*result)[0], st.st_size));
+  if (st.st_size != read_length) { return false; }
+  return true;
+}
+
+std::string ReadFromFileOrDie(int dirfd, const std::string& filename) {
+  string s;
+  assert(ReadFromFile(dirfd, filename, &s));
+  return s;
 }
 
 
