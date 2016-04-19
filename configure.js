@@ -149,5 +149,6 @@ RunTestScript('cowfs_test.sh', {
     extra_depends: ['out/cowfs']
 })
 CompileLink('file_copy_test', ['file_copy', 'file_copy_test'])
+CompileLink('experimental/parallel_writer', ['experimental/parallel_writer'])
 
 Emit()
