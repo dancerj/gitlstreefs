@@ -15,7 +15,7 @@ out/cowfs $TESTDIR/workdir -o nonempty \
 	  --lock_path=$TESTDIR/lock \
 	  --underlying_path=$TESTDIR/shadow \
 	  --repository=$TESTDIR/repo \
-	  -d
+	  -d &
 sleep 1
 
 cd $TESTDIR/workdir
