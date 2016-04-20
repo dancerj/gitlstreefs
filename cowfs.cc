@@ -113,14 +113,14 @@ public:
   ScopedTempFile(int dirfd, const string& basename, const string& opt) :
     dirfd_(dirfd), name_(basename + ".tmp" + opt) {
     if (-1 == unlinkat(dirfd, name_.c_str(), 0) && errno != ENOENT) {
-      perror("unlinkat");
+      syslog(LOG_ERR, "unlinkat %m");
       abort();  // Probably a race condition?
     }
   }
   ~ScopedTempFile() {
     if (name_.size() > 0) {
       if (-1 == unlinkat(dirfd_, name_.c_str(), 0)) {
-	perror(("unlinkat tmpfile " + name_).c_str());
+	syslog(LOG_ERR, "unlinkat tmpfile %s %m", name_.c_str());
 	abort();   // Logic error somewhere or a race condition.
       }
     }
@@ -140,11 +140,11 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
   ScopedTempFile to_tmp(dirfd_to, to, "of");
   if (-1 == linkat(dirfd_from, from.c_str(), dirfd_to,
 		   to_tmp.c_str(), 0)) {
-    perror("linkat");
+    syslog(LOG_ERR, "linkat %m");
     return false;
   }
   if (-1 == renameat(dirfd_to, to_tmp.c_str(), dirfd_to, to.c_str())) {
-    perror("renameat");
+    syslog(LOG_ERR, "renameat %m");
     return false;
   }
   to_tmp.clear();
@@ -199,20 +199,20 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
       // File not existing is okay, O_CREAT maybe specified.
       return true;
     }
-    perror("open failed and not ENOENT");
+    syslog(LOG_ERR, "open failed and not ENOENT: %m");
     return false;
   }
   // TODO: O_TRUNC might be an optimization.
   struct stat st{};
   if (-1 == fstat(from_fd.get(), &st)) {
     // I wonder why fstat can fail here.
-    perror("fstat");
+    syslog(LOG_ERR, "fstat %m");
     return false;
   }
 
   // 0 is not an expected value, does the file system support hardlink?
   if (st.st_nlink == 0) {
-    cout << "0 hardlink doesn't sound like a good filesystem." << endl;
+    syslog(LOG_ERR, "0 hardlink doesn't sound like a good filesystem.");
     return false;
   }
 
@@ -224,7 +224,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
   ScopedTempFile to_tmp(dirfd, target, "mb");
   if (!FileCopyInternal(dirfd, from_fd.get(), st, to_tmp.get())) {
     // Copy did not succeed?
-    cerr << "Copy failed " << target << " " << to_tmp.get() << endl;
+    syslog(LOG_ERR, "Copy failed %s %s %m", target.c_str(), to_tmp.c_str());
     to_tmp.clear();
     return false;
   }
@@ -232,7 +232,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
 
   // Rename the new file to target location.
   if (-1 == renameat(dirfd, to_tmp.c_str(), dirfd, target.c_str())) {
-    perror("renameat");
+    syslog(LOG_ERR, "renameat %m");
     return false;
   }
   to_tmp.clear();
@@ -248,6 +248,7 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
 				 const string& repo) {
   string buf, repo_dir_name, repo_file_name;
   if (!ReadFromFile(target_dirfd, target_filename, &buf)) {
+    syslog(LOG_ERR, "Can't read from %s", target_filename.c_str());
     // Can't read from file.
     return false;
   }
@@ -259,16 +260,19 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
     // First try to make subdirectory if it doesn't exist.
     // TODO: what's a reasonable umask for this repo?
     if (mkdir((repo + "/" + repo_dir_name).c_str(), 0700) == -1) {
-      if (errno != EEXIST) return false;
+      if (errno != EEXIST) {
+	syslog(LOG_ERR, "Can't create directory %s %m", repo_dir_name.c_str());
+	return false;
+      }
     }
     if (!HardlinkOneFile(target_dirfd, target_filename, AT_FDCWD, repo_file_path))
       return false;
-    cout << "New file " << target_filename << endl;
+    syslog(LOG_DEBUG, "New file %s", target_filename.c_str());
   } else {
     // Hardlink from repo.
     if (!HardlinkOneFile(AT_FDCWD, repo_file_path, target_dirfd, target_filename))
       return false;
-    cout << "Deduped " << target_filename << " " << repo_file_path << endl;
+    syslog(LOG_DEBUG, "Deduped %s", repo_file_path.c_str());
   }
   return true;
 }
