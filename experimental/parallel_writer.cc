@@ -28,20 +28,25 @@ const int kFiles = 100;
     abort();				   \
   }
 
+void TruncateAndWrite(const string& filename) {
+  // Truncate and write at beginning
+  ScopedFd fd(open(filename.c_str(), O_TRUNC|O_WRONLY|O_CREAT, 0777));
+  ASSERT_ERRNO(fd.get());
+  ASSERT_ERRNO(write(fd.get(), kData, sizeof kData));
+}
+void AppendToFile(const string& filename) {
+  // Append.
+  ScopedFd fd(open(filename.c_str(), O_WRONLY));
+  ASSERT_ERRNO(fd.get());
+  ASSERT_ERRNO(lseek(fd.get(), 0, SEEK_END));
+  ASSERT_ERRNO(write(fd.get(), kData, sizeof kData));
+}
+
 void writer(int i) {
   for (int iteration = 0; iteration < kIteration; ++iteration) {
     string filename("test" + to_string(i));
-    {
-      ScopedFd fd(open(filename.c_str(), O_TRUNC|O_WRONLY|O_CREAT, 0777));
-      ASSERT_ERRNO(fd.get());
-      ASSERT_ERRNO(write(fd.get(), kData, sizeof kData));
-    }
-    {
-      ScopedFd fd(open(filename.c_str(), O_WRONLY));
-      ASSERT_ERRNO(fd.get());
-      ASSERT_ERRNO(lseek(fd.get(), 0, SEEK_END));
-      ASSERT_ERRNO(write(fd.get(), kData, sizeof kData));
-    }
+    TruncateAndWrite(filename);
+    AppendToFile(filename);
   }
 }
 
