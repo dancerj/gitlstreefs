@@ -267,12 +267,12 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
     }
     if (!HardlinkOneFile(target_dirfd, target_filename, AT_FDCWD, repo_file_path))
       return false;
-    syslog(LOG_DEBUG, "New file %s", target_filename.c_str());
+    // syslog(LOG_DEBUG, "New file %s", target_filename.c_str());
   } else {
     // Hardlink from repo.
     if (!HardlinkOneFile(AT_FDCWD, repo_file_path, target_dirfd, target_filename))
       return false;
-    syslog(LOG_DEBUG, "Deduped %s", repo_file_path.c_str());
+    // syslog(LOG_DEBUG, "Deduped %s", repo_file_path.c_str());
   }
   return true;
 }
