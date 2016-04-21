@@ -165,7 +165,7 @@ bool GarbageCollectOneRepoFile(const string& repo_file_path) {
   struct stat st;
   if (lstat(repo_file_path.c_str(), &st) != -1 && st.st_nlink == 1) {
     if (-1 == unlink(repo_file_path.c_str())) {
-      perror("unlink garbage collection ");
+      syslog(LOG_ERR, "unlink garbage collection %m");
       return false;
     }
     cout << "Garbage collected repo file " << repo_file_path << endl;
@@ -173,13 +173,13 @@ bool GarbageCollectOneRepoFile(const string& repo_file_path) {
   return true;
 }
 
-bool GarbageCollectOneRepoForTargetFile(int dirfd, const string& target) {
+bool MaybeGcAfterHardlinkBreakForTarget(int dirfd, const string& target) {
   // Now, the file in the repository might be the only copy of the
-  // data. Remove it if so, that we don't need to wait until GC.
+  // data. Remove it if so, that we don't need to wait until global GC.
   // TODO: repository-critical section.
 
-  // TODO: I'm reading the file into memory and then trying to use
-  // sendfile on it again; is that efficient?
+  // TODO: I'm reading the file into memory to get sha1sum after
+  // having used sendfile to copy it; is that efficient?
   string repo_file_path(GetRepoItemPath(premount_dirfd, target));
   if (repo_file_path.size() == 0) {
     // soft-fail?
@@ -223,10 +223,16 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
 
   ScopedTempFile to_tmp(dirfd, target, "mb");
   if (!FileCopyInternal(dirfd, from_fd.get(), st, to_tmp.get())) {
+    int errno_from_copy = errno;
     // Copy did not succeed?
     syslog(LOG_ERR, "Copy failed %s %s %m", target.c_str(), to_tmp.c_str());
     to_tmp.clear();
-    return false;
+    if (errno_from_copy == ENOENT) {
+      // It's okay if someone else removed this file in the interim.
+      return true;
+    } else {
+      return false;
+    }
   }
   from_fd.clear();
 
@@ -237,7 +243,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
   }
   to_tmp.clear();
 
-  if (!GarbageCollectOneRepoForTargetFile(dirfd, target)) {
+  if (!MaybeGcAfterHardlinkBreakForTarget(dirfd, target)) {
     return false;
   }
   return true;
