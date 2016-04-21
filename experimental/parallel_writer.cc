@@ -19,9 +19,7 @@ using std::string;
 using std::to_string;
 
 const char kData[] = "This is one kind of data";
-const int kIteration = 100;
-const int kFiles = 100;
-
+const int num_iteration;
 
 #define ASSERT_ERRNO(A) if ((A) == -1) {   \
     perror(#A);				   \
@@ -43,14 +41,18 @@ void AppendToFile(const string& filename) {
 }
 
 void writer(int i) {
-  for (int iteration = 0; iteration < kIteration; ++iteration) {
+  for (int iteration = 0; iteration < num_iteration; ++iteration) {
     string filename("test" + to_string(i));
     TruncateAndWrite(filename);
     AppendToFile(filename);
   }
 }
 
-int main() {
+int main(int argc, char** argv) {
+  // $0 [number of files] [iteration]
+  assert(argc == 3);
+  const int kFiles = atoi(argv[1]);
+  num_iteration = atoi(argv[2]);
   vector<thread> threads;
   for (int i = 0; i < kFiles; ++i) {
     threads.emplace_back(thread(bind(writer, i)));
