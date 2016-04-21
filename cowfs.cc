@@ -212,7 +212,8 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
 
   // 0 is not an expected value, does the file system support hardlink?
   if (st.st_nlink == 0) {
-    syslog(LOG_ERR, "0 hardlink doesn't sound like a good filesystem.");
+    syslog(LOG_ERR, "0 hardlink doesn't sound like a good filesystem for %s.",
+	   target.c_str());
     return false;
   }
 
