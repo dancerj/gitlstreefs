@@ -19,7 +19,7 @@ using std::string;
 using std::to_string;
 
 const char kData[] = "This is one kind of data";
-const int num_iteration;
+int num_iteration;
 
 #define ASSERT_ERRNO(A) if ((A) == -1) {   \
     perror(#A);				   \
