@@ -167,6 +167,10 @@ bool GarbageCollectOneRepoFile(const string& repo_file_path) {
   struct stat st;
   if (lstat(repo_file_path.c_str(), &st) != -1 && st.st_nlink == 1) {
     if (-1 == unlink(repo_file_path.c_str())) {
+      if (errno == ENOENT) {
+	// There was a parallel thread that deleted the file.
+	return true;
+      }
       syslog(LOG_ERR, "unlink garbage collection %s %m", repo_file_path.c_str());
       return false;
     }
