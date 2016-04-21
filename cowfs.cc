@@ -217,6 +217,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
   }
 
   // 0 is not an expected value, does the file system support hardlink?
+  // TODO: this may happen if someone removed the file on another thread.
   if (st.st_nlink == 0) {
     syslog(LOG_ERR, "0 hardlink doesn't sound like a good filesystem for %s.",
 	   target.c_str());
