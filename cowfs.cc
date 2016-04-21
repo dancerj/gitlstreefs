@@ -35,6 +35,7 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::thread;
+using std::to_string;
 using std::vector;
 
 namespace {
@@ -111,7 +112,8 @@ void GcTree(const string& repo) {
 class ScopedTempFile {
 public:
   ScopedTempFile(int dirfd, const string& basename, const string& opt) :
-    dirfd_(dirfd), name_(basename + ".tmp" + opt) {
+    dirfd_(dirfd), 
+    name_(basename + ".tmp" + opt + to_string(pthread_self())) {
     if (-1 == unlinkat(dirfd, name_.c_str(), 0) && errno != ENOENT) {
       syslog(LOG_ERR, "unlinkat %m");
       abort();  // Probably a race condition?
@@ -165,7 +167,7 @@ bool GarbageCollectOneRepoFile(const string& repo_file_path) {
   struct stat st;
   if (lstat(repo_file_path.c_str(), &st) != -1 && st.st_nlink == 1) {
     if (-1 == unlink(repo_file_path.c_str())) {
-      syslog(LOG_ERR, "unlink garbage collection %m");
+      syslog(LOG_ERR, "unlink garbage collection %s %m", repo_file_path.c_str());
       return false;
     }
     cout << "Garbage collected repo file " << repo_file_path << endl;
@@ -239,7 +241,11 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
 
   // Rename the new file to target location.
   if (-1 == renameat(dirfd, to_tmp.c_str(), dirfd, target.c_str())) {
-    syslog(LOG_ERR, "renameat %m");
+    syslog(LOG_ERR, "renameat %s -> %s %m", to_tmp.c_str(), target.c_str());
+    // if (errno == ENOENT) {
+    //   // It's okay if someone else removed this file in the interim.
+    //   return true;
+    // }
     return false;
   }
   to_tmp.clear();
