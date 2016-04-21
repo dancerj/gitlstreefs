@@ -51,7 +51,7 @@ void writer(int i) {
 
 int main(int argc, char** argv) {
   // $0 [path prefix] [number of files] [iteration]
-  assert(argc == 3);
+  assert(argc == 4);
   path_prefix = argv[1];
   const int kFiles = atoi(argv[2]);
   num_iteration = atoi(argv[3]);
