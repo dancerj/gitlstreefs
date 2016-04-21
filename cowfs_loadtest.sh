@@ -17,5 +17,4 @@ out/cowfs $TESTDIR/workdir -o nonempty \
 	  --repository=$TESTDIR/repo
 sleep 1
 
-cd $TESTDIR/workdir
 out/experimental/parallel_writer $TESTDIR/workdir 100 100
