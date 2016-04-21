@@ -18,4 +18,4 @@ out/cowfs $TESTDIR/workdir -o nonempty \
 sleep 1
 
 cd $TESTDIR/workdir
-../../experimental/parallel_writer 100 100
+out/experimental/parallel_writer $TESTDIR/workdir 100 100

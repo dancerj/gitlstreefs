@@ -20,6 +20,7 @@ using std::to_string;
 
 const char kData[] = "This is one kind of data";
 int num_iteration;
+string path_prefix;
 
 #define ASSERT_ERRNO(A) if ((A) == -1) {   \
     perror(#A);				   \
@@ -42,17 +43,18 @@ void AppendToFile(const string& filename) {
 
 void writer(int i) {
   for (int iteration = 0; iteration < num_iteration; ++iteration) {
-    string filename("test" + to_string(i));
+    string filename(path_prefix + "/test" + to_string(i));
     TruncateAndWrite(filename);
     AppendToFile(filename);
   }
 }
 
 int main(int argc, char** argv) {
-  // $0 [number of files] [iteration]
+  // $0 [path prefix] [number of files] [iteration]
   assert(argc == 3);
-  const int kFiles = atoi(argv[1]);
-  num_iteration = atoi(argv[2]);
+  path_prefix = argv[1];
+  const int kFiles = atoi(argv[2]);
+  num_iteration = atoi(argv[3]);
   vector<thread> threads;
   for (int i = 0; i < kFiles; ++i) {
     threads.emplace_back(thread(bind(writer, i)));
