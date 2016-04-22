@@ -142,11 +142,11 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
   ScopedTempFile to_tmp(dirfd_to, to, "of");
   if (-1 == linkat(dirfd_from, from.c_str(), dirfd_to,
 		   to_tmp.c_str(), 0)) {
-    syslog(LOG_ERR, "linkat %m");
+    syslog(LOG_ERR, "linkat %s %s %m", from.c_str(), to_tmp.c_str());
     return false;
   }
   if (-1 == renameat(dirfd_to, to_tmp.c_str(), dirfd_to, to.c_str())) {
-    syslog(LOG_ERR, "renameat %m");
+    syslog(LOG_ERR, "renameat %s %s %m", to_tmp.c_str(), to.c_str());
     return false;
   }
   to_tmp.clear();
@@ -419,14 +419,14 @@ static int fs_release(const char *path, struct fuse_file_info *fi) {
   int fd = fi->fh;
   if (fd == -1)
     return -EBADF;
-  if (*path == 0)
-    return -EBADF;
-  bool mutable_access = ((fcntl(fd, F_GETFL) & O_ACCMODE) != O_RDONLY);
-
   int ret = close(fd);
   if (-1 == ret) ret = -errno;
 
+  bool mutable_access = ((fcntl(fd, F_GETFL) & O_ACCMODE) != O_RDONLY);
+
   if (mutable_access) {
+    if (*path == 0)
+      return -EBADF;
     assert(repository_path.size() > 0);
     string relative_path(GetRelativePath(path));
     if (!FindOutRepoAndMaybeHardlink(premount_dirfd, relative_path.c_str(),
