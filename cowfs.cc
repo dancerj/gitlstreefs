@@ -112,10 +112,10 @@ void GcTree(const string& repo) {
 class ScopedTempFile {
 public:
   ScopedTempFile(int dirfd, const string& basename, const string& opt) :
-    dirfd_(dirfd), 
+    dirfd_(dirfd),
     name_(basename + ".tmp" + opt + to_string(pthread_self())) {
     if (-1 == unlinkat(dirfd, name_.c_str(), 0) && errno != ENOENT) {
-      syslog(LOG_ERR, "unlinkat %m");
+      syslog(LOG_ERR, "unlinkat %s %m", name_.c_str());
       abort();  // Probably a race condition?
     }
   }
@@ -212,7 +212,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
   struct stat st{};
   if (-1 == fstat(from_fd.get(), &st)) {
     // I wonder why fstat can fail here.
-    syslog(LOG_ERR, "fstat %m");
+    syslog(LOG_ERR, "fstat %s %m", target.c_str());
     return false;
   }
 
