@@ -15,14 +15,15 @@ public:
     dirfd_(dirfd),
     name_(basename + ".tmp" + opt + std::to_string(pthread_self())) {
     if (-1 == unlinkat(dirfd, name_.c_str(), 0) && errno != ENOENT) {
-      syslog(LOG_ERR, "unlinkat %s %m", name_.c_str());
+      syslog(LOG_ERR, "unlinkat ScopedTempFile %s %m", name_.c_str());
       abort();  // Probably a race condition?
     }
   }
+
   ~ScopedTempFile() {
     if (name_.size() > 0) {
       if (-1 == unlinkat(dirfd_, name_.c_str(), 0)) {
-	syslog(LOG_ERR, "unlinkat tmpfile %s %m", name_.c_str());
+	syslog(LOG_ERR, "unlinkat ~ScopedTempFile %s %m", name_.c_str());
 	abort();   // Logic error somewhere or a race condition.
       }
     }
@@ -62,7 +63,7 @@ class ScopedFileLockWithDelete {
   ~ScopedFileLockWithDelete() {
     if (!have_lock_) return;
     if (-1 == unlinkat(dirfd_, name_.c_str(), AT_REMOVEDIR)) {
-      syslog(LOG_ERR, "unlinkat %s %m", name_.c_str());
+      syslog(LOG_ERR, "unlinkat FileLock %s %m", name_.c_str());
     }
   }
  private:
