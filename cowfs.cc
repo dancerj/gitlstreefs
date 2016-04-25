@@ -135,6 +135,40 @@ public:
 private:
   int dirfd_;
   string name_;
+  DISALLOW_COPY_AND_ASSIGN(ScopedTempFile);
+};
+
+class ScopedFileLockWithDelete {
+ public:
+  ScopedFileLockWithDelete(int dirfd, const string& basename) :
+    dirfd_(dirfd),
+    name_(basename + ".lock"),
+    fd_(openat(dirfd, name_.c_str(), O_RDWR | O_CREAT, 0700)),
+    have_lock_(false) {
+    if (fd_.get() == -1) {
+      // TODO error.
+      perror("openat");
+      return;
+    }
+    int lock_result = flock(fd_.get(), LOCK_EX);
+    if (lock_result != 0) {
+      perror("flock");
+      return;
+    }
+  }
+  ~ScopedFileLockWithDelete() {
+    ScopedTempFile tmp_(dirfd_, name_, "sf");
+    if (-1 == renameat(dirfd_, name_.c_str(), dirfd_, tmp_.c_str())) {
+      syslog(LOG_ERR, "renameat %s %s %m", name_.c_str(), tmp_.c_str());
+    }
+    // unlink(tmp_.c_str());  // ScopedTempFile will delete this.
+  }
+ private:
+  int dirfd_;
+  string name_;
+  ScopedFd fd_;
+  bool have_lock_;
+  DISALLOW_COPY_AND_ASSIGN(ScopedFileLockWithDelete);
 };
 
 bool HardlinkOneFile(int dirfd_from, const string& from,
@@ -200,6 +234,7 @@ bool MaybeGcAfterHardlinkBreakForTarget(int dirfd, const string& target) {
 bool MaybeBreakHardlink(int dirfd, const string& target) {
   ScopedFd from_fd(openat(dirfd, target.c_str(), O_RDONLY, 0));
 
+  ScopedFileLockWithDelete lock(dirfd, target);
   if (from_fd.get() == -1) {
     if (errno == ENOENT) {
       // File not existing is okay, O_CREAT maybe specified.
@@ -217,7 +252,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
   }
 
   // 0 is not an expected value, does the file system support hardlink?
-  // TODO: this may happen if someone removed the file on another thread.
+  // TODO: This may happen if someone removed the file from another thread.
   if (st.st_nlink == 0) {
     syslog(LOG_ERR, "0 hardlink doesn't sound like a good filesystem for %s.",
 	   target.c_str());
@@ -287,7 +322,8 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
       return false;
     // syslog(LOG_DEBUG, "New file %s", target_filename.c_str());
   } else {
-    // Hardlink from repo.
+    // Hardlink from repo; deletes the target file.
+    ScopedFileLockWithDelete lock(target_dirfd, target_filename);
     if (!HardlinkOneFile(AT_FDCWD, repo_file_path, target_dirfd, target_filename))
       return false;
     // syslog(LOG_DEBUG, "Deduped %s", repo_file_path.c_str());
