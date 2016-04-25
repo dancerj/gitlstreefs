@@ -150,5 +150,6 @@ RunTestScript('cowfs_test.sh', {
 })
 CompileLink('file_copy_test', ['file_copy', 'file_copy_test'])
 CompileLink('experimental/parallel_writer', ['experimental/parallel_writer'])
+CompileLinkRunTest('scoped_fileutil_test', ['scoped_fileutil_test'])
 
 Emit()

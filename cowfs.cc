@@ -27,6 +27,7 @@
 #include "file_copy.h"
 #include "relative_path.h"
 #include "scoped_fd.h"
+#include "scoped_fileutil.h"
 #include "strutil.h"
 
 namespace fs = boost::filesystem; // std::experimental::filesystem;
@@ -108,68 +109,6 @@ void GcTree(const string& repo) {
     }
   }
 }
-
-class ScopedTempFile {
-public:
-  ScopedTempFile(int dirfd, const string& basename, const string& opt) :
-    dirfd_(dirfd),
-    name_(basename + ".tmp" + opt + to_string(pthread_self())) {
-    if (-1 == unlinkat(dirfd, name_.c_str(), 0) && errno != ENOENT) {
-      syslog(LOG_ERR, "unlinkat %s %m", name_.c_str());
-      abort();  // Probably a race condition?
-    }
-  }
-  ~ScopedTempFile() {
-    if (name_.size() > 0) {
-      if (-1 == unlinkat(dirfd_, name_.c_str(), 0)) {
-	syslog(LOG_ERR, "unlinkat tmpfile %s %m", name_.c_str());
-	abort();   // Logic error somewhere or a race condition.
-      }
-    }
-  }
-  void clear() {
-    name_.clear();
-  };
-  const string& get() const { return name_; };
-  const char* c_str() const { return name_.c_str(); };
-private:
-  int dirfd_;
-  string name_;
-  DISALLOW_COPY_AND_ASSIGN(ScopedTempFile);
-};
-
-class ScopedFileLockWithDelete {
- public:
-  ScopedFileLockWithDelete(int dirfd, const string& basename) :
-    dirfd_(dirfd),
-    name_(basename + ".lock"),
-    fd_(openat(dirfd, name_.c_str(), O_RDWR | O_CREAT, 0700)),
-    have_lock_(false) {
-    if (fd_.get() == -1) {
-      // TODO error.
-      perror("openat");
-      return;
-    }
-    int lock_result = flock(fd_.get(), LOCK_EX);
-    if (lock_result != 0) {
-      perror("flock");
-      return;
-    }
-  }
-  ~ScopedFileLockWithDelete() {
-    ScopedTempFile tmp_(dirfd_, name_, "sf");
-    if (-1 == renameat(dirfd_, name_.c_str(), dirfd_, tmp_.c_str())) {
-      syslog(LOG_ERR, "renameat %s %s %m", name_.c_str(), tmp_.c_str());
-    }
-    // unlink(tmp_.c_str());  // ScopedTempFile will delete this.
-  }
- private:
-  int dirfd_;
-  string name_;
-  ScopedFd fd_;
-  bool have_lock_;
-  DISALLOW_COPY_AND_ASSIGN(ScopedFileLockWithDelete);
-};
 
 bool HardlinkOneFile(int dirfd_from, const string& from,
 		     int dirfd_to, const string& to) {
