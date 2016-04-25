@@ -238,6 +238,7 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
 // This part may run as daemon, error failure is not visible.
 bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename,
 				 const string& repo) {
+  ScopedFileLockWithDelete lock(target_dirfd, target_filename);
   string buf, repo_dir_name, repo_file_name;
   if (!ReadFromFile(target_dirfd, target_filename, &buf)) {
     syslog(LOG_ERR, "Can't read from %s", target_filename.c_str());
@@ -263,7 +264,6 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
     }
   } else {
     // Hardlink from repo; deletes the target file.
-    ScopedFileLockWithDelete lock(target_dirfd, target_filename);
     if (!HardlinkOneFile(AT_FDCWD, repo_file_path, target_dirfd, target_filename)) {
       syslog(LOG_DEBUG, "Dedupe failed %s", target_filename.c_str());
       return false;
