@@ -573,6 +573,7 @@ int main(int argc, char** argv) {
   assert(init_gcrypt());  // Initialize gcrypt before starting threads.
   openlog("cowfs", LOG_PERROR | LOG_PID, LOG_USER);
   UpdateRlimit();  // We need more than 1024 files open.
+  umask(0);
 
   struct fuse_operations o = {};
 #define DEFINE_HANDLER(n) o.n = &fs_##n
