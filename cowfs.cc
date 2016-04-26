@@ -118,6 +118,7 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
   if (-1 == linkat(dirfd_from, from.c_str(), dirfd_to,
 		   to_tmp.c_str(), 0)) {
     syslog(LOG_ERR, "linkat %s %s %m", from.c_str(), to_tmp.c_str());
+    to_tmp.clear();
     return false;
   }
   if (-1 == renameat(dirfd_to, to_tmp.c_str(), dirfd_to, to.c_str())) {
