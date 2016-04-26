@@ -13,7 +13,9 @@
 #include <fcntl.h>
 #include <fuse.h>
 #include <sys/file.h>
+#include <sys/resource.h>
 #include <sys/sysinfo.h>
+#include <sys/time.h>
 #include <syslog.h>
 
 #include <boost/filesystem.hpp>
@@ -551,9 +553,25 @@ static struct fuse_opt cowfs_opts[] = {
 };
 #undef MYFS_OPT
 
+void UpdateRlimit() {
+  struct rlimit r;
+  if (-1 == getrlimit(RLIMIT_NOFILE, &r)) {
+    perror("getrlimit");
+    return;
+  }
+  cout << "Updating file open limit: "
+       << r.rlim_cur << " to " << r.rlim_max << endl;
+  r.rlim_cur = r.rlim_max;
+  if (-1 == setrlimit(RLIMIT_NOFILE, &r)) {
+    perror("setrlimit");
+    return;
+  }
+}
+
 int main(int argc, char** argv) {
   assert(init_gcrypt());  // Initialize gcrypt before starting threads.
   openlog("cowfs", LOG_PERROR | LOG_PID, LOG_USER);
+  UpdateRlimit();  // We need more than 1024 files open.
 
   struct fuse_operations o = {};
 #define DEFINE_HANDLER(n) o.n = &fs_##n
