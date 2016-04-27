@@ -36,8 +36,8 @@ ScopedFileLockWithDelete::ScopedFileLockWithDelete(int dirfd, const std::string&
       return;
     }
     if (e == -1 && errno == EEXIST) {
-      // sleep 1 second?
-      sleep(1);
+      // sleep 1ms.
+      usleep(1000);
       continue;
     }
     syslog(LOG_ERR, "mkdirat %s %m", name_.c_str());
