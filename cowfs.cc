@@ -122,7 +122,7 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
     // Already hardlinked. Should usually not happen, because we would
     // have broken a link somewhere else.
     // TODO: remove these extra stat steps and make it debug-only operations.
-    abort();
+    return true;
   }
 
   ScopedTempFile to_tmp(dirfd_to, to, "of");
