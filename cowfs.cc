@@ -119,8 +119,10 @@ bool HardlinkOneFile(int dirfd_from, const string& from,
   if ((-1 != fstatat(dirfd_from, from.c_str(), &st1, 0)) &&
       (-1 != fstatat(dirfd_to, to.c_str(), &st2, 0)) &&
       st1.st_ino == st2.st_ino) {
-    // Already hardlinked.
-    return true;
+    // Already hardlinked. Should usually not happen, because we would
+    // have broken a link somewhere else.
+    // TODO: remove these extra stat steps and make it debug-only operations.
+    abort();
   }
 
   ScopedTempFile to_tmp(dirfd_to, to, "of");
@@ -255,8 +257,8 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
   }
   gcrypt_string_get_git_style_relpath(&repo_dir_name, &repo_file_name, buf);
   string repo_file_path(repo + "/" + repo_dir_name + "/" + repo_file_name);
-  struct stat st;
-  if (lstat(repo_file_path.c_str(), &st) == -1 && errno == ENOENT) {
+  struct stat repo_st;
+  if (lstat(repo_file_path.c_str(), &repo_st) == -1 && errno == ENOENT) {
     // If it doesn't exist, we hardlink to there.
     // First try to make subdirectory if it doesn't exist.
     // TODO: what's a reasonable umask for this repo?
@@ -404,10 +406,10 @@ static int fs_release(const char *path, struct fuse_file_info *fi) {
   int fd = fi->fh;
   if (fd == -1)
     return -EBADF;
+  // Get the access information before closing the FD.
+  bool mutable_access = ((fcntl(fd, F_GETFL) & O_ACCMODE) != O_RDONLY);
   int ret = close(fd);
   if (-1 == ret) ret = -errno;
-
-  bool mutable_access = ((fcntl(fd, F_GETFL) & O_ACCMODE) != O_RDONLY);
 
   if (mutable_access) {
     if (*path == 0)
