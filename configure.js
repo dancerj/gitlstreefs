@@ -59,14 +59,14 @@ function RunTest(test, opts) {
     test = outdir + test;
     stdout = test + '.result';
     data.push('build ' + stdout + ': runtest ' + test +
-	      ((!!opts && opts.extra_depends) ? '|' + opts.extra_depends : '' ))
+	      ((!!opts && opts.extra_depends) ? '|' + opts.extra_depends.join(' ') : '' ))
 }
 
 function RunTestScript(test, opts) {
     test = test;
     stdout = outdir + test + '.result';
     data.push('build ' + stdout + ': runtest ' + test +
-	      ((!!opts && opts.extra_depends) ? '|' + opts.extra_depends : '' ))
+	      ((!!opts && opts.extra_depends) ? '|' + opts.extra_depends.join(' ') : '' ))
 }
 
 function CompileLinkRunTest(target, sources, opts) {
@@ -146,7 +146,7 @@ CompileLinkRunTest('cowfs_crypt_test', ['cowfs_crypt',
 					'cowfs_crypt_test'],
 		   {cclink: 'cclinkcowfs'});
 RunTestScript('cowfs_test.sh', {
-    extra_depends: ['out/cowfs']
+    extra_depends: ['out/cowfs', 'out/hello_world']
 })
 CompileLink('file_copy_test', ['file_copy', 'file_copy_test'])
 CompileLink('experimental/parallel_writer', ['experimental/parallel_writer'])

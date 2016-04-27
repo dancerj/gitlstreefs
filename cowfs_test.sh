@@ -54,4 +54,12 @@ echo -n only-content1 > $TESTDIR/workdir/only_file
 echo -n only-content2 >> $TESTDIR/workdir/only_file
 echo -n only-content3 >> $TESTDIR/workdir/only_file
 
+cp out/hello_world $TESTDIR/workdir/hello_world_executable_file
+$TESTDIR/workdir/hello_world_executable_file
 
+
+# Make sure temp files don't remain after all the operations.
+# Wait until things quiesce.
+sleep 1
+[ ! -e $TESTDIR/workdir/hello_world_executable_file.* ]
+[ ! -e $TESTDIR/workdir/README.md.* ]

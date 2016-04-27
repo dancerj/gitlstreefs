@@ -114,6 +114,15 @@ void GcTree(const string& repo) {
 
 bool HardlinkOneFile(int dirfd_from, const string& from,
 		     int dirfd_to, const string& to) {
+  struct stat st1{};
+  struct stat st2{};
+  if ((-1 != fstatat(dirfd_from, from.c_str(), &st1, 0)) &&
+      (-1 != fstatat(dirfd_to, to.c_str(), &st2, 0)) &&
+      st1.st_ino == st2.st_ino) {
+    // Already hardlinked.
+    return true;
+  }
+
   ScopedTempFile to_tmp(dirfd_to, to, "of");
   if (-1 == linkat(dirfd_from, from.c_str(), dirfd_to,
 		   to_tmp.c_str(), 0)) {
@@ -224,10 +233,6 @@ bool MaybeBreakHardlink(int dirfd, const string& target) {
   // Rename the new file to target location.
   if (-1 == renameat(dirfd, to_tmp.c_str(), dirfd, target.c_str())) {
     syslog(LOG_ERR, "renameat %s -> %s %m", to_tmp.c_str(), target.c_str());
-    // if (errno == ENOENT) {
-    //   // It's okay if someone else removed this file in the interim.
-    //   return true;
-    // }
     return false;
   }
   to_tmp.clear();
