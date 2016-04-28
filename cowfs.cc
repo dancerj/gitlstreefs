@@ -621,8 +621,6 @@ int main(int argc, char** argv) {
 	 << endl;
     return 1;
   }
-  assert(conf.underlying_path);
-  assert(conf.lock_path);
   ScopedLock fslock(conf.lock_path, "cowfs");
   repository_path = fs::canonical(conf.repository).string();
   GcTree(conf.repository);
