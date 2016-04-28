@@ -407,7 +407,12 @@ static int fs_release(const char *path, struct fuse_file_info *fi) {
   if (fd == -1)
     return -EBADF;
   // Get the access information before closing the FD.
-  bool mutable_access = ((fcntl(fd, F_GETFL) & O_ACCMODE) != O_RDONLY);
+  int getfl = fcntl(fd, F_GETFL);
+  if (getfl == -1) {
+    syslog(LOG_ERR, "fcntl F_GETFL failed %m");
+    return -EINVAL;
+  }
+  bool mutable_access = ((getfl & O_ACCMODE) != O_RDONLY);
   int ret = close(fd);
   if (-1 == ret) ret = -errno;
 
