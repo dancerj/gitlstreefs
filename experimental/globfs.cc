@@ -15,11 +15,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <memory>
 #include <string>
 
 #include "../relative_path.h"
 
 using std::string;
+using std::unique_ptr;
 
 // Directory before mount.
 int premount_dirfd = -1;
@@ -42,17 +44,32 @@ static int fs_getattr(const char *path, struct stat *stbuf) {
   }
 }
 
-static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi) {
+static int fs_opendir(const char* path, struct fuse_file_info* fi) {
   if (*path == 0)
     return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  unique_ptr<string> relative_path(new string(GetRelativePath(path)));
+  fi->fh = reinterpret_cast<uint64_t>(relative_path.release());
+  return 0;
+}
+
+static int fs_releasedir(const char*, struct fuse_file_info* fi) {
+  if (fi->fh == 0)
+    return -EBADF;
+  unique_ptr<string> auto_delete(reinterpret_cast<string*>(fi->fh));
+  return 0;
+}
+
+static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
+			 off_t offset, struct fuse_file_info *fi) {
+  if (fi->fh == 0)
+    return -ENOENT;
+  string* relative_path(reinterpret_cast<string*>(fi->fh));
 
   filler(buf, ".", NULL, 0);
   filler(buf, "..", NULL, 0);
   struct dirent **namelist{nullptr};
   int scandir_count = scandirat(premount_dirfd,
-				relative_path.c_str(),
+				relative_path->c_str(),
 				&namelist,
 				nullptr,
 				nullptr);
@@ -130,10 +147,13 @@ int main(int argc, char** argv) {
   struct fuse_operations o = {};
 #define DEFINE_HANDLER(n) o.n = &fs_##n
   DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(opendir);
   DEFINE_HANDLER(readdir);
+  DEFINE_HANDLER(releasedir);
   DEFINE_HANDLER(open);
   DEFINE_HANDLER(read);
 #undef DEFINE_HANDLER
+  o.flag_nopath = true;
 
   int ret = fuse_main(args.argc, args.argv, &o, NULL);
   fuse_opt_free_args(&args);

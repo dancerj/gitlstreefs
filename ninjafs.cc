@@ -191,12 +191,27 @@ static int fs_getattr(const char *path, struct stat *stbuf) {
   return fs->Getattr(path, stbuf);
 }
 
-static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+static int fs_opendir(const char* path, struct fuse_file_info* fi) {
+  if (*path == 0)
+    return -ENOENT;
+  const directory_container::Directory* d = dynamic_cast<
+    directory_container::Directory*>(fs->mutable_get(path));
+  fi->fh = reinterpret_cast<uint64_t>(d);
+  return 0;
+}
+
+static int fs_releasedir(const char*, struct fuse_file_info* fi) {
+  if (fi->fh == 0)
+    return -EBADF;
+  return 0;
+}
+
+static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi) {
   filler(buf, ".", NULL, 0);
   filler(buf, "..", NULL, 0);
-  const directory_container::Directory* d = dynamic_cast<
-    directory_container::Directory*>(fs->mutable_get(path));
+  const directory_container::Directory* d = reinterpret_cast<
+    directory_container::Directory*>(fi->fh);
   if (!d) return -ENOENT;
   d->for_each([&](const string& s, const directory_container::File* unused){
       filler(buf, s.c_str(), NULL, 0);
@@ -238,8 +253,12 @@ int main(int argc, char *argv[]) {
 
   struct fuse_operations o = {};
   o.getattr = &fs_getattr;
+  o.opendir = &fs_opendir;
+  o.releasedir = &fs_releasedir;
   o.readdir = &fs_readdir;
   o.open = &fs_open;
   o.read = &fs_read;
+  o.flag_nopath = true;
+
   return fuse_main(argc, argv, &o, NULL);
 }
