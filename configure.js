@@ -135,6 +135,9 @@ CompileLinkRunTest('experimental/libgit2test',
 		   {cclink: 'cclinkwithgit2'})
 CompileLink('experimental/hello_fuseflags', ['experimental/hello_fuseflags'])
 CompileLink('experimental/unkofs', ['experimental/unkofs', 'relative_path'])
+RunTestScript('experimental/unkofs_test.sh', {
+    extra_depends: ['out/experimental/unkofs']
+})
 CompileLink('experimental/globfs', ['experimental/globfs', 'relative_path'])
 RunTestScript('experimental/globfs_test.sh', {
     extra_depends: ['out/experimental/globfs']
