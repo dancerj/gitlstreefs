@@ -112,7 +112,6 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
   if (ret == 0) {
     if (fh.get() == nullptr) return -EBADFD;
     fi->fh = reinterpret_cast<uint64_t>(fh.release());
-    fprintf(stderr, "HELLO WORLD %s %lx\n", path, fi->fh);
   }
   return ret;
 }
@@ -125,7 +124,6 @@ static int fs_release(const char* unused, struct fuse_file_info *fi) {
 static int fs_read(const char *unused, char *target, size_t size, off_t offset,
 		   struct fuse_file_info *fi) {
   FileHandle* fh = reinterpret_cast<FileHandle*>(fi->fh);
-  fprintf(stderr, "HELLO WORLD %p\n", fh);
 
   if (fh == nullptr)
     return -ENOENT;
