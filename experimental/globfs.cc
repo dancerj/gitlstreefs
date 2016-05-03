@@ -147,11 +147,11 @@ int main(int argc, char** argv) {
   struct fuse_operations o = {};
 #define DEFINE_HANDLER(n) o.n = &fs_##n
   DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(open);
   DEFINE_HANDLER(opendir);
+  DEFINE_HANDLER(read);
   DEFINE_HANDLER(readdir);
   DEFINE_HANDLER(releasedir);
-  DEFINE_HANDLER(open);
-  DEFINE_HANDLER(read);
 #undef DEFINE_HANDLER
   o.flag_nopath = true;
 
