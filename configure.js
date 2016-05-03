@@ -141,7 +141,9 @@ CompileLink('experimental/unkofs', ['experimental/unkofs',
 RunTestScript('experimental/unkofs_test.sh', {
     extra_depends: ['out/experimental/unkofs']
 })
-CompileLink('experimental/globfs', ['experimental/globfs', 'relative_path'])
+CompileLink('experimental/globfs', ['experimental/globfs',
+				    'experimental/roptfs',
+				    'relative_path'])
 RunTestScript('experimental/globfs_test.sh', {
     extra_depends: ['out/experimental/globfs']
 })

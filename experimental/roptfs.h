@@ -1,10 +1,10 @@
 // Read-only pass-through file system.
+#include <assert.h>
 #include <fuse.h>
 #include <unistd.h>
-#include <assert.h>
 
-#include <string>
 #include <memory>
+#include <string>
 
 #include "../disallow.h"
 

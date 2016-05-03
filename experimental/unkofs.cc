@@ -6,15 +6,8 @@
 // unkofs mountpoint -o nonempty
 #define FUSE_USE_VERSION 26
 
-#include <assert.h>
-#include <dirent.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <fuse.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <string>
 #include <memory>

@@ -3,114 +3,73 @@
 // globfs mountpoint --glob_pattern='hoge*' --underlying_path=./
 #define FUSE_USE_VERSION 26
 
-#include <assert.h>
 #include <dirent.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <fnmatch.h>
 #include <fuse.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <memory>
 #include <string>
 
 #include "../relative_path.h"
+#include "roptfs.h"
 
 using std::string;
 using std::unique_ptr;
 
-// Directory before mount.
-int premount_dirfd = -1;
-string glob_pattern;
+class GlobFsHandler : public roptfs::RoptfsHandler {
+public:
+  GlobFsHandler() {}
+  virtual ~GlobFsHandler() {}
 
-static int fs_getattr(const char *path, struct stat *stbuf) {
-  memset(stbuf, 0, sizeof(struct stat));
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  if (fnmatch(glob_pattern.c_str(), relative_path.c_str(), FNM_PATHNAME) &&
-      relative_path != "./") {
-    return -ENOENT;
-  }
-
-  if (-1 == fstatat(premount_dirfd, relative_path.c_str(), stbuf, AT_SYMLINK_NOFOLLOW)) {
-    return -errno;
-  } else {
+  int ReadDir(const std::string& relative_path,
+	      void *buf, fuse_fill_dir_t filler,
+	      off_t offset) {
+    filler(buf, ".", NULL, 0);
+    filler(buf, "..", NULL, 0);
+    struct dirent **namelist{nullptr};
+    int scandir_count = scandirat(premount_dirfd_,
+				  relative_path.c_str(),
+				  &namelist,
+				  nullptr,
+				  nullptr);
+    if (scandir_count == -1) {
+      return -ENOENT;
+    }
+    for(int i = 0; i < scandir_count; ++i) {
+      if (!fnmatch(glob_pattern_.c_str(), namelist[i]->d_name, FNM_PATHNAME)) {
+	filler(buf, namelist[i]->d_name, nullptr, 0);
+      }
+      free(namelist[i]);
+    }
+    free(namelist);
     return 0;
   }
-}
 
-static int fs_opendir(const char* path, struct fuse_file_info* fi) {
-  if (*path == 0)
-    return -ENOENT;
-  unique_ptr<string> relative_path(new string(GetRelativePath(path)));
-  fi->fh = reinterpret_cast<uint64_t>(relative_path.release());
-  return 0;
-}
 
-static int fs_releasedir(const char*, struct fuse_file_info* fi) {
-  if (fi->fh == 0)
-    return -EBADF;
-  unique_ptr<string> auto_delete(reinterpret_cast<string*>(fi->fh));
-  return 0;
-}
-
-static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi) {
-  if (fi->fh == 0)
-    return -ENOENT;
-  string* relative_path(reinterpret_cast<string*>(fi->fh));
-
-  filler(buf, ".", NULL, 0);
-  filler(buf, "..", NULL, 0);
-  struct dirent **namelist{nullptr};
-  int scandir_count = scandirat(premount_dirfd,
-				relative_path->c_str(),
-				&namelist,
-				nullptr,
-				nullptr);
-  if (scandir_count == -1) {
-    return -ENOENT;
-  }
-  for(int i = 0; i < scandir_count; ++i) {
-    if (!fnmatch(glob_pattern.c_str(), namelist[i]->d_name, FNM_PATHNAME)) {
-      filler(buf, namelist[i]->d_name, nullptr, 0);
+  int Open(const std::string& relative_path, unique_ptr<roptfs::FileHandle>* fh) {
+    if (fnmatch(glob_pattern_.c_str(), relative_path.c_str(), FNM_PATHNAME)) {
+      return -ENOENT;
     }
-    free(namelist[i]);
-  }
-  free(namelist);
-  return 0;
-}
-
-static int fs_open(const char *path, struct fuse_file_info *fi) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  if (fnmatch(glob_pattern.c_str(), relative_path.c_str(), FNM_PATHNAME)) {
-    return -ENOENT;
+    return RoptfsHandler::Open(relative_path, fh);
   }
 
-  int fd = openat(premount_dirfd, relative_path.c_str(), O_RDONLY);
-  if (fd == -1)
-    return -ENOENT;
-  fi->fh = static_cast<uint64_t>(fd);
+  int GetAttr(const std::string& relative_path, struct stat* stbuf) {
+    if (fnmatch(glob_pattern_.c_str(), relative_path.c_str(), FNM_PATHNAME) &&
+	relative_path != "./") {
+      return -ENOENT;
+    }
+    return RoptfsHandler::GetAttr(relative_path, stbuf);
+  }
 
-  return 0;
-}
+  static string glob_pattern_;
+private:
 
-static int fs_read(const char *path, char *target, size_t size, off_t offset,
-		   struct fuse_file_info *fi) {
-  int fd = fi->fh;
-  if (fd == -1)
-    return -ENOENT;
-  ssize_t n = pread(fd, target, size, offset);
-  if (n == -1) return -errno;
-  return n;
-}
+  DISALLOW_COPY_AND_ASSIGN(GlobFsHandler);
+};
+string GlobFsHandler::glob_pattern_;
 
 struct globfs_config {
   char* glob_pattern{nullptr};
@@ -140,20 +99,12 @@ int main(int argc, char** argv) {
     printf("%p %p\n", conf.glob_pattern, conf.underlying_path);
     return 1;
   }
-  glob_pattern = conf.glob_pattern;
-  premount_dirfd = open(conf.underlying_path, O_DIRECTORY);
-  assert(premount_dirfd != -1);
+  GlobFsHandler::glob_pattern_ = conf.glob_pattern;
+  roptfs::RoptfsHandler::premount_dirfd_ = open(conf.underlying_path,
+						O_DIRECTORY);
 
   struct fuse_operations o = {};
-#define DEFINE_HANDLER(n) o.n = &fs_##n
-  DEFINE_HANDLER(getattr);
-  DEFINE_HANDLER(open);
-  DEFINE_HANDLER(opendir);
-  DEFINE_HANDLER(read);
-  DEFINE_HANDLER(readdir);
-  DEFINE_HANDLER(releasedir);
-#undef DEFINE_HANDLER
-  o.flag_nopath = true;
+  roptfs::FillFuseOperations<GlobFsHandler>(&o);
 
   int ret = fuse_main(args.argc, args.argv, &o, NULL);
   fuse_opt_free_args(&args);
