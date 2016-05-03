@@ -15,7 +15,7 @@ cp README.md $TESTDIR/
 
 # start file system
 out/experimental/unkofs \
-    $TESTDIR -o nonempty &
+    $TESTDIR -o nonempty
 
 ls -l $TESTDIR
 if cat $TESTDIR/DOES_NOT_EXIST; then
