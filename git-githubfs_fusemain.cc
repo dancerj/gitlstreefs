@@ -28,28 +28,35 @@ static int fs_getattr(const char *path, struct stat *stbuf)
   return fs->Getattr(path, stbuf);
 }
 
-static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi)
-{
-  (void) offset;
-  (void) fi;
-
+static int fs_opendir(const char* path, struct fuse_file_info* fi) {
   if (path == 0 || *path != '/') {
     return -ENOENT;
   }
   // Skip the first "/"
-  string fullpath(path + 1);
-  FileElement* fe = fs->get(fullpath);
+  FileElement* fe = fs->get(path + 1);
   if (!fe) {
     return -ENOENT;
   }
+  fi->fh = reinterpret_cast<uint64_t>(fe);
+  return 0;
+}
 
+static int fs_releasedir(const char*, struct fuse_file_info* fi) {
+  if (fi->fh == 0)
+    return -EBADF;
+  return 0;
+}
+
+
+static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
+			 off_t offset, struct fuse_file_info *fi)
+{
   filler(buf, ".", NULL, 0);
   filler(buf, "..", NULL, 0);
+  FileElement* fe = reinterpret_cast<FileElement*>(fi->fh);
   fe->for_each_filename([&](const string& filename) {
       filler(buf, filename.c_str(), NULL, 0);
     });
-
   return 0;
 }
 
@@ -60,6 +67,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi)
   }
   FileElement* fe = fs->get(path + 1);
   if (fe) {
+    fi->fh = reinterpret_cast<uint64_t>(fe);
     return 0;
   }
   return -ENOENT;
@@ -68,10 +76,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi)
 static int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
-  if (path == 0 || *path != '/') {
-    return -ENOENT;
-  }
-  FileElement* fe = fs->get(path + 1);
+  FileElement* fe = reinterpret_cast<FileElement*>(fi->fh);
   if (!fe) {
     return -ENOENT;
   }
@@ -99,10 +104,13 @@ int main(int argc, char *argv[]) {
   struct fuse_operations o = {};
 #define DEFINE_HANDLER(n) o.n = &githubfs::fs_##n
   DEFINE_HANDLER(getattr);
-  DEFINE_HANDLER(readdir);
   DEFINE_HANDLER(open);
+  DEFINE_HANDLER(opendir);
   DEFINE_HANDLER(read);
+  DEFINE_HANDLER(readdir);
+  DEFINE_HANDLER(releasedir);
 #undef DEFINE_HANDLER
+  o.flag_nopath = true;
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   githubfs_config conf{};
