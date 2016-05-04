@@ -20,6 +20,7 @@ public:
   int get() const { return fd_; }
 private:
   int fd_;
+  DISALLOW_COPY_AND_ASSIGN(FileHandle);
 };
 
 class RoptfsHandler {

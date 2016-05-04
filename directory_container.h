@@ -93,6 +93,7 @@ private:
   typedef std::unordered_map<std::string,
 			     std::unique_ptr<File> > FileElementMap;
   FileElementMap files_{};
+  DISALLOW_COPY_AND_ASSIGN(Directory);
 };
 
 class DirectoryContainer {
