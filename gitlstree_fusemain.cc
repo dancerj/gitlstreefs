@@ -110,12 +110,14 @@ int main(int argc, char *argv[]) {
 
   struct fuse_operations o = {};
 
-  o.getattr = &gitlstree::fs_getattr;
-  o.ioctl = &gitlstree::fs_ioctl;
-  o.open = &gitlstree::fs_open;
-  o.read = &gitlstree::fs_read;
-  o.readdir = &gitlstree::fs_readdir;
-  o.release = &gitlstree::fs_release;
+#define DEFINE_HANDLER(n) o.n = &gitlstree::fs_##n
+  DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(ioctl);
+  DEFINE_HANDLER(open);
+  DEFINE_HANDLER(read);
+  DEFINE_HANDLER(readdir);
+  DEFINE_HANDLER(release);
+#undef DEFINE_HANDLER
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   gitlstree_config conf{};

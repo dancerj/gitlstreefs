@@ -97,10 +97,12 @@ static struct fuse_opt githubfs_opts[] = {
 int main(int argc, char *argv[]) {
   // Initialize fuse operations.
   struct fuse_operations o = {};
-  o.getattr = &githubfs::fs_getattr;
-  o.readdir = &githubfs::fs_readdir;
-  o.open = &githubfs::fs_open;
-  o.read = &githubfs::fs_read;
+#define DEFINE_HANDLER(n) o.n = &githubfs::fs_##n
+  DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(readdir);
+  DEFINE_HANDLER(open);
+  DEFINE_HANDLER(read);
+#undef DEFINE_HANDLER
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   githubfs_config conf{};
@@ -114,7 +116,7 @@ int main(int argc, char *argv[]) {
 
   string github_api_prefix = string("https://api.github.com/repos/") +
     conf.user + "/" + conf.project;
-  githubfs::fs.reset(new githubfs::GitTree(conf.revision?conf.revision:"HEAD", 
+  githubfs::fs.reset(new githubfs::GitTree(conf.revision?conf.revision:"HEAD",
 					   github_api_prefix.c_str()));
   int ret = fuse_main(args.argc, args.argv, &o, NULL);
   fuse_opt_free_args(&args);

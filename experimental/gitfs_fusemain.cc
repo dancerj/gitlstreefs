@@ -72,14 +72,15 @@ static int fs_read(const char *path, char *buf, size_t size, off_t offset,
 }
 }  // namespace gitfs
 
-
 int main(int argc, char *argv[]) {
   gitfs::fs.reset(new gitfs::GitTree("HEAD", GetCurrentDir()));
 
   struct fuse_operations o = {};
-  o.getattr = &gitfs::fs_getattr;
-  o.readdir = &gitfs::fs_readdir;
-  o.open = &gitfs::fs_open;
-  o.read = &gitfs::fs_read;
+#define DEFINE_HANDLER(n) o.n = &gitfs::fs_##n
+  DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(readdir);
+  DEFINE_HANDLER(open);
+  DEFINE_HANDLER(read);
+#undef DEFINE_HANDLER
   return fuse_main(argc, argv, &o, NULL);
 }

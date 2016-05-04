@@ -252,12 +252,14 @@ int main(int argc, char *argv[]) {
   }
 
   struct fuse_operations o = {};
-  o.getattr = &fs_getattr;
-  o.opendir = &fs_opendir;
-  o.releasedir = &fs_releasedir;
-  o.readdir = &fs_readdir;
-  o.open = &fs_open;
-  o.read = &fs_read;
+#define DEFINE_HANDLER(n) o.n = &fs_##n
+  DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(open);
+  DEFINE_HANDLER(opendir);
+  DEFINE_HANDLER(read);
+  DEFINE_HANDLER(readdir);
+  DEFINE_HANDLER(releasedir);
+#undef DEFINE_HANDLER
   o.flag_nopath = true;
 
   return fuse_main(argc, argv, &o, NULL);
