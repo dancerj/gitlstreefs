@@ -1,5 +1,5 @@
-#if !defined(GITLSTREE_H__)
-#define GITLSTREE_H__
+#ifndef GITLSTREE_H_
+#define GITLSTREE_H_
 
 #include <sys/ioctl.h>
 

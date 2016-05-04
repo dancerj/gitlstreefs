@@ -1,5 +1,5 @@
-#if !defined(DIRECTORY_CONTAINER_H__)
-#define DIRECTORY_CONTAINER_H__
+#ifndef DIRECTORY_CONTAINER_H_
+#define DIRECTORY_CONTAINER_H_
 
 #include <string.h>
 #include <sys/stat.h>

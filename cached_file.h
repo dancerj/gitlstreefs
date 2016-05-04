@@ -1,5 +1,5 @@
-#ifndef __CACHED_FILE_H__
-#define __CACHED_FILE_H__
+#ifndef CACHED_FILE_H_
+#define CACHED_FILE_H_
 #include <functional>
 #include <mutex>
 #include <string>

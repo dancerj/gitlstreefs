@@ -1,5 +1,5 @@
-#ifndef __GITXX_H__
-#define __GITXX_H__
+#ifndef GITXX_H_
+#define GITXX_H_
 #include <git2.h>
 
 #include "disallow.h"

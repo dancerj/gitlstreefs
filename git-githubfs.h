@@ -1,5 +1,5 @@
-#if !defined(GITHUBFS_H__)
-#define GITHUBFS_H__
+#ifndef GIT_GITHUBFS_H_
+#define GIT_GITHUBFS_H_
 
 #include <mutex>
 #include <unordered_map>
@@ -110,4 +110,3 @@ private:
 
 } // namespace githubfs
 #endif
-

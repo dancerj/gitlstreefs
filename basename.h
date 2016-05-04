@@ -1,5 +1,5 @@
-#ifndef __BASENAME_H__
-#define __BASENAME_H__
+#ifndef BASENAME_H_
+#define BASENAME_H_
 #include <string>
 
 // After the last /.

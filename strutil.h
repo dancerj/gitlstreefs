@@ -1,5 +1,5 @@
-#if !defined(STRUTIL_H__)
-#define STRUTIL_H__
+#ifndef STRUTIL_H_
+#define STRUTIL_H_
 #include <string>
 #include <vector>
 bool ReadFromFile(int dirfd, const std::string& filename, std::string* result);

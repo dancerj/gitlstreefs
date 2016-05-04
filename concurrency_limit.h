@@ -1,5 +1,5 @@
-#ifndef __CONCURRENCY_LIMIT_H__
-#define __CONCURRENCY_LIMIT_H__
+#ifndef CONCURRENCY_LIMIT_H_
+#define CONCURRENCY_LIMIT_H_
 
 #include <condition_variable>
 #include <mutex>

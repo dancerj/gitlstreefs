@@ -1,5 +1,5 @@
-#ifndef __SCOPED_FD_H__
-#define __SCOPED_FD_H__
+#ifndef SCOPED_FD_H__
+#define SCOPED_FD_H__
 
 #include <unistd.h>
 

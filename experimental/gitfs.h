@@ -1,5 +1,5 @@
-#if !defined(GITFIND_H__)
-#define GITFIND_H__
+#ifndef GITFS_H_
+#define GITFS_H_
 
 #include <mutex>
 #include <unordered_map>

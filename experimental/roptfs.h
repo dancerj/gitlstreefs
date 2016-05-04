@@ -1,3 +1,5 @@
+#ifndef ROPTFS_H_
+#define ROPTFS_H_
 // Read-only pass-through file system.
 #include <assert.h>
 #include <fuse.h>
@@ -72,4 +74,5 @@ template<class T> void FillFuseOperations(fuse_operations* o) {
   FillFuseOperationsInternal(o);
   o->init = fs_init<T>;
 }
-};
+};  // namspace roptfs
+#endif

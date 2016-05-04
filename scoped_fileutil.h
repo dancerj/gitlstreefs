@@ -1,5 +1,5 @@
-#ifndef SCOPED_LOCKFILE_H
-#define SCOPED_LOCKFILE_H
+#ifndef SCOPED_FILEUTIL_H_
+#define SCOPED_FILEUTIL_H_
 
 #include <string>
 
