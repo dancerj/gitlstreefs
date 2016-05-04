@@ -40,6 +40,7 @@ namespace {
 string HttpFetch(const string& url) {
   ScopedConcurrencyLimit l(url);
   vector<string> request{"curl",
+      "-s",
       "-A",
       "git-githubfs(https://github.com/dancerj/gitlstreefs)"};
   request.push_back(url);
