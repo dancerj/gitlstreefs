@@ -21,6 +21,7 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 #include <thread>
 
@@ -39,6 +40,7 @@ using std::endl;
 using std::string;
 using std::thread;
 using std::to_string;
+using std::unique_ptr;
 using std::vector;
 
 namespace {
@@ -337,18 +339,33 @@ static int fs_getattr(const char *path, struct stat *stbuf) {
 		     stbuf, AT_SYMLINK_NOFOLLOW));
 }
 
-static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi) {
+static int fs_opendir(const char* path, struct fuse_file_info* fi) {
   if (*path == 0)
     return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  unique_ptr<string> relative_path(new string(GetRelativePath(path)));
+  fi->fh = reinterpret_cast<uint64_t>(relative_path.release());
+  return 0;
+}
+
+static int fs_releasedir(const char*, struct fuse_file_info* fi) {
+  if (fi->fh == 0)
+    return -EBADF;
+  unique_ptr<string> auto_delete(reinterpret_cast<string*>(fi->fh));
+  return 0;
+}
+
+static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+			 off_t offset, struct fuse_file_info *fi) {
+  if (fi->fh == 0)
+    return -ENOENT;
+  string* relative_path(reinterpret_cast<string*>(fi->fh));
 
   // Directory would contain . and ..
   // filler(buf, ".", NULL, 0);
   // filler(buf, "..", NULL, 0);
   struct dirent **namelist{nullptr};
   int scandir_count = scandirat(premount_dirfd,
-				relative_path.c_str(),
+				relative_path->c_str(),
 				&namelist,
 				nullptr,
 				nullptr);
@@ -363,11 +380,18 @@ static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   return 0;
 }
 
+struct FileHandle {
+  FileHandle(string relative_path, int fd)
+    : relative_path_(relative_path), fd_(fd) {}
+  ~FileHandle() {}
+  string relative_path_;
+  ScopedFd fd_;
+};
+
 static int fs_open(const char *path, struct fuse_file_info *fi) {
   if (*path == 0)
     return -ENOENT;
   string relative_path(GetRelativePath(path));
-
   if ((fi->flags & O_ACCMODE) != O_RDONLY) {
     // Break hardlink on open if necessary.
     if (!MaybeBreakHardlink(premount_dirfd, relative_path)) {
@@ -379,31 +403,35 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
 		  0666 /* mknod should have been called already? */);
   if (fd == -1)
     return -ENOENT;
-  fi->fh = static_cast<uint64_t>(fd);
+  unique_ptr<FileHandle> fh(new FileHandle(relative_path, fd));
+  fi->fh = reinterpret_cast<uint64_t>(fh.release());
 
   return 0;
 }
 
-static int fs_read(const char *path, char *target, size_t size, off_t offset,
+static int fs_read(const char *unused, char *target, size_t size, off_t offset,
 		   struct fuse_file_info *fi) {
-  int fd = fi->fh;
-  if (fd == -1)
+  FileHandle* fh = reinterpret_cast<FileHandle*>(fi->fh);
+  if (fh->fd_.get() == -1)
     return -ENOENT;
 
-  WRAP_ERRNO_OR_RESULT(ssize_t, pread(fd, target, size, offset));
+  WRAP_ERRNO_OR_RESULT(ssize_t, pread(fh->fd_.get(),
+				      target, size, offset));
 }
 
-static int fs_write(const char *path, const char *buf, size_t size,
+static int fs_write(const char *unused, const char *buf, size_t size,
 		    off_t offset, struct fuse_file_info *fi) {
-  int fd = fi->fh;
-  if (fd == -1)
+  FileHandle* fh = reinterpret_cast<FileHandle*>(fi->fh);
+  if (fh->fd_.get() == -1)
     return -ENOENT;
 
-  WRAP_ERRNO_OR_RESULT(ssize_t, pwrite(fd, buf, size, offset));
+  WRAP_ERRNO_OR_RESULT(ssize_t, pwrite(fh->fd_.get(),
+				       buf, size, offset));
 }
 
-static int fs_release(const char *path, struct fuse_file_info *fi) {
-  int fd = fi->fh;
+static int fs_release(const char *unused, struct fuse_file_info *fi) {
+  unique_ptr<FileHandle> fh(reinterpret_cast<FileHandle*>(fi->fh));
+  int fd = fh->fd_.get();
   if (fd == -1)
     return -EBADF;
   // Get the access information before closing the FD.
@@ -413,15 +441,13 @@ static int fs_release(const char *path, struct fuse_file_info *fi) {
     return -EINVAL;
   }
   bool mutable_access = ((getfl & O_ACCMODE) != O_RDONLY);
-  int ret = close(fd);
+  int ret = close(fh->fd_.release());
   if (-1 == ret) ret = -errno;
 
   if (mutable_access) {
-    if (*path == 0)
-      return -EBADF;
     assert(repository_path.size() > 0);
-    string relative_path(GetRelativePath(path));
-    if (!FindOutRepoAndMaybeHardlink(premount_dirfd, relative_path.c_str(),
+    if (!FindOutRepoAndMaybeHardlink(premount_dirfd,
+				     fh->relative_path_.c_str(),
 				     repository_path)) {
       syslog(LOG_ERR, "FindOutRepoAndMaybeHardlink failed");
     }
@@ -596,10 +622,12 @@ int main(int argc, char** argv) {
   DEFINE_HANDLER(mkdir);
   DEFINE_HANDLER(mknod);
   DEFINE_HANDLER(open);
+  DEFINE_HANDLER(opendir);
   DEFINE_HANDLER(read);
   DEFINE_HANDLER(readdir);
   DEFINE_HANDLER(readlink);
   DEFINE_HANDLER(release);
+  DEFINE_HANDLER(releasedir);
   DEFINE_HANDLER(rename);
   DEFINE_HANDLER(rmdir);
   DEFINE_HANDLER(statfs);
@@ -615,6 +643,7 @@ int main(int argc, char** argv) {
   // DEFINE_HANDLER(listxattr);
   // DEFINE_HANDLER(removexattr);
 #undef DEFINE_HANDLER
+  o.flag_nopath = true;
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   cowfs_config conf{};
