@@ -46,12 +46,13 @@ public:
    * @return >= 0 on success, -errno on fail.
    */
   virtual int Open(const std::string& relative_path,
-		   int flags,
+		   int access_flags,
 		   std::unique_ptr<FileHandle>* fh);
   /**
+   * Should free the file handle and report back any errors.
    * @return >= 0 on success, -errno on fail.
    */
-  virtual int Release(std::unique_ptr<FileHandle>* fh);
+  virtual int Release(int access_flags, std::unique_ptr<FileHandle>* fh);
 
   /**
    * @return >= 0 on success, -errno on fail.

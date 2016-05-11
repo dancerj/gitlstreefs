@@ -54,8 +54,8 @@ ssize_t PtfsHandler::Write(const FileHandle& fh, const char* buf, size_t size, o
   WRAP_ERRNO_OR_RESULT(ssize_t, pwrite(fh.fd_get(), buf, size, offset));
 }
 
-int PtfsHandler::Open(const std::string& relative_path, int flags, unique_ptr<FileHandle>* fh) {
-  int fd = openat(premount_dirfd_, relative_path.c_str(), flags);
+int PtfsHandler::Open(const std::string& relative_path, int access_flags, unique_ptr<FileHandle>* fh) {
+  int fd = openat(premount_dirfd_, relative_path.c_str(), access_flags);
   if (fd == -1)
     return -ENOENT;
   fh->reset(new FileHandle(fd));
@@ -63,7 +63,7 @@ int PtfsHandler::Open(const std::string& relative_path, int flags, unique_ptr<Fi
   return 0;
 }
 
-int PtfsHandler::Release(unique_ptr<FileHandle>* upfh) {
+int PtfsHandler::Release(int access_flags, unique_ptr<FileHandle>* upfh) {
   FileHandle& fh = **upfh;
   WRAP_ERRNO(close(fh.fd_release()));
 }
@@ -209,7 +209,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
 
 static int fs_release(const char* unused, struct fuse_file_info *fi) {
   unique_ptr<FileHandle> fh(reinterpret_cast<FileHandle*>(fi->fh));
-  return GetContext()->Release(&fh);
+  return GetContext()->Release(fi->flags, &fh);
 }
 
 static int fs_read(const char *unused, char *target, size_t size, off_t offset,

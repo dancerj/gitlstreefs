@@ -333,7 +333,7 @@ public:
 
   virtual int Open(const std::string& relative_path,
 		   int open_flags,
-		   std::unique_ptr<ptfs::FileHandle>* fh) {
+		   std::unique_ptr<ptfs::FileHandle>* fh) override {
     if ((open_flags & O_ACCMODE) != O_RDONLY) {
       // Break hardlink on open if necessary.
       if (!MaybeBreakHardlink(premount_dirfd_, relative_path)) {
@@ -349,18 +349,12 @@ public:
     return 0;
   }
 
-  virtual int Release(unique_ptr<ptfs::FileHandle>* upfh) {
+  virtual int Release(int access_flags, unique_ptr<ptfs::FileHandle>* upfh) override {
     CowFileHandle* fh = dynamic_cast<CowFileHandle*>(upfh->get());
 
-    // Get the access information before closing the FD.
-    int getfl = fcntl(fh->fd_get(), F_GETFL);
-    if (getfl == -1) {
-      syslog(LOG_ERR, "fcntl F_GETFL failed %m");
-      return -EINVAL;
-    }
-    bool mutable_access = ((getfl & O_ACCMODE) != O_RDONLY);
     int ret = close(fh->fd_release());
     if (-1 == ret) ret = -errno;
+    const bool mutable_access = ((access_flags & O_ACCMODE) != O_RDONLY);
     if (mutable_access) {
       assert(repository_path.size() > 0);
       if (!FindOutRepoAndMaybeHardlink(premount_dirfd_,
@@ -372,7 +366,7 @@ public:
     return ret;
   }
 
-  virtual int Unlink(const string& relative_path) {
+  virtual int Unlink(const string& relative_path) override {
     string repo_file_path(GetRepoItemPath(premount_dirfd_, relative_path));
     int ret = ptfs::PtfsHandler::Unlink(relative_path);
     if (!GarbageCollectOneRepoFile(repo_file_path)) {
