@@ -26,7 +26,7 @@ public:
 
   int ReadDir(const std::string& relative_path,
 	      void *buf, fuse_fill_dir_t filler,
-	      off_t offset) {
+	      off_t offset) override {
     filler(buf, ".", NULL, 0);
     filler(buf, "..", NULL, 0);
     struct dirent **namelist{nullptr};
@@ -49,14 +49,14 @@ public:
   }
 
 
-  int Open(const std::string& relative_path, unique_ptr<roptfs::FileHandle>* fh) {
+  int Open(const std::string& relative_path, unique_ptr<roptfs::FileHandle>* fh) override {
     if (fnmatch(glob_pattern_.c_str(), relative_path.c_str(), FNM_PATHNAME)) {
       return -ENOENT;
     }
     return RoptfsHandler::Open(relative_path, fh);
   }
 
-  int GetAttr(const std::string& relative_path, struct stat* stbuf) {
+  int GetAttr(const std::string& relative_path, struct stat* stbuf) override {
     if (fnmatch(glob_pattern_.c_str(), relative_path.c_str(), FNM_PATHNAME) &&
 	relative_path != "./") {
       return -ENOENT;

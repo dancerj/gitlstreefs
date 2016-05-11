@@ -45,7 +45,7 @@ public:
   Directory() {}
   virtual ~Directory() {}
 
-  virtual int Getattr(struct stat *stbuf) {
+  virtual int Getattr(struct stat *stbuf) override {
     stbuf->st_uid = getuid();
     stbuf->st_gid = getgid();
     stbuf->st_mode = S_IFDIR | 0755;
@@ -53,14 +53,16 @@ public:
     return 0;
   };
 
-  virtual ssize_t Read(char *buf, size_t size, off_t offset) {
+  virtual ssize_t Read(char *buf, size_t size, off_t offset) override {
     // Can't read from a directory.
     return -EINVAL;
   }
-  virtual int Open() {
+
+  virtual int Open() override {
     // Can't open a directory?
     return -EINVAL;
   }
+
   void add(const std::string& path, std::unique_ptr<File> f) {
     files_[path] = move(f);
   }
@@ -148,7 +150,7 @@ public:
     std::cout << "Files map" << std::endl;
     for (const auto& file : files_) {
       std::cout << file.first << " " << file.second << std::endl;
-      std::cout << "Is directory: " 
+      std::cout << "Is directory: "
 		<< (dynamic_cast<Directory*>(file.second) != nullptr) << std::endl;
     }
     std::cout << "Directory map" << std::endl;

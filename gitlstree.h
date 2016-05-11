@@ -21,9 +21,9 @@ enum GitFileType {
 class FileElement : public directory_container::File {
 public:
   FileElement(int attribute, const std::string& sha1, int size);
-  virtual int Open();
-  virtual ssize_t Read(char *buf, size_t size, off_t offset);
-  virtual int Getattr(struct stat *stbuf);
+  virtual int Open() override;
+  virtual ssize_t Read(char *buf, size_t size, off_t offset) override;
+  virtual int Getattr(struct stat *stbuf) override;
   int Release();
   void GetHash(char* hash) const;
 

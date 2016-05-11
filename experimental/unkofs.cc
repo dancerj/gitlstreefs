@@ -33,7 +33,7 @@ public:
   virtual ~UnkoFsHandler() {}
 
   ssize_t Read(const roptfs::FileHandle& fh, char* target,
-	       size_t size, off_t offset) {
+	       size_t size, off_t offset) override {
     if (dynamic_cast<const UnkoFileHandle*>(&fh) != nullptr) {
       if (size <= 8) { return -EIO; }
       memcpy(target, "unkounko", 8);
@@ -42,7 +42,7 @@ public:
     return RoptfsHandler::Read(fh, target, size, offset);
   }
 
-  int Open(const std::string& relative_path, unique_ptr<roptfs::FileHandle>* fh) {
+  int Open(const std::string& relative_path, unique_ptr<roptfs::FileHandle>* fh) override {
     if (relative_path == "unko") {
       fh->reset(new UnkoFileHandle);
       return 0;
@@ -52,13 +52,13 @@ public:
 
   int ReadDir(const std::string& relative_path,
 	      void *buf, fuse_fill_dir_t filler,
-	      off_t offset) {
+	      off_t offset) override {
     filler(buf, "unko", nullptr, 0);
     return RoptfsHandler::ReadDir(relative_path, buf, filler, offset);
   }
 
 
-  int GetAttr(const std::string& relative_path, struct stat* stbuf) {
+  int GetAttr(const std::string& relative_path, struct stat* stbuf) override {
     if (relative_path == "unko") {
       stbuf->st_size = 8;
       stbuf->st_mode = S_IFREG | 0444;

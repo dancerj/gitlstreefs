@@ -41,12 +41,12 @@ mutex global_ninja_mutex;
 
 // We will hold the build log in memory and provide the contents per
 // request from user, via a /ninja.log node.
-class NinjaLog : public directory_container::File{
+class NinjaLog : public directory_container::File {
 public:
   NinjaLog() : log_(), mutex_() {}
   virtual ~NinjaLog() {}
 
-  virtual int Getattr(struct stat *stbuf) {
+  virtual int Getattr(struct stat *stbuf) override {
     unique_lock<mutex> l(mutex_);
     stbuf->st_mode = S_IFREG | 0555;
     stbuf->st_nlink = 1;
@@ -54,11 +54,11 @@ public:
     return 0;
   }
 
-  virtual int Open() {
+  virtual int Open() override {
     return 0;
   }
 
-  virtual ssize_t Read(char *target, size_t size, off_t offset) {
+  virtual ssize_t Read(char *target, size_t size, off_t offset) override {
     // Fill in the response
     unique_lock<mutex> l(mutex_);
     if (offset < static_cast<off_t>(log_.size())) {
@@ -89,7 +89,7 @@ public:
   NinjaTarget(const string& original_target_name) :
     original_target_name_(original_target_name) {}
   virtual ~NinjaTarget() {}
-  virtual int Getattr(struct stat *stbuf) {
+  virtual int Getattr(struct stat *stbuf) override {
     stbuf->st_mode = S_IFREG | 0555;
     stbuf->st_nlink = 1;
     unique_lock<mutex> l(mutex_);
@@ -107,7 +107,7 @@ public:
     return original_cwd;
   }
 
-  virtual int Open() {
+  virtual int Open() override {
     unique_lock<mutex> l(mutex_);
     if (!buf_.get()) {
       int exit_code;
@@ -130,7 +130,7 @@ public:
     return 0;
   }
 
-  virtual ssize_t Read(char *target, size_t size, off_t offset) {
+  virtual ssize_t Read(char *target, size_t size, off_t offset) override {
     // Fill in the response
     if (!buf_.get()) {
       // If buffer is empty, give back error.
