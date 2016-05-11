@@ -148,6 +148,7 @@ RunTestScript('experimental/globfs_test.sh', {
     extra_depends: ['out/experimental/globfs']
 })
 CompileLink('cowfs', ['cowfs', 'cowfs_crypt', 'file_copy',
+		      'ptfs',
 		      'relative_path', 'scoped_fileutil', 'strutil'],
 	    {cclink: 'cclinkcowfs'})
 CompileLinkRunTest('cowfs_crypt_test', ['cowfs_crypt',

@@ -9,26 +9,24 @@
 #define FUSE_USE_VERSION 26
 
 #include <assert.h>
-#include <dirent.h>
 #include <fcntl.h>
 #include <fuse.h>
 #include <sys/file.h>
 #include <sys/resource.h>
 #include <sys/sysinfo.h>
-#include <sys/time.h>
 #include <syslog.h>
 
 #include <boost/filesystem.hpp>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "cowfs_crypt.h"
 #include "disallow.h"
 #include "file_copy.h"
-#include "relative_path.h"
+#include "ptfs.h"
 #include "scoped_fd.h"
 #include "scoped_fileutil.h"
 #include "strutil.h"
@@ -44,8 +42,6 @@ using std::unique_ptr;
 using std::vector;
 
 namespace {
-// Directory before mount.
-int premount_dirfd = -1;
 string repository_path;
 }  // anonymous namespace
 
@@ -175,7 +171,8 @@ bool MaybeGcAfterHardlinkBreakForTarget(int dirfd, const string& target) {
 
   // TODO: I'm reading the file into memory to get sha1sum after
   // having used sendfile to copy it; is that efficient?
-  string repo_file_path(GetRepoItemPath(premount_dirfd, target));
+  string repo_file_path(GetRepoItemPath(ptfs::PtfsHandler::premount_dirfd_, 
+					target));
   if (repo_file_path.size() == 0) {
     // soft-fail?
     return false;
@@ -315,266 +312,79 @@ void HardlinkTree(const string& repo, const string& directory) {
   for (auto& job : jobs) { job.join(); }
 }
 
-#define WRAP_ERRNO(f)				\
-  if(-1 == f) {					\
-    return -errno;				\
-  } else{					\
-    return 0;					\
+class CowFileHandle : public ptfs::FileHandle {
+public:
+  CowFileHandle(const string& relative_path, int fd)
+    : FileHandle(fd), relative_path_(relative_path) {}
+  virtual ~CowFileHandle() {}
+  const char* relative_path_c_str() const {
+    return relative_path_.c_str();
   }
-#define WRAP_ERRNO_OR_RESULT(T, f)				\
-  T res = f;							\
-  if(-1 == res) {						\
-    return -errno;						\
-  } else {							\
-    return res;							\
-  }
-
-static int fs_getattr(const char *path, struct stat *stbuf) {
-  memset(stbuf, 0, sizeof(struct stat));
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-
-  WRAP_ERRNO(fstatat(premount_dirfd, relative_path.c_str(),
-		     stbuf, AT_SYMLINK_NOFOLLOW));
-}
-
-static int fs_opendir(const char* path, struct fuse_file_info* fi) {
-  if (*path == 0)
-    return -ENOENT;
-  unique_ptr<string> relative_path(new string(GetRelativePath(path)));
-  fi->fh = reinterpret_cast<uint64_t>(relative_path.release());
-  return 0;
-}
-
-static int fs_releasedir(const char*, struct fuse_file_info* fi) {
-  if (fi->fh == 0)
-    return -EBADF;
-  unique_ptr<string> auto_delete(reinterpret_cast<string*>(fi->fh));
-  return 0;
-}
-
-static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi) {
-  if (fi->fh == 0)
-    return -ENOENT;
-  string* relative_path(reinterpret_cast<string*>(fi->fh));
-
-  // Directory would contain . and ..
-  // filler(buf, ".", NULL, 0);
-  // filler(buf, "..", NULL, 0);
-  struct dirent **namelist{nullptr};
-  int scandir_count = scandirat(premount_dirfd,
-				relative_path->c_str(),
-				&namelist,
-				nullptr,
-				nullptr);
-  if (scandir_count == -1) {
-    return -ENOENT;
-  }
-  for(int i = 0; i < scandir_count; ++i) {
-    filler(buf, namelist[i]->d_name, 0, 0);
-    free(namelist[i]);
-  }
-  free(namelist);
-  return 0;
-}
-
-struct FileHandle {
-  FileHandle(string relative_path, int fd)
-    : relative_path_(relative_path), fd_(fd) {}
-  ~FileHandle() {}
+private:
   string relative_path_;
-  ScopedFd fd_;
+  DISALLOW_COPY_AND_ASSIGN(CowFileHandle);
 };
 
-static int fs_open(const char *path, struct fuse_file_info *fi) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  if ((fi->flags & O_ACCMODE) != O_RDONLY) {
-    // Break hardlink on open if necessary.
-    if (!MaybeBreakHardlink(premount_dirfd, relative_path)) {
-      return -EIO;
+class CowFileSystemHandler : public ptfs::PtfsHandler {
+public:
+  CowFileSystemHandler() {}
+
+  virtual ~CowFileSystemHandler() {}
+
+  virtual int Open(const std::string& relative_path,
+		   int open_flags,
+		   std::unique_ptr<ptfs::FileHandle>* fh) {
+    if ((open_flags & O_ACCMODE) != O_RDONLY) {
+      // Break hardlink on open if necessary.
+      if (!MaybeBreakHardlink(premount_dirfd_, relative_path)) {
+	return -EIO;
+      }
     }
-  }
-  int fd = openat(premount_dirfd, relative_path.c_str(),
-		  fi->flags,
-		  0666 /* mknod should have been called already? */);
-  if (fd == -1)
-    return -ENOENT;
-  unique_ptr<FileHandle> fh(new FileHandle(relative_path, fd));
-  fi->fh = reinterpret_cast<uint64_t>(fh.release());
 
-  return 0;
-}
+    int fd = openat(premount_dirfd_, relative_path.c_str(), open_flags);
+    if (fd == -1)
+      return -ENOENT;
 
-static int fs_read(const char *unused, char *target, size_t size, off_t offset,
-		   struct fuse_file_info *fi) {
-  FileHandle* fh = reinterpret_cast<FileHandle*>(fi->fh);
-  if (fh->fd_.get() == -1)
-    return -ENOENT;
-
-  WRAP_ERRNO_OR_RESULT(ssize_t, pread(fh->fd_.get(),
-				      target, size, offset));
-}
-
-static int fs_write(const char *unused, const char *buf, size_t size,
-		    off_t offset, struct fuse_file_info *fi) {
-  FileHandle* fh = reinterpret_cast<FileHandle*>(fi->fh);
-  if (fh->fd_.get() == -1)
-    return -ENOENT;
-
-  WRAP_ERRNO_OR_RESULT(ssize_t, pwrite(fh->fd_.get(),
-				       buf, size, offset));
-}
-
-static int fs_release(const char *unused, struct fuse_file_info *fi) {
-  unique_ptr<FileHandle> fh(reinterpret_cast<FileHandle*>(fi->fh));
-  int fd = fh->fd_.get();
-  if (fd == -1)
-    return -EBADF;
-  // Get the access information before closing the FD.
-  int getfl = fcntl(fd, F_GETFL);
-  if (getfl == -1) {
-    syslog(LOG_ERR, "fcntl F_GETFL failed %m");
-    return -EINVAL;
-  }
-  bool mutable_access = ((getfl & O_ACCMODE) != O_RDONLY);
-  int ret = close(fh->fd_.release());
-  if (-1 == ret) ret = -errno;
-
-  if (mutable_access) {
-    assert(repository_path.size() > 0);
-    if (!FindOutRepoAndMaybeHardlink(premount_dirfd,
-				     fh->relative_path_.c_str(),
-				     repository_path)) {
-      syslog(LOG_ERR, "FindOutRepoAndMaybeHardlink failed");
-    }
-  }
-  return ret;
-}
-
-static int fs_mknod(const char *path, mode_t mode, dev_t rdev) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  WRAP_ERRNO(mknodat(premount_dirfd, relative_path.c_str(), mode, rdev));
-}
-
-static int fs_chmod(const char *path, mode_t mode)
-{
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  WRAP_ERRNO(fchmodat(premount_dirfd,
-   		      relative_path.c_str(), mode, 0));
-}
-
-static int fs_chown(const char *path, uid_t uid, gid_t gid)
-{
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  WRAP_ERRNO(fchownat(premount_dirfd,
-		      relative_path.c_str(), uid, gid, AT_SYMLINK_NOFOLLOW));
-}
-
-static int fs_utimens(const char *path, const struct timespec ts[2]) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  WRAP_ERRNO(utimensat(premount_dirfd,
-		       relative_path.c_str(), ts, AT_SYMLINK_NOFOLLOW));
-}
-
-static int fs_truncate(const char *path, off_t size) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  ScopedFd fd(openat(premount_dirfd, relative_path.c_str(), O_WRONLY));
-  if (fd.get() == -1) {
-    return -errno;
-  }
-  WRAP_ERRNO(ftruncate(fd.get(), size));
-}
-
-static int fs_unlink(const char *path) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  string repo_file_path(GetRepoItemPath(premount_dirfd, relative_path));
-  int ret = unlinkat(premount_dirfd, relative_path.c_str(), 0);
-  if (-1 == ret) ret = -errno;
-
-  if (!GarbageCollectOneRepoFile(repo_file_path)) {
-    syslog(LOG_ERR, "GarbageCollectOneRepoFile failed");
-  }
-
-  return ret;
-}
-
-static int fs_rename(const char *from, const char *to) {
-  if (*from == 0)
-    return -ENOENT;
-  if (*to == 0)
-    return -ENOENT;
-  string from_s(GetRelativePath(from));
-  string to_s(GetRelativePath(to));
-  WRAP_ERRNO(renameat(premount_dirfd, from_s.c_str(), premount_dirfd, to_s.c_str()));
-}
-
-static int fs_mkdir(const char *path, mode_t mode) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  WRAP_ERRNO(mkdirat(premount_dirfd, relative_path.c_str(), mode));
-}
-
-static int fs_rmdir(const char *path) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  WRAP_ERRNO(unlinkat(premount_dirfd, relative_path.c_str(), AT_REMOVEDIR));
-}
-
-static int fs_readlink(const char *path, char *buf, size_t size) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
-  int res;
-  if ((res = readlinkat(premount_dirfd,
-			relative_path.c_str(), buf, size - 1)) == -1) {
-    return -errno;
-  } else {
-    buf[res] = '\0';
+    fh->reset(new CowFileHandle(relative_path, fd));
     return 0;
   }
-}
 
-static int fs_symlink(const char *from, const char *to) {
-  if (*from == 0)
-    return -ENOENT;
-  if (*to == 0)
-    return -ENOENT;
-  string to_s(GetRelativePath(to));
-  WRAP_ERRNO(symlinkat(from, premount_dirfd, to_s.c_str()));
-}
+  virtual int Release(unique_ptr<ptfs::FileHandle>* upfh) {
+    CowFileHandle* fh = dynamic_cast<CowFileHandle*>(upfh->get());
 
-static int fs_link(const char *from, const char *to) {
-  if (*from == 0)
-    return -ENOENT;
-  if (*to == 0)
-    return -ENOENT;
-  string from_s(GetRelativePath(from));
-  string to_s(GetRelativePath(to));
-  WRAP_ERRNO(linkat(premount_dirfd, from_s.c_str(),
- 		    premount_dirfd, to_s.c_str(), 0));
-}
+    // Get the access information before closing the FD.
+    int getfl = fcntl(fh->fd_get(), F_GETFL);
+    if (getfl == -1) {
+      syslog(LOG_ERR, "fcntl F_GETFL failed %m");
+      return -EINVAL;
+    }
+    bool mutable_access = ((getfl & O_ACCMODE) != O_RDONLY);
+    int ret = close(fh->fd_release());
+    if (-1 == ret) ret = -errno;
+    if (mutable_access) {
+      assert(repository_path.size() > 0);
+      if (!FindOutRepoAndMaybeHardlink(premount_dirfd_,
+				       fh->relative_path_c_str(),
+				       repository_path)) {
+	syslog(LOG_ERR, "FindOutRepoAndMaybeHardlink failed");
+      }
+    }
+    return ret;
+  }
 
-static int fs_statfs(const char *path, struct statvfs *stbuf) {
-  WRAP_ERRNO(fstatvfs(premount_dirfd, stbuf));
-}
+  virtual int Unlink(const string& relative_path) {
+    string repo_file_path(GetRepoItemPath(premount_dirfd_, relative_path));
+    int ret = ptfs::PtfsHandler::Unlink(relative_path);
+    if (!GarbageCollectOneRepoFile(repo_file_path)) {
+      syslog(LOG_ERR, "GarbageCollectOneRepoFile failed");
+    }
+    return ret;
+  }
+
+private:
+  string path;
+  DISALLOW_COPY_AND_ASSIGN(CowFileSystemHandler);
+};
 
 struct cowfs_config {
   char* repository{nullptr};
@@ -614,37 +424,7 @@ int main(int argc, char** argv) {
   umask(0);
 
   struct fuse_operations o = {};
-#define DEFINE_HANDLER(n) o.n = &fs_##n
-  DEFINE_HANDLER(chmod);
-  DEFINE_HANDLER(chown);
-  DEFINE_HANDLER(getattr);
-  DEFINE_HANDLER(link);
-  DEFINE_HANDLER(mkdir);
-  DEFINE_HANDLER(mknod);
-  DEFINE_HANDLER(open);
-  DEFINE_HANDLER(opendir);
-  DEFINE_HANDLER(read);
-  DEFINE_HANDLER(readdir);
-  DEFINE_HANDLER(readlink);
-  DEFINE_HANDLER(release);
-  DEFINE_HANDLER(releasedir);
-  DEFINE_HANDLER(rename);
-  DEFINE_HANDLER(rmdir);
-  DEFINE_HANDLER(statfs);
-  DEFINE_HANDLER(symlink);
-  DEFINE_HANDLER(truncate);
-  DEFINE_HANDLER(unlink);
-  DEFINE_HANDLER(utimens);
-  DEFINE_HANDLER(write);
-  // DEFINE_HANDLER(fsync);
-  // DEFINE_HANDLER(fallocate);
-  // DEFINE_HANDLER(setxattr);
-  // DEFINE_HANDLER(getxattr);
-  // DEFINE_HANDLER(listxattr);
-  // DEFINE_HANDLER(removexattr);
-#undef DEFINE_HANDLER
-  o.flag_nopath = true;
-
+  ptfs::FillFuseOperations<CowFileSystemHandler>(&o);
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   cowfs_config conf{};
   fuse_opt_parse(&args, &conf, cowfs_opts, NULL);
@@ -659,8 +439,7 @@ int main(int argc, char** argv) {
   repository_path = fs::canonical(conf.repository).string();
   GcTree(conf.repository);
   HardlinkTree(conf.repository, conf.underlying_path);
-  premount_dirfd = open(conf.underlying_path, O_PATH|O_DIRECTORY);
-  assert(premount_dirfd != -1);
+  ptfs::PtfsHandler::premount_dirfd_ = open(conf.underlying_path, O_PATH|O_DIRECTORY);
 
   int ret = fuse_main(args.argc, args.argv, &o, NULL);
   fuse_opt_free_args(&args);
