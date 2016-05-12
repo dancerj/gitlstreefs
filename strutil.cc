@@ -1,5 +1,3 @@
-/*BINFMTCXX:
-*/
 #include "strutil.h"
 
 #include <assert.h>
@@ -48,7 +46,6 @@ std::string ReadFromFileOrDie(int dirfd, const std::string& filename) {
   assert(ReadFromFile(dirfd, filename, &s));
   return s;
 }
-
 
 // A popen implementation that does not require forking a shell. In
 // gitlstreefs benchmarks, we're spending 5% of CPU time initializing

@@ -7,7 +7,9 @@
 
 #include <string>
 
-ScopedTempFile::ScopedTempFile(int dirfd, const std::string& basename, const std::string& opt) :
+using std::string;
+
+ScopedTempFile::ScopedTempFile(int dirfd, const string& basename, const string& opt) :
   dirfd_(dirfd),
   name_(basename + ".tmp" + opt + std::to_string(pthread_self())) {
   if (-1 == unlinkat(dirfd, name_.c_str(), 0) && errno != ENOENT) {
@@ -25,7 +27,7 @@ ScopedTempFile::~ScopedTempFile() {
   }
 }
 
-ScopedFileLockWithDelete::ScopedFileLockWithDelete(int dirfd, const std::string& basename) :
+ScopedFileLockWithDelete::ScopedFileLockWithDelete(int dirfd, const string& basename) :
   dirfd_(dirfd),
   name_(basename + ".lock"),
   have_lock_(false) {

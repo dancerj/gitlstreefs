@@ -1,11 +1,11 @@
+#include "scoped_fd.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <assert.h>
 
 #include <iostream>
-
-#include "scoped_fd.h"
 
 using namespace std;
 

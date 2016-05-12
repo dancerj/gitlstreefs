@@ -1,3 +1,5 @@
+#include "base64decode.h"
+
 #include <assert.h>
 
 #include <string>

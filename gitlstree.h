@@ -4,7 +4,6 @@
 #include <sys/ioctl.h>
 
 #include <mutex>
-#include <unordered_map>
 
 #include "cached_file.h"
 #include "directory_container.h"

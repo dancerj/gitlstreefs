@@ -1,10 +1,12 @@
+#include "file_copy.h"
+
 #include <fcntl.h>
-#include <string>
 #include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "file_copy.h"
+#include <string>
+
 #include "scoped_fd.h"
 
 using std::string;

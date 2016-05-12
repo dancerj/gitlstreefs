@@ -3,9 +3,7 @@
  */
 #include <assert.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <sys/ioctl.h>
-#include <unistd.h>
 
 #include <iostream>
 #include <string>

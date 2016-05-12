@@ -1,3 +1,5 @@
+#include "relative_path.h"
+
 #include <string>
 #include <assert.h>
 

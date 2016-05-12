@@ -21,13 +21,10 @@ mount-able filesystem.
 #include <vector>
 
 #include "basename.h"
-#include "cached_file.h"
 #include "concurrency_limit.h"
 #include "gitlstree.h"
 #include "strutil.h"
 
-using std::cout;
-using std::endl;
 using std::make_unique;
 using std::mutex;
 using std::string;
@@ -41,14 +38,14 @@ namespace gitlstree {
 
 struct Configuration {
 public:
-  Configuration(const string& my_gitdir, const string& my_ssh, 
+  Configuration(const string& my_gitdir, const string& my_ssh,
 		const string& cache_path)
     : gitdir(my_gitdir), ssh(my_ssh), cache(cache_path) {
   }
   // Directory for git directory. Needed because fuse chdir to / on
   // becoming a daemon.
-  const std::string gitdir;
-  const std::string ssh;
+  const string gitdir;
+  const string ssh;
   Cache cache;
 };
 // Per-mountpoint configuration.
@@ -122,7 +119,7 @@ bool LoadDirectory(const string& my_gitdir, const string& hash,
   return true;
 }
 
-FileElement::FileElement(int attribute, const std::string& sha1, int size) :
+FileElement::FileElement(int attribute, const string& sha1, int size) :
   attribute_(attribute), sha1_(sha1), size_(size)  {}
 
 #define TYPE(a) {#a, TYPE_##a}

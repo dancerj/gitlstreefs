@@ -1,6 +1,7 @@
 /*
  * An implementation of a dumb file-backed cache.
  */
+#include "cached_file.h"
 
 #include <assert.h>
 #include <fcntl.h>
@@ -15,7 +16,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "cached_file.h"
 #include "scoped_fd.h"
 
 using std::function;
@@ -61,7 +61,7 @@ Cache::~Cache() {
   close(file_lock_);
 }
 
-void Cache::GetFileName(const string& name, 
+void Cache::GetFileName(const string& name,
 			string* dir_name, string* file_name) const {
   *dir_name = cache_dir_ + name.substr(0, 2);
   *file_name = name.substr(2);
