@@ -349,6 +349,26 @@ public:
     return 0;
   }
 
+
+  virtual int Create(const std::string& relative_path,
+		     int open_flags,
+		     mode_t mode,
+		     std::unique_ptr<ptfs::FileHandle>* fh) override {
+    if ((open_flags & O_ACCMODE) != O_RDONLY) {
+      // Break hardlink on open if necessary.
+      if (!MaybeBreakHardlink(premount_dirfd_, relative_path)) {
+	return -EIO;
+      }
+    }
+
+    int fd = openat(premount_dirfd_, relative_path.c_str(), open_flags, mode);
+    if (fd == -1)
+      return -ENOENT;
+
+    fh->reset(new CowFileHandle(relative_path, fd));
+    return 0;
+  }
+
   virtual int Release(int access_flags, unique_ptr<ptfs::FileHandle>* upfh) override {
     CowFileHandle* fh = dynamic_cast<CowFileHandle*>(upfh->get());
 

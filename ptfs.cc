@@ -64,6 +64,16 @@ int PtfsHandler::Open(const std::string& relative_path, int access_flags, unique
   return 0;
 }
 
+int PtfsHandler::Create(const std::string& relative_path, int access_flags,
+			mode_t mode, unique_ptr<FileHandle>* fh) {
+  int fd = openat(premount_dirfd_, relative_path.c_str(), access_flags, mode);
+  if (fd == -1)
+    return -ENOENT;
+  fh->reset(new FileHandle(fd));
+
+  return 0;
+}
+
 int PtfsHandler::Release(int access_flags, unique_ptr<FileHandle>* upfh) {
   FileHandle& fh = **upfh;
   WRAP_ERRNO(close(fh.fd_release()));
@@ -201,6 +211,19 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
   string relative_path(GetRelativePath(path));
   unique_ptr<FileHandle> fh(nullptr);
   int ret = GetContext()->Open(relative_path, fi->flags, &fh);
+  if (ret == 0) {
+    if (fh.get() == nullptr) return -EBADFD;
+    fi->fh = reinterpret_cast<uint64_t>(fh.release());
+  }
+  return ret;
+}
+
+static int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
+  if (*path == 0)
+    return -ENOENT;
+  string relative_path(GetRelativePath(path));
+  unique_ptr<FileHandle> fh(nullptr);
+  int ret = GetContext()->Create(relative_path, fi->flags, mode, &fh);
   if (ret == 0) {
     if (fh.get() == nullptr) return -EBADFD;
     fi->fh = reinterpret_cast<uint64_t>(fh.release());
@@ -358,6 +381,7 @@ void FillFuseOperationsInternal(fuse_operations* o) {
 #define DEFINE_HANDLER(n) o->n = &fs_##n
   DEFINE_HANDLER(chmod);
   DEFINE_HANDLER(chown);
+  DEFINE_HANDLER(create);
   DEFINE_HANDLER(destroy);
   DEFINE_HANDLER(fallocate);
   DEFINE_HANDLER(fsync);

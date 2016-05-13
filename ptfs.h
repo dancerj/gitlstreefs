@@ -48,6 +48,11 @@ public:
   virtual int Open(const std::string& relative_path,
 		   int access_flags,
 		   std::unique_ptr<FileHandle>* fh);
+  virtual int Create(const std::string& relative_path,
+		     int access_flags,
+		     mode_t mode,
+		     std::unique_ptr<FileHandle>* fh);
+
   /**
    * Should free the file handle and report back any errors.
    * @return >= 0 on success, -errno on fail.
