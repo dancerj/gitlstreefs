@@ -2,6 +2,7 @@
 
 #include "ptfs.h"
 
+#include <attr/xattr.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <memory>
@@ -73,8 +74,8 @@ int PtfsHandler::Unlink(const std::string& relative_path) {
 }
 
 int PtfsHandler::ReadDir(const std::string& relative_path,
-			   void *buf, fuse_fill_dir_t filler,
-			   off_t offset) {
+			 void *buf, fuse_fill_dir_t filler,
+			 off_t offset) {
   // Directory would contain . and ..
   // filler(buf, ".", NULL, 0);
   // filler(buf, "..", NULL, 0);
@@ -207,14 +208,18 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
   return ret;
 }
 
+static FileHandle* GetFileHandle(struct fuse_file_info* fi) {
+  return reinterpret_cast<FileHandle*>(fi->fh);
+}
+
 static int fs_release(const char* unused, struct fuse_file_info *fi) {
-  unique_ptr<FileHandle> fh(reinterpret_cast<FileHandle*>(fi->fh));
+  unique_ptr<FileHandle> fh(GetFileHandle(fi));
   return GetContext()->Release(fi->flags, &fh);
 }
 
 static int fs_read(const char *unused, char *target, size_t size, off_t offset,
 		   struct fuse_file_info *fi) {
-  FileHandle* fh = reinterpret_cast<FileHandle*>(fi->fh);
+  FileHandle* fh = GetFileHandle(fi);
   if (fh == nullptr)
     return -ENOENT;
   return GetContext()->Read(*fh, target, size, offset);
@@ -222,7 +227,7 @@ static int fs_read(const char *unused, char *target, size_t size, off_t offset,
 
 static int fs_write(const char *unused, const char *buf, size_t size,
 		    off_t offset, struct fuse_file_info *fi) {
-  FileHandle* fh = reinterpret_cast<FileHandle*>(fi->fh);
+  FileHandle* fh = GetFileHandle(fi);
   if (fh->fd_get() == -1)
     return -ENOENT;
 
@@ -265,6 +270,70 @@ static int fs_unlink(const char *path) {
   return GetContext()->Unlink(relative_path);
 }
 
+static int fs_fsync(const char *unused, int isdatasync, struct fuse_file_info *fi) {
+  FileHandle* fh = GetFileHandle(fi);
+  if (isdatasync) {
+    WRAP_ERRNO(fdatasync(fh->fd_get()));
+  } else {
+    WRAP_ERRNO(fsync(fh->fd_get()));
+  }
+}
+
+static int fs_fallocate(const char *unused, int mode, off_t offset,
+			off_t length, struct fuse_file_info *fi) {
+  if (mode) {
+    return -EOPNOTSUPP;
+  }
+  FileHandle* fh = GetFileHandle(fi);
+  return -posix_fallocate(fh->fd_get(), offset, length);
+}
+
+static int fs_setxattr(const char *path, const char *name, const char *value,
+		       size_t size, int flags) {
+  if (*path == 0)
+    return -ENOENT;
+  string relative_path(GetRelativePath(path));
+  ScopedFd fd(openat(GetContext()->premount_dirfd_, relative_path.c_str(), O_RDONLY));
+  if (fd.get() == -1) {
+    return -errno;
+  }
+  WRAP_ERRNO(fsetxattr(fd.get(), name, value, size, flags));
+}
+
+static int fs_getxattr(const char *path, const char *name, char *value,
+		       size_t size) {
+  if (*path == 0)
+    return -ENOENT;
+  string relative_path(GetRelativePath(path));
+  ScopedFd fd(openat(GetContext()->premount_dirfd_, relative_path.c_str(), O_RDONLY));
+  if (fd.get() == -1) {
+    return -errno;
+  }
+  WRAP_ERRNO(fgetxattr(fd.get(), name, value, size));
+}
+
+static int fs_listxattr(const char *path, char *list, size_t size) {
+  if (*path == 0)
+    return -ENOENT;
+  string relative_path(GetRelativePath(path));
+  ScopedFd fd(openat(GetContext()->premount_dirfd_, relative_path.c_str(), O_RDONLY));
+  if (fd.get() == -1) {
+    return -errno;
+  }
+  WRAP_ERRNO(flistxattr(fd.get(), list, size));
+}
+
+static int fs_removexattr(const char *path, const char *name) {
+  if (*path == 0)
+    return -ENOENT;
+  string relative_path(GetRelativePath(path));
+  ScopedFd fd(openat(GetContext()->premount_dirfd_, relative_path.c_str(), O_RDONLY));
+  if (fd.get() == -1) {
+    return -errno;
+  }
+  WRAP_ERRNO(fremovexattr(fd.get(), name));
+}
+
 static int fs_rename(const char *from, const char *to) {
   if (*from == 0)
     return -ENOENT;
@@ -290,8 +359,12 @@ void FillFuseOperationsInternal(fuse_operations* o) {
   DEFINE_HANDLER(chmod);
   DEFINE_HANDLER(chown);
   DEFINE_HANDLER(destroy);
+  DEFINE_HANDLER(fallocate);
+  DEFINE_HANDLER(fsync);
   DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(getxattr);
   DEFINE_HANDLER(link);
+  DEFINE_HANDLER(listxattr);
   DEFINE_HANDLER(mkdir);
   DEFINE_HANDLER(mknod);
   DEFINE_HANDLER(open);
@@ -301,20 +374,16 @@ void FillFuseOperationsInternal(fuse_operations* o) {
   DEFINE_HANDLER(readlink);
   DEFINE_HANDLER(release);
   DEFINE_HANDLER(releasedir);
+  DEFINE_HANDLER(removexattr);
   DEFINE_HANDLER(rename);
   DEFINE_HANDLER(rmdir);
+  DEFINE_HANDLER(setxattr);
   DEFINE_HANDLER(statfs);
   DEFINE_HANDLER(symlink);
   DEFINE_HANDLER(truncate);
   DEFINE_HANDLER(unlink);
   DEFINE_HANDLER(utimens);
   DEFINE_HANDLER(write);
-  // DEFINE_HANDLER(fsync);
-  // DEFINE_HANDLER(fallocate);
-  // DEFINE_HANDLER(setxattr);
-  // DEFINE_HANDLER(getxattr);
-  // DEFINE_HANDLER(listxattr);
-  // DEFINE_HANDLER(removexattr);
 #undef DEFINE_HANDLER
   o->flag_nopath = true;
 }
