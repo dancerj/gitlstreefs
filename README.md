@@ -9,6 +9,7 @@ dependencies. The build system depends on nodejs and ninja.
 
     # apt-get install \
       curl \
+      libattr1-dev \
       libboost-dev \
       libboost-filesystem-dev \
       libfuse-dev \
