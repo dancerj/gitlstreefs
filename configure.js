@@ -157,6 +157,8 @@ CompileLinkRunTest('cowfs_crypt_test', ['cowfs_crypt',
 RunTestScript('cowfs_test.sh', {
     extra_depends: ['out/cowfs', 'out/hello_world']
 })
+CompileLink('ptfs', ['ptfs_main', 'ptfs',
+		     'relative_path', 'scoped_fileutil', 'strutil'])
 CompileLink('file_copy_test', ['file_copy', 'file_copy_test'])
 CompileLink('experimental/parallel_writer', ['experimental/parallel_writer'])
 CompileLinkRunTest('scoped_fileutil_test',

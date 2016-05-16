@@ -8,6 +8,7 @@ Requires libboost-dev, libfuse, libgit2 and zlib as build time library
 dependencies. The build system depends on nodejs and ninja.
 
     # apt-get install \
+      attr \
       curl \
       libattr1-dev \
       libboost-dev \

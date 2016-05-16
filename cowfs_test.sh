@@ -57,6 +57,14 @@ echo -n only-content3 >> $TESTDIR/workdir/only_file
 cp out/hello_world $TESTDIR/workdir/hello_world_executable_file
 $TESTDIR/workdir/hello_world_executable_file
 
+echo attr-file > $TESTDIR/workdir/do_attr
+if getfattr -n user.hello $TESTDIR/workdir/do_attr; then
+    exit 1
+else
+    echo 'Failure is success'
+fi
+setfattr -n user.hello -v world $TESTDIR/workdir/do_attr
+[[ $(getfattr --only-values -n user.hello $TESTDIR/workdir/do_attr) == 'world' ]]
 
 # Make sure temp files don't remain after all the operations.
 # Wait until things quiesce.

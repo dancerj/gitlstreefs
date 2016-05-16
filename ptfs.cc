@@ -332,7 +332,7 @@ static int fs_getxattr(const char *path, const char *name, char *value,
   if (fd.get() == -1) {
     return -errno;
   }
-  WRAP_ERRNO(fgetxattr(fd.get(), name, value, size));
+  WRAP_ERRNO_OR_RESULT(ssize_t, fgetxattr(fd.get(), name, value, size));
 }
 
 static int fs_listxattr(const char *path, char *list, size_t size) {
@@ -343,7 +343,7 @@ static int fs_listxattr(const char *path, char *list, size_t size) {
   if (fd.get() == -1) {
     return -errno;
   }
-  WRAP_ERRNO(flistxattr(fd.get(), list, size));
+  WRAP_ERRNO_OR_RESULT(ssize_t, flistxattr(fd.get(), list, size));
 }
 
 static int fs_removexattr(const char *path, const char *name) {
