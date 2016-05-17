@@ -148,7 +148,7 @@ RunTestScript('experimental/globfs_test.sh', {
     extra_depends: ['out/experimental/globfs']
 })
 CompileLink('cowfs', ['cowfs', 'cowfs_crypt', 'file_copy',
-		      'ptfs',
+		      'ptfs', 'ptfs_handler',
 		      'relative_path', 'scoped_fileutil', 'strutil'],
 	    {cclink: 'cclinkcowfs'})
 CompileLinkRunTest('cowfs_crypt_test', ['cowfs_crypt',
@@ -157,7 +157,7 @@ CompileLinkRunTest('cowfs_crypt_test', ['cowfs_crypt',
 RunTestScript('cowfs_test.sh', {
     extra_depends: ['out/cowfs', 'out/hello_world']
 })
-CompileLink('ptfs', ['ptfs_main', 'ptfs',
+CompileLink('ptfs', ['ptfs_main', 'ptfs', 'ptfs_handler',
 		     'relative_path', 'scoped_fileutil', 'strutil'])
 CompileLink('file_copy_test', ['file_copy', 'file_copy_test'])
 CompileLink('experimental/parallel_writer', ['experimental/parallel_writer'])
