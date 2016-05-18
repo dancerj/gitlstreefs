@@ -4,10 +4,11 @@
 
 #include <fuse.h>
 #include <stddef.h>
-#include <sys/resource.h>
 #include <syslog.h>
 
 #include <iostream>
+
+#include "update_rlimit.h"
 
 using std::cerr;
 using std::cout;
@@ -24,21 +25,6 @@ static struct fuse_opt ptfs_opts[] = {
   FUSE_OPT_END
 };
 #undef MYFS_OPT
-
-void UpdateRlimit() {
-  struct rlimit r;
-  if (-1 == getrlimit(RLIMIT_NOFILE, &r)) {
-    perror("getrlimit");
-    return;
-  }
-  cout << "Updating file open limit: "
-       << r.rlim_cur << " to " << r.rlim_max << endl;
-  r.rlim_cur = r.rlim_max;
-  if (-1 == setrlimit(RLIMIT_NOFILE, &r)) {
-    perror("setrlimit");
-    return;
-  }
-}
 
 int main(int argc, char** argv) {
   openlog("ptfs", LOG_PERROR | LOG_PID, LOG_USER);

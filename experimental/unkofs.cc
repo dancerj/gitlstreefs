@@ -13,6 +13,7 @@
 #include <memory>
 
 #include "../relative_path.h"
+#include "../update_rlimit.h"
 #include "roptfs.h"
 
 using std::string;
@@ -75,6 +76,8 @@ private:
 };
 
 int main(int argc, char** argv) {
+  UpdateRlimit();
+
   const char* mountpoint = argv[1];
   assert(argc > 1);
   roptfs::RoptfsHandler::premount_dirfd_ = open(mountpoint, O_DIRECTORY);

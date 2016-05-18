@@ -14,6 +14,7 @@
 #include <string>
 
 #include "../relative_path.h"
+#include "../update_rlimit.h"
 #include "roptfs.h"
 
 using std::string;
@@ -86,6 +87,7 @@ static struct fuse_opt globfs_opts[] = {
 #undef MYFS_OPT
 
 int main(int argc, char** argv) {
+  UpdateRlimit();
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   globfs_config conf{};

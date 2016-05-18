@@ -136,20 +136,24 @@ CompileLinkRunTest('experimental/libgit2test',
 CompileLink('experimental/hello_fuseflags', ['experimental/hello_fuseflags'])
 CompileLink('experimental/unkofs', ['experimental/unkofs',
 				    'experimental/roptfs',
-				    'relative_path'
+				    'relative_path',
+				    'update_rlimit'
 				   ])
 RunTestScript('experimental/unkofs_test.sh', {
     extra_depends: ['out/experimental/unkofs']
 })
 CompileLink('experimental/globfs', ['experimental/globfs',
 				    'experimental/roptfs',
-				    'relative_path'])
+				    'relative_path',
+				    'update_rlimit'
+				   ])
 RunTestScript('experimental/globfs_test.sh', {
     extra_depends: ['out/experimental/globfs']
 })
 CompileLink('cowfs', ['cowfs', 'cowfs_crypt', 'file_copy',
 		      'ptfs', 'ptfs_handler',
-		      'relative_path', 'scoped_fileutil', 'strutil'],
+		      'relative_path', 'scoped_fileutil', 'strutil',
+		      'update_rlimit'],
 	    {cclink: 'cclinkcowfs'})
 CompileLinkRunTest('cowfs_crypt_test', ['cowfs_crypt',
 					'cowfs_crypt_test'],
@@ -158,7 +162,8 @@ RunTestScript('cowfs_test.sh', {
     extra_depends: ['out/cowfs', 'out/hello_world']
 })
 CompileLink('ptfs', ['ptfs_main', 'ptfs', 'ptfs_handler',
-		     'relative_path', 'scoped_fileutil', 'strutil'])
+		     'relative_path', 'scoped_fileutil', 'strutil',
+		     'update_rlimit'])
 CompileLink('file_copy_test', ['file_copy', 'file_copy_test'])
 CompileLink('experimental/parallel_writer', ['experimental/parallel_writer'])
 CompileLinkRunTest('scoped_fileutil_test',

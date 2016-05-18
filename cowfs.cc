@@ -12,7 +12,6 @@
 #include <fcntl.h>
 #include <fuse.h>
 #include <sys/file.h>
-#include <sys/resource.h>
 #include <sys/sysinfo.h>
 #include <syslog.h>
 
@@ -30,6 +29,7 @@
 #include "scoped_fd.h"
 #include "scoped_fileutil.h"
 #include "strutil.h"
+#include "update_rlimit.h"
 
 namespace fs = boost::filesystem; // std::experimental::filesystem;
 using std::cerr;
@@ -415,21 +415,6 @@ static struct fuse_opt cowfs_opts[] = {
   FUSE_OPT_END
 };
 #undef MYFS_OPT
-
-void UpdateRlimit() {
-  struct rlimit r;
-  if (-1 == getrlimit(RLIMIT_NOFILE, &r)) {
-    perror("getrlimit");
-    return;
-  }
-  cout << "Updating file open limit: "
-       << r.rlim_cur << " to " << r.rlim_max << endl;
-  r.rlim_cur = r.rlim_max;
-  if (-1 == setrlimit(RLIMIT_NOFILE, &r)) {
-    perror("setrlimit");
-    return;
-  }
-}
 
 int main(int argc, char** argv) {
   assert(init_gcrypt());  // Initialize gcrypt before starting threads.
