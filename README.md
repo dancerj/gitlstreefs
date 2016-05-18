@@ -102,7 +102,7 @@ a chroot inside out/sid-chroot/chroot:
       --underlying_path=out/sid-chroot/chroot \
       --repository=out/sid-chroot/repo \
       out/sid-chroot/chroot \
-      -o nonempty,allow_other,dev,suid
+      -o nonempty,allow_other,dev,suid,default_permissions
 
 # Copying #
 
