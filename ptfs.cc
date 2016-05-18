@@ -109,8 +109,8 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
   DECLARE_RELATIVE(path, relative_path);
   unique_ptr<FileHandle> fh(nullptr);
   int ret = GetContext()->Open(relative_path, fi->flags, &fh);
+  if (fh.get() == nullptr) return -EBADF;
   if (ret == 0) {
-    if (fh.get() == nullptr) return -EBADFD;
     fi->fh = reinterpret_cast<uint64_t>(fh.release());
   }
   return ret;
@@ -120,8 +120,8 @@ static int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
   DECLARE_RELATIVE(path, relative_path);
   unique_ptr<FileHandle> fh(nullptr);
   int ret = GetContext()->Create(relative_path, fi->flags, mode, &fh);
+  if (fh.get() == nullptr) return -EBADF;
   if (ret == 0) {
-    if (fh.get() == nullptr) return -EBADFD;
     fi->fh = reinterpret_cast<uint64_t>(fh.release());
   }
   return ret;
