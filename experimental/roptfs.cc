@@ -72,11 +72,15 @@ int RoptfsHandler::ReadDir(const std::string& relative_path,
   return 0;
 }
 
+// For path based functions.
+#define DECLARE_RELATIVE(path, relative_path)	\
+  if (*path == 0)				\
+    return -ENOENT;				\
+  string relative_path(GetRelativePath(path));	\
+
 static int fs_getattr(const char *path, struct stat *stbuf) {
   memset(stbuf, 0, sizeof(struct stat));
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->GetAttr(relative_path, stbuf);
 }
 
@@ -104,9 +108,7 @@ static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
 }
 
 static int fs_open(const char *path, struct fuse_file_info *fi) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   unique_ptr<FileHandle> fh(nullptr);
   int ret = GetContext()->Open(relative_path, &fh);
   if (ret == 0) {
