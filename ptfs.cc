@@ -15,54 +15,52 @@ using std::string;
 
 namespace ptfs {
 
+// For path based functions.
+#define DECLARE_RELATIVE(path, relative_path)	\
+  if (*path == 0)				\
+    return -ENOENT;				\
+  string relative_path(GetRelativePath(path));	\
+
+// For FileHandle based functions.
+#define USE_FILEHANDLE(fh, fi)			\
+  FileHandle* fh = GetFileHandle(fi);		\
+  if (fh == nullptr || fh->fd_get() == -1)	\
+    return -EBADF;				\
+
 PtfsHandler* GetContext() {
   fuse_context* context = fuse_get_context();
   return reinterpret_cast<PtfsHandler*>(context->private_data);
 }
 
 static int fs_chmod(const char *path, mode_t mode) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Chmod(relative_path, mode);
 }
 
 static int fs_chown(const char *path, uid_t uid, gid_t gid)
 {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Chown(relative_path, uid, gid);
 }
 
 static int fs_truncate(const char *path, off_t size) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Truncate(relative_path, size);
 }
 
 static int fs_utimens(const char *path, const struct timespec ts[2]) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Utimens(relative_path, ts);
 }
 
 static int fs_mknod(const char *path, mode_t mode, dev_t rdev) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Mknod(relative_path, mode, rdev);
 }
 
 static int fs_link(const char *from, const char *to) {
-  if (*from == 0)
-    return -ENOENT;
-  if (*to == 0)
-    return -ENOENT;
-  string from_s(GetRelativePath(from));
-  string to_s(GetRelativePath(to));
+  DECLARE_RELATIVE(from, from_s);
+  DECLARE_RELATIVE(to, to_s);
   return GetContext()->Link(from_s, to_s);
 }
 
@@ -72,19 +70,15 @@ static int fs_statfs(const char *path, struct statvfs *stbuf) {
 }
 
 static int fs_symlink(const char *from, const char *to) {
+  DECLARE_RELATIVE(to, to_s);
   if (*from == 0)
     return -ENOENT;
-  if (*to == 0)
-    return -ENOENT;
-  string to_s(GetRelativePath(to));
   return GetContext()->Symlink(from, to_s);
 }
 
 static int fs_getattr(const char *path, struct stat *stbuf) {
   memset(stbuf, 0, sizeof(struct stat));
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->GetAttr(relative_path, stbuf);
 }
 
@@ -112,9 +106,7 @@ static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
 }
 
 static int fs_open(const char *path, struct fuse_file_info *fi) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   unique_ptr<FileHandle> fh(nullptr);
   int ret = GetContext()->Open(relative_path, fi->flags, &fh);
   if (ret == 0) {
@@ -125,9 +117,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
 }
 
 static int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   unique_ptr<FileHandle> fh(nullptr);
   int ret = GetContext()->Create(relative_path, fi->flags, mode, &fh);
   if (ret == 0) {
@@ -148,100 +138,72 @@ static int fs_release(const char* unused, struct fuse_file_info *fi) {
 
 static int fs_read(const char *unused, char *target, size_t size, off_t offset,
 		   struct fuse_file_info *fi) {
-  FileHandle* fh = GetFileHandle(fi);
-  if (fh == nullptr)
-    return -ENOENT;
+  USE_FILEHANDLE(fh, fi);
   return GetContext()->Read(*fh, target, size, offset);
 }
 
 static int fs_write(const char *unused, const char *buf, size_t size,
 		    off_t offset, struct fuse_file_info *fi) {
-  FileHandle* fh = GetFileHandle(fi);
-  if (fh->fd_get() == -1)
-    return -ENOENT;
-
+  USE_FILEHANDLE(fh, fi);
   return GetContext()->Write(*fh, buf, size, offset);
 }
 
 static int fs_readlink(const char *path, char *buf, size_t size) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Readlink(relative_path, buf, size);
 }
 
 static int fs_mkdir(const char *path, mode_t mode) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Mkdir(relative_path, mode);
 }
 
 static int fs_rmdir(const char *path) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Rmdir(relative_path);
 }
 
 static int fs_unlink(const char *path) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Unlink(relative_path);
 }
 
 static int fs_fsync(const char *unused, int isdatasync, struct fuse_file_info *fi) {
-  FileHandle* fh = GetFileHandle(fi);
+  USE_FILEHANDLE(fh, fi);
   return GetContext()->Fsync(fh, isdatasync);
 }
 
 static int fs_fallocate(const char *unused, int mode, off_t offset,
 			off_t length, struct fuse_file_info *fi) {
-  if (mode) {
-    return -EOPNOTSUPP;
-  }
-  FileHandle* fh = GetFileHandle(fi);
+  USE_FILEHANDLE(fh, fi);
   return GetContext()->Fallocate(fh, mode, offset, length);
 }
 
 static int fs_setxattr(const char *path, const char *name, const char *value,
 		       size_t size, int flags) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Setxattr(relative_path, name, value, size, flags);
 }
 
 static int fs_getxattr(const char *path, const char *name, char *value,
 		       size_t size) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Getxattr(relative_path, name, value, size);
 }
 
 static int fs_listxattr(const char *path, char *list, size_t size) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Listxattr(relative_path, list, size);
 }
 
 static int fs_removexattr(const char *path, const char *name) {
-  if (*path == 0)
-    return -ENOENT;
-  string relative_path(GetRelativePath(path));
+  DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Removexattr(relative_path, name);
 }
 
 static int fs_rename(const char *from, const char *to) {
-  if (*from == 0)
-    return -ENOENT;
-  if (*to == 0)
-    return -ENOENT;
-  string from_s(GetRelativePath(from));
-  string to_s(GetRelativePath(to));
+  DECLARE_RELATIVE(from, from_s);
+  DECLARE_RELATIVE(to, to_s);
   return GetContext()->Rename(from_s, to_s);
 }
 

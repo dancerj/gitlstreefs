@@ -34,6 +34,13 @@ int PtfsHandler::premount_dirfd_ = -1;
     return res;							\
   }
 
+#define WITH_FD(relative_path, mode)					\
+  ScopedFd fd(openat(premount_dirfd_,					\
+		     relative_path.c_str(), mode));			\
+  if (fd.get() == -1) {							\
+    return -errno;							\
+  }
+
 int PtfsHandler::GetAttr(const std::string& relative_path, struct stat* stbuf) {
   WRAP_ERRNO(fstatat(premount_dirfd_, relative_path.c_str(), stbuf, AT_SYMLINK_NOFOLLOW));
 }
@@ -65,9 +72,8 @@ int PtfsHandler::Create(const std::string& relative_path, int access_flags,
   return 0;
 }
 
-int PtfsHandler::Release(int access_flags, unique_ptr<FileHandle>* upfh) {
-  FileHandle& fh = **upfh;
-  WRAP_ERRNO(close(fh.fd_release()));
+int PtfsHandler::Release(int access_flags, unique_ptr<FileHandle>* fh) {
+  WRAP_ERRNO(close((*fh)->fd_release()));
 }
 
 int PtfsHandler::Unlink(const std::string& relative_path) {
@@ -109,10 +115,7 @@ int PtfsHandler::Chown(const std::string& relative_path, uid_t uid, gid_t gid) {
 }
 
 int PtfsHandler::Truncate(const std::string& relative_path, off_t size) {
-  ScopedFd fd(openat(premount_dirfd_, relative_path.c_str(), O_WRONLY));
-  if (fd.get() == -1) {
-    return -errno;
-  }
+  WITH_FD(relative_path, O_WRONLY);
   WRAP_ERRNO(ftruncate(fd.get(), size));
 }
 
@@ -166,40 +169,31 @@ int PtfsHandler::Fsync(FileHandle* fh, int isdatasync) {
 }
 
 int PtfsHandler::Fallocate(FileHandle* fh, int mode, off_t offset, off_t length) {
+  if (mode) {
+    return -EOPNOTSUPP;
+  }
   return -posix_fallocate(fh->fd_get(), offset, length);
 }
 
 int PtfsHandler::Setxattr(const string& relative_path, const char *name, const char *value,
 			  size_t size, int flags) {
-  ScopedFd fd(openat(premount_dirfd_, relative_path.c_str(), O_RDONLY));
-  if (fd.get() == -1) {
-    return -errno;
-  }
+  WITH_FD(relative_path, O_RDONLY);
   WRAP_ERRNO(fsetxattr(fd.get(), name, value, size, flags));
 }
 
 ssize_t PtfsHandler::Getxattr(const string& relative_path, const char *name,
 			      char *value, size_t size) {
-  ScopedFd fd(openat(premount_dirfd_, relative_path.c_str(), O_RDONLY));
-  if (fd.get() == -1) {
-    return -errno;
-  }
+  WITH_FD(relative_path, O_RDONLY);
   WRAP_ERRNO_OR_RESULT(ssize_t, fgetxattr(fd.get(), name, value, size));
 }
 
 ssize_t PtfsHandler::Listxattr(const string& relative_path, char *list, size_t size) {
-  ScopedFd fd(openat(premount_dirfd_, relative_path.c_str(), O_RDONLY));
-  if (fd.get() == -1) {
-    return -errno;
-  }
+  WITH_FD(relative_path, O_RDONLY);
   WRAP_ERRNO_OR_RESULT(ssize_t, flistxattr(fd.get(), list, size));
 }
 
 int PtfsHandler::Removexattr(const string& relative_path, const char *name) {
-  ScopedFd fd(openat(premount_dirfd_, relative_path.c_str(), O_RDONLY));
-  if (fd.get() == -1) {
-    return -errno;
-  }
+  WITH_FD(relative_path, O_RDONLY);
   WRAP_ERRNO(fremovexattr(fd.get(), name));
 }
 
