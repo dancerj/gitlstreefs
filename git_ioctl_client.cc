@@ -10,9 +10,9 @@
 
 #include "gitlstree.h"
 
-using std::string;
 using std::cout;
 using std::endl;
+using std::string;
 
 int main(int argc, char** argv) {
   assert(argc == 2);
