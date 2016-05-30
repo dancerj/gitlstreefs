@@ -41,6 +41,12 @@ int PtfsHandler::premount_dirfd_ = -1;
     return -errno;							\
   }
 
+PtfsHandler::PtfsHandler() {
+    assert(premount_dirfd_ != -1);
+}
+
+PtfsHandler::~PtfsHandler() {}
+
 int PtfsHandler::GetAttr(const std::string& relative_path, struct stat* stbuf) {
   WRAP_ERRNO(fstatat(premount_dirfd_, relative_path.c_str(), stbuf, AT_SYMLINK_NOFOLLOW));
 }
@@ -107,7 +113,6 @@ int PtfsHandler::Chmod(const std::string& relative_path, mode_t mode) {
   WRAP_ERRNO(fchmodat(premount_dirfd_,
    		      relative_path.c_str(), mode, 0));
 }
-
 
 int PtfsHandler::Chown(const std::string& relative_path, uid_t uid, gid_t gid) {
   WRAP_ERRNO(fchownat(premount_dirfd_,
@@ -202,4 +207,4 @@ int PtfsHandler::Rename(const string& relative_path_from, const string& relative
 		      premount_dirfd_, relative_path_to.c_str()));
 }
 
-}
+}  // namespace ptfs

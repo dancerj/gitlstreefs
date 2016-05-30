@@ -26,10 +26,8 @@ private:
 
 class PtfsHandler {
 public:
-  PtfsHandler() {
-    assert(premount_dirfd_ != -1);
-  }
-  virtual ~PtfsHandler() {}
+  PtfsHandler();
+  virtual ~PtfsHandler();
 
   /**
    * @return >= 0 on success, -errno on fail.
@@ -125,5 +123,5 @@ template<class T> void FillFuseOperations(fuse_operations* o) {
   FillFuseOperationsInternal(o);
   o->init = fs_init<T>;
 }
-};  // namspace ptfs
+}  // namspace ptfs
 #endif

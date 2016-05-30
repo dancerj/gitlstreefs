@@ -207,11 +207,6 @@ static int fs_rename(const char *from, const char *to) {
   return GetContext()->Rename(from_s, to_s);
 }
 
-// Up to the caller to initialize this file system.
-// static void* fs_init(fuse_conn_info* unused) {
-//   return new PtfsHandler();
-// }
-
 static void fs_destroy(void* private_data) {
   delete reinterpret_cast<PtfsHandler*>(private_data);
 }
@@ -251,4 +246,4 @@ void FillFuseOperationsInternal(fuse_operations* o) {
   o->flag_nopath = true;
 }
 
-};
+}  // namespace ptfs
