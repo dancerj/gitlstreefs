@@ -369,16 +369,16 @@ public:
     return 0;
   }
 
-  virtual int Release(int access_flags, unique_ptr<ptfs::FileHandle>* upfh) override {
-    CowFileHandle* fh = dynamic_cast<CowFileHandle*>(upfh->get());
+  virtual int Release(int access_flags, ptfs::FileHandle* fh) override {
+    CowFileHandle* cow_fh = dynamic_cast<CowFileHandle*>(fh);
 
-    int ret = close(fh->fd_release());
+    int ret = close(cow_fh->fd_release());
     if (-1 == ret) ret = -errno;
     const bool mutable_access = ((access_flags & O_ACCMODE) != O_RDONLY);
     if (mutable_access) {
       assert(repository_path.size() > 0);
       if (!FindOutRepoAndMaybeHardlink(premount_dirfd_,
-				       fh->relative_path_c_str(),
+				       cow_fh->relative_path_c_str(),
 				       repository_path)) {
 	syslog(LOG_ERR, "FindOutRepoAndMaybeHardlink failed");
       }

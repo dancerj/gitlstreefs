@@ -61,10 +61,10 @@ public:
 		     std::unique_ptr<FileHandle>* fh);
 
   /**
-   * Should free the file handle and report back any errors.
+   * Should deinitialize the file handle and report back any errors.
    * @return >= 0 on success, -errno on fail.
    */
-  virtual int Release(int access_flags, std::unique_ptr<FileHandle>* fh);
+  virtual int Release(int access_flags, FileHandle* fh);
 
   /**
    * @return >= 0 on success, -errno on fail.

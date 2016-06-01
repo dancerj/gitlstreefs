@@ -78,8 +78,8 @@ int PtfsHandler::Create(const std::string& relative_path, int access_flags,
   return 0;
 }
 
-int PtfsHandler::Release(int access_flags, unique_ptr<FileHandle>* fh) {
-  WRAP_ERRNO(close((*fh)->fd_release()));
+int PtfsHandler::Release(int access_flags, FileHandle* fh) {
+  WRAP_ERRNO(close(fh->fd_release()));
 }
 
 int PtfsHandler::Unlink(const std::string& relative_path) {

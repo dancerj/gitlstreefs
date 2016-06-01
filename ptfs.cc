@@ -133,7 +133,7 @@ static FileHandle* GetFileHandle(struct fuse_file_info* fi) {
 
 static int fs_release(const char* unused, struct fuse_file_info *fi) {
   unique_ptr<FileHandle> fh(GetFileHandle(fi));
-  return GetContext()->Release(fi->flags, &fh);
+  return GetContext()->Release(fi->flags, fh.get());
 }
 
 static int fs_read(const char *unused, char *target, size_t size, off_t offset,
