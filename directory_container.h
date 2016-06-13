@@ -37,6 +37,7 @@ public:
 
   virtual int Open() = 0;
 
+private:
   DISALLOW_COPY_AND_ASSIGN(File);
 };
 
@@ -190,11 +191,11 @@ private:
     return directory;
   }
 
-  std::unordered_map<std::string /* fullpath */ , File*> files_;
-  Directory root_;
+  std::unordered_map<std::string /* fullpath */ , File*> files_{};
+  Directory root_{};
   std::mutex path_mutex_{};
 
-  struct timespec mount_time_;
+  struct timespec mount_time_{};
   DISALLOW_COPY_AND_ASSIGN(DirectoryContainer);
 };
 } // namespace directory_container

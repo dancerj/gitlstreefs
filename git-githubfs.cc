@@ -143,8 +143,7 @@ void ParseTrees(const string& trees_string, function<void(const string& path,
 
 // github_api_prefix such as "https://api.github.com/repos/dancerj/gitlstreefs"
 GitTree::GitTree(const char* hash, const char* github_api_prefix)
-  : hash_(hash), github_api_prefix_(github_api_prefix),
-    fullpath_to_files_(), root_() {
+  : hash_(hash), github_api_prefix_(github_api_prefix) {
   root_.reset(new FileElement(this, S_IFDIR, TYPE_tree,
 			      "TODO", 0));
   string commit = HttpFetch(github_api_prefix_ + "/commits/" + hash);
@@ -213,7 +212,7 @@ int GitTree::Getattr(const string& fullpath, struct stat *stbuf) const {
 FileElement::FileElement(GitTree* parent, int attribute, GitFileType file_type,
 			 const std::string& sha1, int size) :
   attribute_(attribute), file_type_(file_type),
-  sha1_(sha1), size_(size), files_(), parent_(parent) {}
+  sha1_(sha1), size_(size), parent_(parent) {}
 
 static void dumpFiles(const FileElement::FileElementMap* files) {
   for (const auto& it: *files) {

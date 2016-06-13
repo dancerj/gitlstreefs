@@ -49,12 +49,13 @@ bool LoadDirectory(const std::string& gitdir,
 struct GetHashIoctlArg {
 public:
   GetHashIoctlArg() {}
+  ~GetHashIoctlArg() {}
 
   // Verify that transport worked.
   static constexpr size_t kSize = 40;
   void verify() { assert(size == kSize); }
 
-  size_t size{kSize};
+  size_t size = kSize;
   char hash[kSize + 1]{};
 
   DISALLOW_COPY_AND_ASSIGN(GetHashIoctlArg);

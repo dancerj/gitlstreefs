@@ -18,12 +18,13 @@ enum GitFileType {
 
 // Github api v3 response parsers.
 // Parse tree content.
-void ParseTrees(const std::string& trees_string, std::function<void(const std::string& path,
-								    int mode,
-								    const GitFileType type,
-								    const std::string& sha,
-								    const int size,
-								    const std::string& url)> file_handler);
+void ParseTrees(const std::string& trees_string,
+		std::function<void(const std::string& path,
+				   int mode,
+				   const GitFileType type,
+				   const std::string& sha,
+				   const int size,
+				   const std::string& url)> file_handler);
 
 // Parse github commits list and return the tree hash.
 // for /commits endpoint.
@@ -94,16 +95,17 @@ public:
     return github_api_prefix_;
   }
 private:
-  const std::string hash_;
-  const std::string github_api_prefix_;
   void LoadDirectory(FileElement::FileElementMap* files,
 		     const std::string& subdir, const std::string& tree_hash);
+
+  const std::string hash_;
+  const std::string github_api_prefix_;
   // Full path without starting /
   std::unordered_map<std::string,
-		     FileElement*> fullpath_to_files_;
+		     FileElement*> fullpath_to_files_{};
   std::mutex path_mutex_{};
 
-  std::unique_ptr<FileElement> root_;
+  std::unique_ptr<FileElement> root_{nullptr};
 
   DISALLOW_COPY_AND_ASSIGN(GitTree);
 };
