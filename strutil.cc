@@ -108,7 +108,7 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
     assert(WIFEXITED(status));
     if (maybe_exit_code)
       *maybe_exit_code = WEXITSTATUS(status);
-  }
+  }  // end Parent process.
   }
   return retval;
 }

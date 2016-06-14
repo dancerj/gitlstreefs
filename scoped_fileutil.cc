@@ -29,8 +29,7 @@ ScopedTempFile::~ScopedTempFile() {
 
 ScopedFileLockWithDelete::ScopedFileLockWithDelete(int dirfd, const string& basename) :
   dirfd_(dirfd),
-  name_(basename + ".lock"),
-  have_lock_(false) {
+  name_(basename + ".lock") {
   while (true) {
     int e = mkdirat(dirfd_, name_.c_str(), 0700);
     if (e == 0) {

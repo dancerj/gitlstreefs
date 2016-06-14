@@ -32,7 +32,7 @@ class ScopedFileLockWithDelete {
  private:
   int dirfd_;
   std::string name_;
-  bool have_lock_;
+  bool have_lock_ = false;
   DISALLOW_COPY_AND_ASSIGN(ScopedFileLockWithDelete);
 };
 #endif
