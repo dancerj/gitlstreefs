@@ -18,7 +18,7 @@ dependencies. The build system depends on nodejs and ninja.
       libjson-spirit-dev \
       ninja-build \
       nodejs \
-      unionfs \
+      unionfs-fuse \
       zlib1g-dev
 
     $ ./configure.js
