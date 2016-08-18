@@ -10,6 +10,7 @@ dependencies. The build system depends on nodejs and ninja.
     # apt-get install \
       attr \
       curl \
+      fuse \
       libattr1-dev \
       libboost-dev \
       libboost-filesystem-dev \
