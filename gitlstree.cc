@@ -16,7 +16,6 @@ mount-able filesystem.
 #include <memory>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -28,7 +27,6 @@ mount-able filesystem.
 using std::make_unique;
 using std::mutex;
 using std::string;
-using std::thread;
 using std::unique_lock;
 using std::unique_ptr;
 using std::unordered_map;
@@ -94,9 +92,7 @@ bool LoadDirectory(const string& my_gitdir, const string& hash,
     // Failed to load directory.
     return false;
   }
-
   vector<string> lines;
-  vector<thread> jobs;
 
   boost::algorithm::split(lines, git_ls_tree,
 			  boost::is_any_of("\n"));
@@ -115,7 +111,6 @@ bool LoadDirectory(const string& my_gitdir, const string& hash,
 					      atoi(elements[3].c_str())));
     }
   }
-  for (auto& job : jobs) { job.join(); }
   return true;
 }
 
