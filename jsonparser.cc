@@ -1,0 +1,290 @@
+// Parser for RFC7159 JSON with some missing implementations.
+#include <iostream>
+#include <map>
+#include <memory>
+#include <set>
+#include <vector>
+
+#include "jsonparser.h"
+
+namespace jjson {
+
+Value& Value::operator[](size_t pos) {
+  return *dynamic_cast<ArrayValue*>(this)->value_[pos].get();
+}
+
+Value& Value::operator[](const std::string& key) {
+  return *dynamic_cast<ObjectValue*>(this)->value_[key].get();
+}
+
+std::vector<std::unique_ptr<Value> >& Value::get_array() {
+  return dynamic_cast<ArrayValue*>(this)->value_;
+}
+
+std::string Value::get_string() {
+  return dynamic_cast<StringValue*>(this)->value_;
+}
+
+float Value::get_number() {
+  return dynamic_cast<NumberValue*>(this)->value_;
+}
+
+bool Value::is_true() {
+  return dynamic_cast<TrueValue*>(this) != nullptr;
+}
+bool Value::is_false() {
+  return dynamic_cast<FalseValue*>(this) != nullptr;
+}
+bool Value::is_null() {
+  return dynamic_cast<NullValue*>(this) != nullptr;
+}
+
+namespace {
+class Parser {
+  // Internal class used from Parse() method to do the actual parsing.
+public:
+  explicit Parser(const std::string& s) : text_(s) {}
+  ~Parser() {}
+
+  std::unique_ptr<Value> ParseJsonText() {
+    SkipWhitespace();
+    std::unique_ptr<Value> v = ObtainValue();
+    SkipWhitespace();
+    return v;
+  }
+
+private:
+  char Peek() const {
+    if (Eof()) return 0;
+    return text_[position_];
+  }
+
+  // Returns true on usual case, if there's exceptional case of EOF
+  // already, returns false.
+  bool Skip() {
+    if (Eof()) return false;
+    position_++;
+    return true;
+  }
+
+  char Get() {
+    if (Eof()) return 0;
+    return text_[position_++];
+  }
+
+  bool Eof() const {
+    return position_ >= text_.size();
+  }
+
+  void ReportError(const std::string& error) {
+    // TODO: do useful error reporting.
+    std::cout << "Error: " << error << " at " <<
+      position_ << " in [" << text_.substr(position_) << "]" << std::endl;
+  }
+
+  std::string Consume(const std::set<char>& valid) {
+    std::string data{};
+    while (valid.find(Peek()) != valid.end()) {
+      data += Peek();
+      if (!Skip()) break;
+    }
+    return data;
+  }
+
+  std::string SkipWhitespace() {
+    const std::set<char>& valid {
+      0x20, 0x09, 0x0a, 0x0d
+    };
+    return Consume(valid);
+  }
+
+  std::unique_ptr<Value> ObtainNumber() {
+    std::string number = Consume({'-', '+', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', 'E'});
+    // TODO: implement proper handling of JSON number format.
+    return std::unique_ptr<Value>(new NumberValue(strtof(number.c_str(), nullptr)));
+  }
+
+  std::unique_ptr<Value> ObtainObject() {
+    if (Get() != '{') {
+      ReportError("Unexpected error.");
+      return nullptr;
+    }
+    SkipWhitespace();
+    std::map<std::string, std::unique_ptr<Value> > object;
+    while(!Eof()) {
+      if (Peek() == '}') {
+	Skip();
+	return std::unique_ptr<Value>(new ObjectValue(std::move(object)));
+      }
+      auto key = ObtainString();
+      SkipWhitespace();
+      if (Get() != ':') {
+	ReportError("':' expected in Object.");
+	return nullptr;
+      }
+      SkipWhitespace();
+      auto value = ObtainValue();
+      SkipWhitespace();
+
+      object.emplace(std::move(dynamic_cast<StringValue*>(key.get())->value_), move(value));
+      if (Peek() == '}') {
+	continue;
+      }
+      if (Peek() == ',') {
+	Skip();
+	SkipWhitespace();
+	continue;
+      }
+      ReportError("',' or '}' expected in Object.");
+    }
+    ReportError("Unexpected end reached while parsing Object.");
+    return nullptr;
+  }
+
+  std::unique_ptr<Value> ObtainArray() {
+    if (Get() != '[') {
+      return nullptr;
+    }
+    SkipWhitespace();
+    std::vector<std::unique_ptr<Value> > array;
+
+    while(!Eof()) {
+      if (Peek() == ']') {
+	Skip();
+	return std::unique_ptr<Value>(new ArrayValue(std::move(array)));
+      }
+
+      std::unique_ptr<Value> value = ObtainValue();
+      if (value.get() == nullptr) {
+	ReportError("Invalid value parsing array.");
+	return nullptr;
+      }
+      array.emplace_back(move(value));
+      SkipWhitespace();
+      switch(Peek()) {
+      case ']':
+	continue;
+      case ',':
+	Skip();
+	SkipWhitespace();
+	continue;
+      default:
+	ReportError("Unexpected char during array.");
+	return nullptr;
+      }
+    }
+    ReportError("Unexpected end in array.");
+    return nullptr;
+  }
+
+  std::unique_ptr<Value> ObtainString() {
+    std::string s{};
+    if (Get() != '"') return nullptr;
+    while(!Eof()) {
+      if (Peek() == '"') {
+	// End of string.
+	Skip();
+	// TODO: some kind of char code conversion needed?
+	return std::unique_ptr<Value>(new StringValue(std::move(s)));
+      } else if (Peek() == '\\') {
+	// escaped character.
+	Skip();
+	switch(char c = Get()) {
+	case 0x22:
+	case 0x5c:
+	case 0x2f:
+	  s += c;
+	  break;
+	case 0x62:
+	  s+= 0x8;
+	  break;
+	case 0x66:
+	  s+= 0xc;
+	  break;
+	case 0x6e:
+	  s+= 0xa;
+	  break;
+	case 0x72:
+	  s+= 0xd;
+	  break;
+	case 0x74:
+	  s+= 0x9;
+	  break;
+	case 0x75:
+	  // 4 hex digits. TODO implement properly.
+	  char buf[5] = {Get(), Get(), Get(), Get(), 0};
+	  long charcode = strtol(buf, nullptr, 16);
+	  if (charcode >= 0 && charcode < 256) {
+	    s += static_cast<char>(charcode);
+	  } else {
+	    ReportError("Unimplemented.");
+	    return nullptr;
+	  }
+	  break;
+	}
+      } else {
+	s += Get();
+      }
+    }
+    ReportError("Unexpected EOF found on string parsing.");
+    return nullptr;
+  }
+
+  template <class T> std::unique_ptr<Value>
+  AssertConsume(const std::string& expect) {
+    for (char c: expect) {
+      if (c != Peek()) {
+	return nullptr;
+      }
+      if (!Skip()) return nullptr;
+    }
+    return std::unique_ptr<Value>(new T());
+  }
+
+  std::unique_ptr<Value> ObtainValue() {
+    switch (Peek()) {
+    case 'f':
+      return AssertConsume<FalseValue>("false");
+    case 'n':
+      return AssertConsume<NullValue>("null");
+    case 't':
+      return AssertConsume<TrueValue>("true");
+    case '-':
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '+':
+      return ObtainNumber();
+
+    case '[':
+      return ObtainArray();
+
+    case '{':
+      return ObtainObject();
+
+    case '"':
+      return ObtainString();
+      break;
+    }
+    return nullptr;
+  }
+
+  const std::string& text_;
+  size_t position_{0};
+};
+}  // anonymous namespace
+
+std::unique_ptr<Value> Parse(const std::string& s) {
+  Parser p(s);
+  return p.ParseJsonText();
+}
+
+}  // namespace jjson
+

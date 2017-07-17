@@ -6,7 +6,6 @@
 #include <boost/algorithm/string.hpp>
 #include <functional>
 #include <iostream>
-#include <json_spirit.h>
 #include <map>
 #include <memory>
 #include <stdio.h>
@@ -19,9 +18,9 @@
 #include "base64decode.h"
 #include "concurrency_limit.h"
 #include "git-githubfs.h"
+#include "jsonparser.h"
 #include "strutil.h"
 
-using json_spirit::Value;
 using std::cout;
 using std::endl;
 using std::function;
@@ -48,27 +47,11 @@ string HttpFetch(const string& url) {
 }
 } // anonymous
 
-const Value& GetObjectField(const string& name,
-			    const json_spirit::Object& object) {
-  auto it = std::find_if(object.begin(), object.end(),
-			 [&name](const json_spirit::Pair& a) -> bool{
-			   return a.name_ == name;
-			 });
-  assert(it != object.end());
-  return it->value_;
-}
-
 string ParseCommits(const string& commits_string) {
   // Try parsing github api v3 commits output.
-  Value commits;
-  json_spirit::read(commits_string, commits);
-  for (const auto& commit : commits.get_array()) {
-    string hash = GetObjectField("sha",
-				 GetObjectField("tree",
-						GetObjectField("commit",
-							       commit.get_obj())
-						.get_obj())
-				 .get_obj()).get_str();
+  unique_ptr<jjson::Value> commits = jjson::Parse(commits_string);
+  for (auto& commit : commits->get_array()) {
+    string hash = (*commit)["commit"]["tree"]["sha"].get_string();
     cout << "hash: " << hash << endl;
     return hash;
   }
@@ -77,24 +60,17 @@ string ParseCommits(const string& commits_string) {
 
 string ParseCommit(const string& commit_string) {
   // Try parsing github api v3 commit output.
-  Value commit;
-  json_spirit::read(commit_string, commit);
-  string hash = GetObjectField("sha",
-			       GetObjectField("tree",
-					      GetObjectField("commit",
-							     commit.get_obj())
-					      .get_obj())
-			       .get_obj()).get_str();
+  unique_ptr<jjson::Value> commit = jjson::Parse(commit_string);
+  string hash = (*commit)["commit"]["tree"]["sha"].get_string();
   cout << "hash: " << hash << endl;
   return hash;
 }
 
 string ParseBlob(const string& blob_string) {
   // Try parsing github api v3 blob output.
-  Value blob;
-  json_spirit::read(blob_string, blob);
-  assert(GetObjectField("encoding", blob.get_obj()).get_str() == "base64");
-  string base64 = GetObjectField("content", blob.get_obj()).get_str();
+  unique_ptr<jjson::Value> blob = jjson::Parse(blob_string);
+  assert((*blob)["encoding"].get_string() == "base64");
+  string base64 = (*blob)["content"].get_string();
   return base64decode(base64);
 }
 
@@ -105,39 +81,29 @@ void ParseTrees(const string& trees_string, function<void(const string& path,
 							  const int size,
 							  const string& url)> file_handler) {
   // Try parsing github api v3 trees output.
-  Value value;
-  json_spirit::read(trees_string, value);
-  for (const auto& tree : value.get_obj()) {
-    // object is a vector of pair of key-value pairs.
-    if (tree.name_== "tree") {
-      for (const auto& file : tree.value_.get_array()) {
-	// "path": ".gitignore",
-	// "mode": "100644",
-	// "type": "blob",
-	// "sha": "0eca3e92941236b77ad23a02dc0c000cd0da7a18",
-	// "size": 46,
-	// "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/0eca3e92941236b77ad23a02dc0c000cd0da7a18"
+  unique_ptr<jjson::Value> value = jjson::Parse(trees_string);
 
-	// TODO: this is not the most efficient way to parse this
-	// structure.
-	map<string, const Value*> file_property;
-	for (const auto& property : file.get_obj()) {
-	  file_property[property.name_] = &property.value_;
-	}
-	size_t file_size = 0;
-	if (file_property["type"]->get_str() == "blob") {
-	  file_size = file_property["size"]->get_int();
-	}
-	GitFileType fstype = FileTypeStringToFileType(file_property["type"]->get_str());
-	file_handler(file_property["path"]->get_str(),
-		     strtol(file_property["mode"]->get_str().c_str(), NULL, 8),
-		     fstype,
-		     file_property["sha"]->get_str(),
-		     file_size, 
-		     file_property["url"]->get_str());
-      }
-      break;
+  for (const auto& file : (*value)["tree"].get_array()) {
+    // "path": ".gitignore",
+    // "mode": "100644",
+    // "type": "blob",
+    // "sha": "0eca3e92941236b77ad23a02dc0c000cd0da7a18",
+    // "size": 46,
+    // "url": "https://api.github.com/repos/dancerj/gitlstreefs/git/blobs/0eca3e92941236b77ad23a02dc0c000cd0da7a18"
+
+    // TODO: this is not the most efficient way to parse this
+    // structure.
+    size_t file_size = 0;
+    if ((*file)["type"].get_string() == "blob") {
+      file_size = (*file)["size"].get_number();
     }
+    GitFileType fstype = FileTypeStringToFileType((*file)["type"].get_string());
+    file_handler((*file)["path"].get_string(),
+		 strtol((*file)["mode"].get_string().c_str(), NULL, 8),
+		 fstype,
+		 (*file)["sha"].get_string(),
+		 file_size,
+		 (*file)["url"].get_string());
   }
 }
 

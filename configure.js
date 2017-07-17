@@ -103,13 +103,12 @@ CompileLink('hello_world', ['hello_world'])
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
 CompileLinkRunTest('git-githubfs_test', ['base64decode', 'concurrency_limit',
 					 'git-githubfs_test', 'git-githubfs',
-					 'strutil'], {
-    extra_objects: ['/usr/lib/libjson_spirit.a']})
+					 'jsonparser',
+					 'strutil'])
 CompileLink('git-githubfs', ['base64decode',
 			     'concurrency_limit', 'git-githubfs_fusemain',
-			     'git-githubfs',
-			     'strutil'], {
-    extra_objects: ['/usr/lib/libjson_spirit.a']})
+			     'git-githubfs', 'jsonparser',
+			     'strutil'])
 CompileLinkRunTest('concurrency_limit_test', ['concurrency_limit_test',
 					      'concurrency_limit']);
 CompileLinkRunTest('directory_container_test', ['directory_container_test',
@@ -168,5 +167,6 @@ CompileLink('file_copy_test', ['file_copy', 'file_copy_test'])
 CompileLink('experimental/parallel_writer', ['experimental/parallel_writer'])
 CompileLinkRunTest('scoped_fileutil_test',
 		   ['scoped_fileutil_test', 'scoped_fileutil'])
-
+CompileLinkRunTest('jsonparser_test',
+		   ['jsonparser_test', 'jsonparser'])
 Emit()
