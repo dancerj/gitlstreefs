@@ -50,8 +50,8 @@ string HttpFetch(const string& url) {
 string ParseCommits(const string& commits_string) {
   // Try parsing github api v3 commits output.
   unique_ptr<jjson::Value> commits = jjson::Parse(commits_string);
-  for (auto& commit : commits->get_array()) {
-    string hash = (*commit)["commit"]["tree"]["sha"].get_string();
+  for (const auto& commit : commits->get_array()) {
+    string hash = commit->get("commit")["tree"]["sha"].get_string();
     cout << "hash: " << hash << endl;
     return hash;
   }
@@ -61,7 +61,7 @@ string ParseCommits(const string& commits_string) {
 string ParseCommit(const string& commit_string) {
   // Try parsing github api v3 commit output.
   unique_ptr<jjson::Value> commit = jjson::Parse(commit_string);
-  string hash = (*commit)["commit"]["tree"]["sha"].get_string();
+  string hash = commit->get("commit")["tree"]["sha"].get_string();
   cout << "hash: " << hash << endl;
   return hash;
 }
@@ -69,8 +69,8 @@ string ParseCommit(const string& commit_string) {
 string ParseBlob(const string& blob_string) {
   // Try parsing github api v3 blob output.
   unique_ptr<jjson::Value> blob = jjson::Parse(blob_string);
-  assert((*blob)["encoding"].get_string() == "base64");
-  string base64 = (*blob)["content"].get_string();
+  assert(blob->get("encoding").get_string() == "base64");
+  string base64 = blob->get("content").get_string();
   return base64decode(base64);
 }
 
@@ -94,16 +94,16 @@ void ParseTrees(const string& trees_string, function<void(const string& path,
     // TODO: this is not the most efficient way to parse this
     // structure.
     size_t file_size = 0;
-    if ((*file)["type"].get_string() == "blob") {
-      file_size = (*file)["size"].get_number();
+    if (file->get("type").get_string() == "blob") {
+      file_size = file->get("size").get_number();
     }
-    GitFileType fstype = FileTypeStringToFileType((*file)["type"].get_string());
-    file_handler((*file)["path"].get_string(),
-		 strtol((*file)["mode"].get_string().c_str(), NULL, 8),
+    GitFileType fstype = FileTypeStringToFileType(file->get("type").get_string());
+    file_handler(file->get("path").get_string(),
+		 strtol(file->get("mode").get_string().c_str(), NULL, 8),
 		 fstype,
-		 (*file)["sha"].get_string(),
+		 file->get("sha").get_string(),
 		 file_size,
-		 (*file)["url"].get_string());
+		 file->get("url").get_string());
   }
 }
 

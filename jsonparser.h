@@ -9,11 +9,12 @@ public:
   Value() {}
   virtual ~Value() {}
 
-  Value& operator[](size_t pos);
-  Value& operator[](const std::string& key);
-  std::string get_string();
-  std::vector<std::unique_ptr<Value> >& get_array();
-  float get_number();
+  const Value& operator[](size_t pos) const;
+  const Value& operator[](const std::string& key) const;
+  const Value& get(const std::string& key) const;
+  const std::string& get_string() const;
+  const std::vector<std::unique_ptr<Value> >& get_array() const;
+  float get_number() const;
   bool is_true();
   bool is_false();
   bool is_null();

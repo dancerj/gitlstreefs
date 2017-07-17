@@ -9,24 +9,28 @@
 
 namespace jjson {
 
-Value& Value::operator[](size_t pos) {
-  return *dynamic_cast<ArrayValue*>(this)->value_[pos].get();
+const Value& Value::operator[](size_t pos) const {
+  return *dynamic_cast<const ArrayValue*>(this)->value_.at(pos).get();
 }
 
-Value& Value::operator[](const std::string& key) {
-  return *dynamic_cast<ObjectValue*>(this)->value_[key].get();
+const Value& Value::operator[](const std::string& key) const {
+  return *dynamic_cast<const ObjectValue*>(this)->value_.find(key)->second;
 }
 
-std::vector<std::unique_ptr<Value> >& Value::get_array() {
-  return dynamic_cast<ArrayValue*>(this)->value_;
+const std::vector<std::unique_ptr<Value> >& Value::get_array() const {
+  return dynamic_cast<const ArrayValue*>(this)->value_;
 }
 
-std::string Value::get_string() {
-  return dynamic_cast<StringValue*>(this)->value_;
+const Value& Value::get(const std::string& key) const {
+  return *dynamic_cast<const ObjectValue*>(this)->value_.find(key)->second;
 }
 
-float Value::get_number() {
-  return dynamic_cast<NumberValue*>(this)->value_;
+const std::string& Value::get_string() const {
+  return dynamic_cast<const StringValue*>(this)->value_;
+}
+
+float Value::get_number() const {
+  return dynamic_cast<const NumberValue*>(this)->value_;
 }
 
 bool Value::is_true() {
