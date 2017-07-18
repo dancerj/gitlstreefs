@@ -82,8 +82,8 @@ void testConsume() {
     assert(v.get() != nullptr);
     auto target = dynamic_cast<jjson::ObjectValue*>(v.get());
     assert(target != nullptr);
-    assert(dynamic_cast<jjson::StringValue*>(target->value_["string"].get())->value_ == "hoge");
-    assert(dynamic_cast<jjson::NumberValue*>(target->value_["number"].get())->value_ == 123);
+    assert(dynamic_cast<jjson::StringValue*>(target->value_.find("string")->second.get())->value_ == "hoge");
+    assert(dynamic_cast<jjson::NumberValue*>(target->value_.find("number")->second.get())->value_ == 123);
   }
 
 
@@ -92,9 +92,9 @@ void testConsume() {
     assert(v.get() != nullptr);
     auto target = dynamic_cast<jjson::ObjectValue*>(v.get());
     assert(target != nullptr);
-    auto num = dynamic_cast<jjson::NumberValue*>(dynamic_cast<jjson::ObjectValue*>(target->value_["obj"].get())->value_["hoge"].get());
+    auto num = dynamic_cast<jjson::NumberValue*>(dynamic_cast<jjson::ObjectValue*>(target->value_.find("obj")->second.get())->value_.find("hoge")->second.get());
     assert(num->value_ == 12);
-    auto& arr = dynamic_cast<jjson::ArrayValue*>(target->value_["arr"].get())->value_;
+    auto& arr = dynamic_cast<jjson::ArrayValue*>(target->value_.find("arr")->second.get())->value_;
     assert(dynamic_cast<jjson::NumberValue*>(arr[0].get())->value_ == 1);
     assert(dynamic_cast<jjson::NumberValue*>(arr[1].get())->value_ == 2);
     assert(dynamic_cast<jjson::NumberValue*>(arr[2].get())->value_ == 3);

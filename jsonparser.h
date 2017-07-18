@@ -9,14 +9,30 @@ public:
   Value() {}
   virtual ~Value() {}
 
+  /** Obtain array element. */
   const Value& operator[](size_t pos) const;
+
+  /** Obtain object member. */
   const Value& operator[](const std::string& key) const;
+  /** Obtain object member. */
   const Value& get(const std::string& key) const;
-  const std::string& get_string() const;
+
+  /** Obtain array for iteration. */
   const std::vector<std::unique_ptr<Value> >& get_array() const;
+
+  /** Obtain string. */
+  const std::string& get_string() const;
+
+  /** Obtain number. */
   float get_number() const;
+
+  /** Check if this was 'true' */
   bool is_true();
-  bool is_false();
+
+  /** Check if this was 'false' */
+bool is_false();
+
+  /** Check if this was 'null' */
   bool is_null();
 };
 
@@ -24,7 +40,7 @@ template <class T> class SpecialValue : public Value {
 public:
   SpecialValue(T&& value) : value_(std::move(value)) {}
   // TODO: Do I need accessors?
-  T value_;
+  const T value_;
 };
 
 typedef SpecialValue<float> NumberValue;
