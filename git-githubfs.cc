@@ -122,7 +122,7 @@ GitTree::GitTree(const char* hash, const char* github_api_prefix)
 void GitTree::LoadDirectory(FileElement::FileElementMap* files,
 			    const string& subdir, const string& tree_hash) {
   vector<thread> jobs;
-  string github_tree = HttpFetch(github_api_prefix_ + "/git/trees/" + tree_hash);
+  const string github_tree = HttpFetch(github_api_prefix_ + "/git/trees/" + tree_hash);
   cout << "Loaded directory " << subdir << endl;
   ParseTrees(github_tree,
 	     [&](const string& name,
@@ -212,7 +212,7 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   {
     unique_lock<mutex> l(buf_mutex_);
     if (!buf_.get()) {
-      const string& url = parent_->get_github_api_prefix() +
+      const string url = parent_->get_github_api_prefix() +
 	"/git/blobs/" + sha1_;
       string blob_string = HttpFetch(url);
       buf_.reset(new string(ParseBlob(blob_string)));
