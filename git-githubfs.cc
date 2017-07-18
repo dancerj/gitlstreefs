@@ -197,7 +197,7 @@ void GitTree::dump() const {
 }
 
 #define TYPE(a) {#a, TYPE_##a}
-static unordered_map<string, GitFileType> file_type_map {
+const static unordered_map<string, GitFileType> file_type_map {
   TYPE(blob),
   TYPE(tree),
   TYPE(commit)

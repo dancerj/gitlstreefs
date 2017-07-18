@@ -118,7 +118,7 @@ FileElement::FileElement(int attribute, const string& sha1, int size) :
   attribute_(attribute), sha1_(sha1), size_(size)  {}
 
 #define TYPE(a) {#a, TYPE_##a}
-static unordered_map<string, GitFileType> file_type_map {
+const static unordered_map<string, GitFileType> file_type_map {
   TYPE(blob),
   TYPE(tree),
   TYPE(commit)
