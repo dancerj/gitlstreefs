@@ -95,15 +95,17 @@ private:
     return data;
   }
 
+  const std::set<char> valid_whitespace {
+    0x20, 0x09, 0x0a, 0x0d};
+
   std::string SkipWhitespace() {
-    const std::set<char>& valid {
-      0x20, 0x09, 0x0a, 0x0d
-    };
-    return Consume(valid);
+    return Consume(valid_whitespace);
   }
+  const std::set<char> valid_number {
+    '-', '+', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', 'E'};
 
   std::unique_ptr<Value> ObtainNumber() {
-    std::string number = Consume({'-', '+', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', 'E'});
+    std::string number = Consume(valid_number);
     // TODO: implement proper handling of JSON number format.
     return std::unique_ptr<Value>(new NumberValue(strtof(number.c_str(), nullptr)));
   }
@@ -275,7 +277,6 @@ private:
 
     case '"':
       return ObtainString();
-      break;
     }
     return nullptr;
   }

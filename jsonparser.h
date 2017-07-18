@@ -38,8 +38,7 @@ bool is_false();
 
 template <class T> class SpecialValue : public Value {
 public:
-  SpecialValue(T&& value) : value_(std::move(value)) {}
-  // TODO: Do I need accessors?
+  explicit SpecialValue(T&& value) : value_(std::move(value)) {}
   const T value_;
 };
 
