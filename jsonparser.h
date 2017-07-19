@@ -33,7 +33,7 @@ public:
   bool is_true();
 
   /** Check if this was 'false' */
-bool is_false();
+  bool is_false();
 
   /** Check if this was 'null' */
   bool is_null();
