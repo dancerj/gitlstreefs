@@ -185,6 +185,8 @@ private:
 
   std::unique_ptr<Value> ObtainString() {
     std::string s{};
+    // Just to reduce the number of reallocations, try a random large enough buffer.
+    s.reserve(1024);
     if (Get() != '"') return nullptr;
     while(!Eof()) {
       if (Peek() == '"') {

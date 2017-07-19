@@ -169,4 +169,6 @@ CompileLinkRunTest('scoped_fileutil_test',
 		   ['scoped_fileutil_test', 'scoped_fileutil'])
 CompileLinkRunTest('jsonparser_test',
 		   ['jsonparser_test', 'jsonparser'])
+CompileLink('jsonparser_util',
+	    ['jsonparser_util', 'jsonparser', 'strutil'])
 Emit()
