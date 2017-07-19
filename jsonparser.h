@@ -1,3 +1,6 @@
+#ifndef JSON_PARSER_H_
+#define JSON_PARSER_H_
+
 #include <map>
 #include <memory>
 #include <vector>
@@ -60,3 +63,5 @@ std::unique_ptr<Value> Parse(const std::string& s);
 
 } // end namespace jjson
 
+
+#endif // JSON_PARSER_H_
