@@ -8,11 +8,12 @@
 using std::string;
 using std::vector;
 
-static const char kAlphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static constexpr char kAlphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 constexpr int64_t kEmptyChar = -1;
 
 string base64decode(const string& b64) {
   string output;
+  output.reserve(b64.size() * 0.7);
   vector<int64_t> lookup(256);
   size_t i;
   for (auto& v: lookup) { v = kEmptyChar; }

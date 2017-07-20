@@ -119,6 +119,8 @@ CompileLinkRunTest('scoped_fd_test', ['scoped_fd_test']);
 CompileLinkRunTest('cached_file_test', ['cached_file', 'cached_file_test']);
 CompileLinkRunTest('base64decode_test', ['base64decode',
 					 'base64decode_test']);
+CompileLinkRunTest('base64decode_benchmark', ['base64decode',
+					      'base64decode_benchmark', 'strutil']);
 
 //Experimental code.
 CompileLink('experimental/gitfs',
