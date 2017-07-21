@@ -9,12 +9,13 @@ using std::string;
 using std::array;
 
 namespace {
-static constexpr char kAlphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static constexpr int64_t kEmptyChar = -1;
 class Base64Decoder {
 public:
   Base64Decoder() {
-    for (auto& v: lookup_) { v = kEmptyChar; }
+    constexpr char kAlphabet[] =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    lookup_.fill(kEmptyChar);
     for (size_t i = 0; i < sizeof(kAlphabet); ++i) {
       lookup_[kAlphabet[i]] = i;
     }
