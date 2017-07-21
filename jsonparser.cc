@@ -92,6 +92,7 @@ private:
       data += Peek();
       if (!Skip()) break;
     }
+    // Replacing with substr didn't improve speed.
     return data;
   }
 
