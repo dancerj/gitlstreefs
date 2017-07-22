@@ -12,7 +12,7 @@ public:
   explicit ScopedConcurrencyLimit(const std::string& message);
   ~ScopedConcurrencyLimit();
 private:
-  void DumpStatus();
+  void DumpStatus() const;
 
   static constexpr size_t kLimit = 6;
   static std::mutex m_;

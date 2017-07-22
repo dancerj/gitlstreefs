@@ -11,7 +11,7 @@ using std::set;
 using std::string;
 using std::unique_lock;
 
-void ScopedConcurrencyLimit::DumpStatus() {
+void ScopedConcurrencyLimit::DumpStatus() const {
   // TODO: assert lock is held.
   string output;
   for (const string* message : messages_) {
