@@ -1,23 +1,23 @@
 #include "directory_container.h"
 
 #include <functional>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #include "basename.h"
 
-using std::function;
-using std::map;
-using std::string;
-using std::unique_ptr;
-using std::vector;
-using std::pair;
-using std::unordered_map;
 using std::cout;
 using std::endl;
+using std::function;
+using std::map;
+using std::pair;
+using std::string;
+using std::unique_ptr;
+using std::unordered_map;
+using std::vector;
 
 // Concrete class.
 class GitFile : public directory_container::File {
