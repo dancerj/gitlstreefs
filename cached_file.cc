@@ -90,10 +90,15 @@ const Cache::Memory* Cache::get(const string& name,
   if (fd.get() == -1) {
     // Populate cache.
     string result;
+    l.unlock();
+    // This is RPC that may take arbitrary amount of time, we
+    // shouldn't be blocking others. TODO: handle multiple requests to
+    // one cache entry.
     if (!fetch(&result)) {
       // Uncached fetching failed.
       return nullptr;
     }
+    l.lock();
 
     string temporary(cache_file_path + ".tmp");
     fd.reset(open(temporary.c_str(), O_RDWR | O_CREAT, 0666));
