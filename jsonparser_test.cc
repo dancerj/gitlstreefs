@@ -66,10 +66,10 @@ void testConsume() {
   utilTestValueParse<jjson::NumberValue>("-10", -10);
   utilTestValueParse<jjson::NumberValue>("5.5", 5.5);
 
-  utilTestValueParse<jjson::StringValue>("\"5.5\"", "5.5");
-  utilTestValueParse<jjson::StringValue>("\"unkotest\"", "unkotest");
-  utilTestValueParse<jjson::StringValue>("\"carriage\\r\\nreturn\"", "carriage\r\nreturn");
-  utilTestValueParse<jjson::StringValue>("\"\\u0075\"", "u");
+  utilTestValueParse<jjson::StringValue>(R"("5.5")", "5.5");
+  utilTestValueParse<jjson::StringValue>(R"("unkotest")", "unkotest");
+  utilTestValueParse<jjson::StringValue>(R"("carriage\r\nreturn")", "carriage\r\nreturn");
+  utilTestValueParse<jjson::StringValue>(R"("\u0075")", "u");
 
   utilTestArrayParse<jjson::NumberValue, float>("[1, 2, 3]",
 						{1, 2, 3});
@@ -78,7 +78,7 @@ void testConsume() {
 
 
   {
-    std::unique_ptr<Value> v = jjson::Parse("{\"string\" : \"hoge\", \"number\" : 123}");
+    std::unique_ptr<Value> v = jjson::Parse(R"({"string" : "hoge", "number" : 123})");
     assert(v.get() != nullptr);
     auto target = dynamic_cast<jjson::ObjectValue*>(v.get());
     assert(target != nullptr);
@@ -86,9 +86,10 @@ void testConsume() {
     assert(dynamic_cast<jjson::NumberValue*>(target->value_.find("number")->second.get())->value_ == 123);
   }
 
-
   {
-    std::unique_ptr<Value> v = jjson::Parse("{\"obj\" : {\"hoge\" : 12 }, \"arr\" : [1, 2, 3]}");
+    std::unique_ptr<Value> v = jjson::Parse(R"(
+      {"obj" : {"hoge" : 12 },
+       "arr" : [1, 2, 3]})");
     assert(v.get() != nullptr);
     auto target = dynamic_cast<jjson::ObjectValue*>(v.get());
     assert(target != nullptr);
@@ -101,7 +102,11 @@ void testConsume() {
   }
 
   {
-    std::unique_ptr<Value> v = jjson::Parse("{\"obj\" : {\"hoge\" : 12, \"fuga\": \"sss\" }, \"arr\" : [1, 2, 3]}");
+    std::unique_ptr<Value> v = jjson::Parse(R"(
+      {"obj" : {"hoge" : 12,
+                "fuga": "sss" },
+       "arr" : [1, 2, 3]}
+    )");
     assert(v.get() != nullptr);
     assert((*v)["obj"]["hoge"].get_number() == 12);
     assert((*v)["obj"]["fuga"].get_string() == "sss");
