@@ -4,12 +4,12 @@
 #include <iostream>
 #include <mutex>
 
-using std::unique_lock;
-using std::mutex;
 using std::condition_variable;
-using std::string;
-using std::set;
 using std::cout;
+using std::mutex;
+using std::set;
+using std::string;
+using std::unique_lock;
 
 void ScopedConcurrencyLimit::DumpStatus() {
   // TODO: assert lock is held.
