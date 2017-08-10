@@ -60,6 +60,7 @@ public:
     return have_lock_;
   }
 
+private:
   bool GetLock(const string& path, const string& message) {
     fd_ = open(path.c_str(), O_CLOEXEC|O_CREAT|O_RDWR, 0777);
     if (fd_ == -1) {
@@ -81,7 +82,7 @@ public:
     }
     return true;
   }
-private:
+
   int fd_;
   bool have_lock_;
   DISALLOW_COPY_AND_ASSIGN(ScopedLock);
@@ -171,7 +172,7 @@ bool MaybeGcAfterHardlinkBreakForTarget(int dirfd, const string& target) {
 
   // TODO: I'm reading the file into memory to get sha1sum after
   // having used sendfile to copy it; is that efficient?
-  string repo_file_path(GetRepoItemPath(ptfs::PtfsHandler::premount_dirfd_, 
+  string repo_file_path(GetRepoItemPath(ptfs::PtfsHandler::premount_dirfd_,
 					target));
   if (repo_file_path.size() == 0) {
     // soft-fail?
@@ -348,7 +349,6 @@ public:
     fh->reset(new CowFileHandle(relative_path, fd));
     return 0;
   }
-
 
   virtual int Create(const std::string& relative_path,
 		     int open_flags,
