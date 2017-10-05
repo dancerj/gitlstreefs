@@ -4,6 +4,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <set>
+#include <string>
 
 #include "disallow.h"
 
