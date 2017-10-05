@@ -1,6 +1,7 @@
 #include "scoped_fileutil.h"
 
 #include <fcntl.h>
+#include <stdlib.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <syslog.h>
