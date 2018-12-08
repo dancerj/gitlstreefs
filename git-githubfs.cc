@@ -20,6 +20,7 @@
 #include "git-githubfs.h"
 #include "jsonparser.h"
 #include "strutil.h"
+#include "scoped_timer.h"
 
 using std::cout;
 using std::endl;
@@ -38,6 +39,7 @@ namespace githubfs {
 namespace {
 string HttpFetch(const string& url) {
   ScopedConcurrencyLimit l(url);
+  ScopedTimer timer(url);
   vector<string> request{"curl",
       "-s",
       "-A",
