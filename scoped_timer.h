@@ -30,5 +30,4 @@ private:
   const std::string name_;
 
   std::chrono::steady_clock::time_point begin_;
-  std::chrono::steady_clock::time_point end_;
 };
