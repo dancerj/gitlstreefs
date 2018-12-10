@@ -30,13 +30,13 @@ public:
   float get_number() const;
 
   /** Check if this was 'true' */
-  bool is_true();
+  bool is_true() const;
 
   /** Check if this was 'false' */
-  bool is_false();
+  bool is_false() const;
 
   /** Check if this was 'null' */
-  bool is_null();
+  bool is_null() const;
 };
 
 template <class T> class SpecialValue : public Value {

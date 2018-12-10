@@ -33,14 +33,14 @@ float Value::get_number() const {
   return dynamic_cast<const NumberValue*>(this)->value_;
 }
 
-bool Value::is_true() {
-  return dynamic_cast<TrueValue*>(this) != nullptr;
+bool Value::is_true() const {
+  return dynamic_cast<const TrueValue*>(this) != nullptr;
 }
-bool Value::is_false() {
-  return dynamic_cast<FalseValue*>(this) != nullptr;
+bool Value::is_false() const {
+  return dynamic_cast<const FalseValue*>(this) != nullptr;
 }
-bool Value::is_null() {
-  return dynamic_cast<NullValue*>(this) != nullptr;
+bool Value::is_null() const {
+  return dynamic_cast<const NullValue*>(this) != nullptr;
 }
 
 namespace {

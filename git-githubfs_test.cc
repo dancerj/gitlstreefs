@@ -39,11 +39,13 @@ void ParserTest() {
   cout << "blob content: " << ret << endl;
 }
 
-void TryReadFileTest(githubfs::GitTree* fs, const string& name) {
+void TryReadFileTest(directory_container::DirectoryContainer* container,
+		     const string& name) {
   // Try reading a file.
   cout << "Try reading: " << name << endl;
-  githubfs::FileElement* fe;;
-  assert((fe = fs->get(name)) != nullptr);
+  githubfs::FileElement* fe;
+  assert((fe = dynamic_cast<githubfs::FileElement*>(container->mutable_get(name))) != nullptr);
+  fe->Open();
   constexpr size_t size = 4096;
   char buf[size];
   size_t read_size;
@@ -51,30 +53,34 @@ void TryReadFileTest(githubfs::GitTree* fs, const string& name) {
   assert(read_size <= size);
   string f(buf, read_size);
   cout << f << endl;
+  fe->Release();
 }
 
 void ScenarioTest() {
-  unique_ptr<githubfs::GitTree> fs(new githubfs::GitTree("HEAD", 
-							 "https://api.github.com/repos/dancerj/gitlstreefs"));
-  fs->dump();
+  auto container =
+    std::make_unique<directory_container::DirectoryContainer>();
+  auto fs =
+    std::make_unique<githubfs::GitTree>("HEAD",
+					"https://api.github.com/repos/dancerj/gitlstreefs",
+					container.get());
+  container->dump();
 
-  assert(fs->get("dummytestdirectory/README") != nullptr);
-  assert(fs->get("dummytestdirectory") != nullptr);
-  assert(fs->get("dummytestdirectory")->file_type_ == githubfs::TYPE_tree);
-  cout << std::oct << fs->get("dummytestdirectory")->attribute_ << endl;
+  assert(container->get("/dummytestdirectory/README") != nullptr);
+  assert(container->get("/dummytestdirectory") != nullptr);
+  assert(container->is_directory("/dummytestdirectory"));
 
   // root directory.
-  assert(fs->get("") != nullptr);
+  assert(container->get("/") != nullptr);
   struct stat st;
-  assert(fs->Getattr("/", &st) == 0);
+  assert(container->Getattr("/", &st) == 0);
   assert(st.st_nlink == 2);
   assert(st.st_mode == (S_IFDIR | 0755));
-  assert(fs->Getattr("/dummytestdirectory", &st) == 0);
-  assert(fs->Getattr("/dummytestdirectory/", &st) == -ENOENT);
-  assert(fs->Getattr("/dummytestdirectory/README", &st) == 0);
+  assert(container->Getattr("/dummytestdirectory", &st) == 0);
+  assert(container->Getattr("/dummytestdirectory/", &st) == -ENOENT);
+  assert(container->Getattr("/dummytestdirectory/README", &st) == 0);
 
   // TODO: This obtains a JSON response not the actual content.
-  TryReadFileTest(fs.get(), "dummytestdirectory/README");
+  TryReadFileTest(container.get(), "/dummytestdirectory/README");
 }
 
 int main(int argc, char** argv) {

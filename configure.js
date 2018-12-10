@@ -5,7 +5,7 @@ var filename = "build.ninja";
 var outdir = "out/";
 
 var data = [
-    'cxxflags = -O2 -g --std=c++14 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I.',
+    'cxxflags = -O0 -g --std=c++14 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I.',
     'ldflags = -pthread -lfuse',
     'gxx = g++',
     'gcc = gcc',
@@ -101,11 +101,11 @@ RunTestScript('ninjafs_test.sh', {
 })
 CompileLink('hello_world', ['hello_world'])
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
-CompileLinkRunTest('git-githubfs_test', ['base64decode', 'concurrency_limit',
+CompileLinkRunTest('git-githubfs_test', ['base64decode', 'basename', 'concurrency_limit',
 					 'git-githubfs_test', 'git-githubfs',
 					 'jsonparser',
 					 'strutil'])
-CompileLink('git-githubfs', ['base64decode',
+CompileLink('git-githubfs', ['base64decode', 'basename',
 			     'concurrency_limit', 'git-githubfs_fusemain',
 			     'git-githubfs', 'jsonparser',
 			     'strutil'])
