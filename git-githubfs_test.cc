@@ -1,7 +1,6 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
-#include <json_spirit.h>
 #include <memory>
 #include <string>
 #include <sys/stat.h>
@@ -14,7 +13,6 @@ using githubfs::ParseBlob;
 using githubfs::ParseCommits;
 using githubfs::ParseCommit;
 using githubfs::ParseTrees;
-using json_spirit::Value;
 using std::cout;
 using std::endl;
 using std::string;
