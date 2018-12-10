@@ -19,7 +19,6 @@ mount-able filesystem.
 #include <unordered_map>
 #include <vector>
 
-#include "basename.h"
 #include "concurrency_limit.h"
 #include "gitlstree.h"
 #include "strutil.h"
@@ -104,7 +103,6 @@ bool LoadDirectory(const string& my_gitdir, const string& hash,
     if (elements.size() == 5) {
       const string& file_path = elements[4];
       assert(file_path[0] != '/');  // git ls-tree do not start with /.
-      string basename = BaseName(file_path);
       container->add(string("/") + file_path,
 		     make_unique<FileElement>(strtol(elements[0].c_str(), NULL, 8),
 					      elements[2],
