@@ -5,7 +5,7 @@ var filename = "build.ninja";
 var outdir = "out/";
 
 var data = [
-    'cxxflags = -O0 -g --std=c++14 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I.',
+    'cxxflags = -O2 -g --std=c++14 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I.',
     'ldflags = -pthread -lfuse',
     'gxx = g++',
     'gcc = gcc',

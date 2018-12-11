@@ -147,11 +147,11 @@ void GitTree::LoadDirectoryInternal(const string& subdir, const string& tree_has
 		   const std::string slash_path = string("/") + path;
 		   if (fstype == TYPE_blob) {
 		     container_->add(slash_path,
-				    std::make_unique<FileElement>(mode, sha, size, this));
+				     std::make_unique<FileElement>(mode, sha, size, this));
 		   } else if (fstype == TYPE_tree) {
 		     // Nonempty directories get auto-created, but maybe do it here?
 		     container_->add(slash_path,
-				    std::make_unique<directory_container::Directory>());
+				     std::make_unique<directory_container::Directory>());
 		     if (remote_recurse == false) {
 		       // If remote side recursion didn't work, do recursion here.
 		       jobs.emplace_back(thread([this, subdir, path, sha](){
@@ -225,7 +225,7 @@ int FileElement::Release() {
 
 GitTree::GitTree(const char* hash, const char* github_api_prefix,
 		 directory_container::DirectoryContainer* container)
-    : github_api_prefix_(github_api_prefix) {
+    : github_api_prefix_(github_api_prefix), container_(container) {
   string commit = HttpFetch(github_api_prefix_ + "/commits/" + hash);
   const string tree_hash = ParseCommit(commit);
 
