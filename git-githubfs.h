@@ -34,9 +34,11 @@ std::string ParseCommit(const std::string& commit_string);
 // Parse blob.
 std::string ParseBlob(const std::string& blob_string);
 
+class GitTree;
+
 struct FileElement : public directory_container::File {
 public:
-  FileElement(int attribute, const std::string& sha1, int size);
+  FileElement(int attribute, const std::string& sha1, int size, GitTree* parent);
   virtual int Open() override;
   virtual ssize_t Read(char *buf, size_t size, off_t offset) override;
   virtual int Getattr(struct stat *stbuf) override;
@@ -48,6 +50,7 @@ private:
   std::string sha1_;
   int size_;
 
+  GitTree* parent_;
   std::unique_ptr<std::string> buf_{};
   std::mutex buf_mutex_{};
   DISALLOW_COPY_AND_ASSIGN(FileElement);
@@ -58,6 +61,16 @@ public:
   GitTree(const char* hash, const char* github_api_prefix,
 	  directory_container::DirectoryContainer* c);
   ~GitTree();
+  const std::string& get_github_api_prefix() const { return github_api_prefix_; }
+
+private:
+  void LoadDirectoryInternal(const std::string& subdir, const std::string& tree_hash,
+			     bool remote_recurse);
+
+  // Directory for git directory. Needed because fuse chdir to / on
+  // becoming a daemon.
+  const std::string github_api_prefix_;
+  directory_container::DirectoryContainer* container_;
 };
 
 } // namespace githubfs

@@ -37,18 +37,6 @@ using std::thread;
 namespace githubfs {
 
 namespace {
-struct Configuration {
-public:
-  Configuration(const string& github_api_prefix)
-    : github_api_prefix_(github_api_prefix) {
-  }
-  // Directory for git directory. Needed because fuse chdir to / on
-  // becoming a daemon.
-  const string github_api_prefix_;
-};
-// Per-mountpoint configuration.
-static unique_ptr<Configuration> configuration{};
-
 string HttpFetch(const string& url) {
   ScopedConcurrencyLimit l(url);
   ScopedTimer timer(url);
@@ -139,11 +127,10 @@ bool ParseTrees(const string& trees_string, function<void(const string& path,
   return true;
 }
 
-void LoadDirectoryInternal(directory_container::DirectoryContainer* container,
-			   const string& subdir, const string& tree_hash,
-			   bool remote_recurse) {
+void GitTree::LoadDirectoryInternal(const string& subdir, const string& tree_hash,
+				    bool remote_recurse) {
   vector<thread> jobs;
-  string fetch_url = configuration->github_api_prefix_ + "/git/trees/" + tree_hash;
+  string fetch_url = github_api_prefix_ + "/git/trees/" + tree_hash;
   if (remote_recurse) {
     // Let the remote system recurse.
     fetch_url += "?recursive=true";
@@ -159,16 +146,16 @@ void LoadDirectoryInternal(directory_container::DirectoryContainer* container,
 		      const string& url){
 		   const std::string slash_path = string("/") + path;
 		   if (fstype == TYPE_blob) {
-		     container->add(slash_path,
-				    std::make_unique<FileElement>(mode, sha, size));
+		     container_->add(slash_path,
+				    std::make_unique<FileElement>(mode, sha, size, this));
 		   } else if (fstype == TYPE_tree) {
 		     // Nonempty directories get auto-created, but maybe do it here?
-		     container->add(slash_path,
+		     container_->add(slash_path,
 				    std::make_unique<directory_container::Directory>());
 		     if (remote_recurse == false) {
 		       // If remote side recursion didn't work, do recursion here.
-		       jobs.emplace_back(thread([container, subdir, path, sha](){
-			     LoadDirectoryInternal(container, subdir + path + "/", sha, false);
+		       jobs.emplace_back(thread([this, subdir, path, sha](){
+			     LoadDirectoryInternal(subdir + path + "/", sha, false);
 			   }));
 		     }
 		   }
@@ -176,7 +163,7 @@ void LoadDirectoryInternal(directory_container::DirectoryContainer* container,
     for (auto& job : jobs) { job.join(); }
   } else {
     cout << "Retry with remote recursion off." << endl;
-    LoadDirectoryInternal(container, subdir, tree_hash, false);
+    LoadDirectoryInternal(subdir, tree_hash, false);
   }
 }
 
@@ -203,8 +190,8 @@ int FileElement::Getattr(struct stat *stbuf) {
   return 0;
 }
 
-FileElement::FileElement(int attribute,const std::string& sha1, int size) :
-  attribute_(attribute), sha1_(sha1), size_(size) {}
+FileElement::FileElement(int attribute,const std::string& sha1, int size, GitTree* parent) :
+  attribute_(attribute), sha1_(sha1), size_(size), parent_(parent) {}
 
 ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   unique_lock<mutex> l(buf_mutex_);
@@ -221,7 +208,7 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
 int FileElement::Open() {
   unique_lock<mutex> l(buf_mutex_);
   if (!buf_.get()) {
-    const string url = configuration->github_api_prefix_ +
+    const string url = parent_->get_github_api_prefix() +
       "/git/blobs/" + sha1_;
     string blob_string = HttpFetch(url);
     buf_.reset(new string(ParseBlob(blob_string)));
@@ -237,17 +224,14 @@ int FileElement::Release() {
 }
 
 GitTree::GitTree(const char* hash, const char* github_api_prefix,
-		 directory_container::DirectoryContainer* container) {
-  configuration = std::make_unique<Configuration>(github_api_prefix);
-  string commit = HttpFetch(configuration->github_api_prefix_ + "/commits/" + hash);
+		 directory_container::DirectoryContainer* container)
+    : github_api_prefix_(github_api_prefix) {
+  string commit = HttpFetch(github_api_prefix_ + "/commits/" + hash);
   const string tree_hash = ParseCommit(commit);
 
-  LoadDirectoryInternal(container, "", tree_hash, true /* remote recurse*/);
+  LoadDirectoryInternal("", tree_hash, true /* remote recurse*/);
 }
 
-GitTree::~GitTree() {
-  // TODO: Make this a member variable.
-  configuration.reset(nullptr);
-}
+GitTree::~GitTree() {}
 
 }  // githubfs
