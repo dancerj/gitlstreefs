@@ -19,9 +19,12 @@ using std::unique_ptr;
 using std::cerr;
 using std::endl;
 
-namespace githubfs {
+namespace {
 // Global scope to make it accessible from callback.
 unique_ptr<directory_container::DirectoryContainer> fs;
+}
+
+namespace githubfs {
 
 static int fs_getattr(const char *path, struct stat *stbuf)
 {
@@ -114,10 +117,10 @@ int main(int argc, char *argv[]) {
 
   string github_api_prefix = string("https://api.github.com/repos/") +
     conf.user + "/" + conf.project;
-  githubfs::fs.reset(new directory_container::DirectoryContainer());
-  unique_ptr<githubfs::GitTree> git_tree =
+  fs = std::make_unique<directory_container::DirectoryContainer>();
+  auto git_tree =
     std::make_unique<githubfs::GitTree>(conf.revision?conf.revision:"HEAD",
-					github_api_prefix.c_str(), githubfs::fs.get());
+					github_api_prefix.c_str(), fs.get());
   int ret = fuse_main(args.argc, args.argv, &o, NULL);
   fuse_opt_free_args(&args);
   return ret;
