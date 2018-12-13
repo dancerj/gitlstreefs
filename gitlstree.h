@@ -17,9 +17,11 @@ enum GitFileType {
   TYPE_commit = 3
 };
 
+class GitTree;
+
 class FileElement : public directory_container::File {
 public:
-  FileElement(int attribute, const std::string& sha1, int size);
+  FileElement(int attribute, const std::string& sha1, int size, GitTree* parent);
   virtual int Open() override;
   virtual ssize_t Read(char *buf, size_t size, off_t offset) override;
   virtual int Getattr(struct stat *stbuf) override;
@@ -35,16 +37,41 @@ private:
   std::string sha1_;
   int size_;
 
+  GitTree* parent_;
   DISALLOW_COPY_AND_ASSIGN(FileElement);
 };
 
 GitFileType FileTypeStringToFileType(const std::string& file_type_string);
 
-bool LoadDirectory(const std::string& gitdir,
-		   const std::string& hash,
-		   const std::string& maybe_ssh,
-		   const std::string& cache_dir,
-		   directory_container::DirectoryContainer* container);
+class GitTree {
+public:
+  static std::unique_ptr<GitTree>
+  NewGitTree(const std::string& gitdir,
+	     const std::string& hash,
+	     const std::string& maybe_ssh,
+	     const std::string& cache_dir,
+	     directory_container::DirectoryContainer* container);
+  ~GitTree();
+
+  std::string RunGitCommand(const std::vector<std::string>& commands,
+			    int* exit_code);
+
+  Cache& cache() { return cache_; }
+
+private:
+  GitTree(const std::string& gitdir,
+	  const std::string& maybe_ssh,
+	  const std::string& cache_dir);
+  bool LoadDirectory(
+	  const std::string& hash,
+	  directory_container::DirectoryContainer* container);
+
+  const std::string gitdir_;
+  const std::string ssh_;
+  Cache cache_;
+
+  DISALLOW_COPY_AND_ASSIGN(GitTree);
+};
 
 struct GetHashIoctlArg {
 public:

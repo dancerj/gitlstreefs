@@ -13,9 +13,12 @@
 using std::string;
 using std::unique_ptr;
 
+namespace{
+// make it accessible from callback.
+unique_ptr<directory_container::DirectoryContainer> fs{};
+}
+
 namespace gitlstree {
-// Global scope to make it accessible from callback.
-unique_ptr<directory_container::DirectoryContainer> fs;
 
 static int fs_getattr(const char *path, struct stat *stbuf)
 {
@@ -129,9 +132,10 @@ int main(int argc, char *argv[]) {
   string cache_path(conf.cache_path?conf.cache_path:
 		    GetCurrentDir() + "/.cache/");
 
-  gitlstree::fs.reset(new directory_container::DirectoryContainer());
-  if (!gitlstree::LoadDirectory(path, revision, ssh, cache_path,
-				gitlstree::fs.get())) {
+  fs = std::make_unique<directory_container::DirectoryContainer>();
+  auto git = gitlstree::GitTree::NewGitTree(path, revision, ssh, cache_path,
+				   fs.get());
+  if (!git.get()) {
     fprintf(stderr, "Loading directory %s failed\n", path.c_str());
     return 1;
   }
