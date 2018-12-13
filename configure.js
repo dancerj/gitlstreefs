@@ -101,13 +101,23 @@ RunTestScript('ninjafs_test.sh', {
 })
 CompileLink('hello_world', ['hello_world'])
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
-CompileLinkRunTest('git-githubfs_test', ['base64decode', 'basename', 'concurrency_limit',
-					 'git-githubfs_test', 'git-githubfs',
+CompileLinkRunTest('git-githubfs_test', ['base64decode',
+					 'basename',
+					 'cached_file',
+					 'concurrency_limit',
+					 'get_current_dir',
+					 'git-githubfs_test',
+					 'git-githubfs',
 					 'jsonparser',
 					 'strutil'])
-CompileLink('git-githubfs', ['base64decode', 'basename',
-			     'concurrency_limit', 'git-githubfs_fusemain',
-			     'git-githubfs', 'jsonparser',
+CompileLink('git-githubfs', ['base64decode',
+			     'basename',
+			     'cached_file',
+			     'concurrency_limit',
+			     'get_current_dir',
+			     'git-githubfs_fusemain',
+			     'git-githubfs',
+			     'jsonparser',
 			     'strutil'])
 CompileLinkRunTest('concurrency_limit_test', ['concurrency_limit_test',
 					      'concurrency_limit']);

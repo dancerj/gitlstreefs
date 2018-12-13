@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 
 #include "git-githubfs.h"
+#include "get_current_dir.h"
 #include "strutil.h"
 
 using githubfs::GitFileType;
@@ -62,7 +63,8 @@ void ScenarioTest() {
   auto fs =
     std::make_unique<githubfs::GitTree>("HEAD",
 					"https://api.github.com/repos/dancerj/gitlstreefs",
-					container.get());
+					container.get(),
+					GetCurrentDir() + "/.cache/");
   container->dump();
 
   assert(container->get("/dummytestdirectory/README") != nullptr);

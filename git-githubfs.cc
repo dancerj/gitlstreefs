@@ -195,11 +195,11 @@ FileElement::FileElement(int attribute,const std::string& sha1, int size, GitTre
 
 ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   unique_lock<mutex> l(buf_mutex_);
-  if (!buf_.get()) return -1;
-  if (offset < static_cast<off_t>(buf_->size())) {
-    if (offset + size > buf_->size())
-      size = buf_->size() - offset;
-    memcpy(target, buf_->c_str() + offset, size);
+  if (!memory_) return -1;
+  if (offset < static_cast<off_t>(memory_->size())) {
+    if (offset + size > memory_->size())
+      size = memory_->size() - offset;
+    memcpy(target, static_cast<const char*>(memory_->memory()) + offset, size);
   } else
     size = 0;
   return size;
@@ -207,25 +207,33 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
 
 int FileElement::Open() {
   unique_lock<mutex> l(buf_mutex_);
-  if (!buf_.get()) {
-    const string url = parent_->get_github_api_prefix() +
-      "/git/blobs/" + sha1_;
-    string blob_string = HttpFetch(url);
-    buf_.reset(new string(ParseBlob(blob_string)));
-    std::cout << "blob dump in Open: " << *buf_ << std::endl;
+  if (!memory_) {
+    memory_ = parent_->cache().get(sha1_, [this](string* ret) -> bool {
+	const string url = parent_->get_github_api_prefix() +
+	  "/git/blobs/" + sha1_;
+	string blob_string = HttpFetch(url);
+	*ret = ParseBlob(blob_string);
+	return true;
+      });
+    if (!memory_) {
+      // If still failed, something failed in the process.
+      return -EIO;
+    }
   }
   return 0;
 }
 
 int FileElement::Release() {
   unique_lock<mutex> l(buf_mutex_);
-  buf_.reset(nullptr);
+  parent_->cache().release(sha1_, memory_);
+  memory_ = nullptr;
   return 0;
 }
 
 GitTree::GitTree(const char* hash, const char* github_api_prefix,
-		 directory_container::DirectoryContainer* container)
-    : github_api_prefix_(github_api_prefix), container_(container) {
+		 directory_container::DirectoryContainer* container,
+		 const std::string& cache_dir)
+    : github_api_prefix_(github_api_prefix), container_(container), cache_(cache_dir) {
   string commit = HttpFetch(github_api_prefix_ + "/commits/" + hash);
   const string tree_hash = ParseCommit(commit);
 

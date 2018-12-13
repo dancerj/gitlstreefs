@@ -4,6 +4,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "cached_file.h"
 #include "disallow.h"
 #include "directory_container.h"
 
@@ -51,7 +52,7 @@ private:
   int size_;
 
   GitTree* parent_;
-  std::unique_ptr<std::string> buf_{};
+  const Cache::Memory* memory_{};
   std::mutex buf_mutex_{};
   DISALLOW_COPY_AND_ASSIGN(FileElement);
 };
@@ -59,9 +60,11 @@ private:
 class GitTree {
 public:
   GitTree(const char* hash, const char* github_api_prefix,
-	  directory_container::DirectoryContainer* c);
+	  directory_container::DirectoryContainer* c,
+	  const std::string& cache_dir);
   ~GitTree();
   const std::string& get_github_api_prefix() const { return github_api_prefix_; }
+  Cache& cache() { return cache_; }
 
 private:
   void LoadDirectoryInternal(const std::string& subdir, const std::string& tree_hash,
@@ -71,6 +74,7 @@ private:
   // becoming a daemon.
   const std::string github_api_prefix_;
   directory_container::DirectoryContainer* container_;
+  Cache cache_;
 };
 
 } // namespace githubfs
