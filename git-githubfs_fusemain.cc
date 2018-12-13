@@ -136,10 +136,10 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  string cache_path(conf.cache_path?conf.cache_path:
+  const string cache_path(conf.cache_path?conf.cache_path:
 		    GetCurrentDir() + "/.cache/");
 
-  string github_api_prefix = string("https://api.github.com/repos/") +
+  const string github_api_prefix = string("https://api.github.com/repos/") +
     conf.user + "/" + conf.project;
   fs = std::make_unique<directory_container::DirectoryContainer>();
   auto git_tree =
