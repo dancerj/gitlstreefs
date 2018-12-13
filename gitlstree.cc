@@ -22,6 +22,7 @@ mount-able filesystem.
 #include "concurrency_limit.h"
 #include "gitlstree.h"
 #include "strutil.h"
+#include "scoped_timer.h"
 
 using std::make_unique;
 using std::mutex;
@@ -49,7 +50,9 @@ int FileElement::Getattr(struct stat *stbuf) {
 }
 
 // Maybe run remote command if ssh spec is available.
-string GitTree::RunGitCommand(const vector<string>& commands, int* exit_code) {
+string GitTree::RunGitCommand(const vector<string>& commands, int* exit_code, 
+			      const std::string& log_tag) {
+  ScopedTimer time(log_tag);
   if (!ssh_.empty()) {
     string command;
     for (const auto& s: commands) {
@@ -66,7 +69,8 @@ string GitTree::RunGitCommand(const vector<string>& commands, int* exit_code) {
 
 bool GitTree::LoadDirectory(const string& hash, directory_container::DirectoryContainer* container) {
   int exit_code;
-  string git_ls_tree(RunGitCommand({"git", "ls-tree", "-l", "-r", hash}, &exit_code));
+  string git_ls_tree(RunGitCommand({"git", "ls-tree", "-l", "-r", hash},
+				   &exit_code, "lstree"));
   if (exit_code != 0) {
     // Failed to load directory.
     return false;
@@ -135,7 +139,8 @@ int FileElement::Open() {
     memory_ = parent_->cache().get(sha1_, [this](string* ret) -> bool {
 	int exit_code;
 	*ret = string(parent_->RunGitCommand({"git", "cat-file", "blob", sha1_},
-				    &exit_code));
+					     &exit_code,
+					     "cat-file"));
 	return exit_code == 0;
       });
     if (!memory_) {

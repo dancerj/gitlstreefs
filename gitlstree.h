@@ -54,7 +54,7 @@ public:
   ~GitTree();
 
   std::string RunGitCommand(const std::vector<std::string>& commands,
-			    int* exit_code);
+			    int* exit_code, const std::string& log_tag);
 
   Cache& cache() { return cache_; }
 
