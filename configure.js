@@ -82,6 +82,7 @@ CompileLinkRunTest('gitlstree_test',
 		    'get_current_dir',
 		    'gitlstree',
 		    'gitlstree_test',
+		    'scoped_timer',
 		    'strutil'])
 
 CompileLink('gitlstree',
@@ -91,6 +92,7 @@ CompileLink('gitlstree',
 	     'get_current_dir',
 	     'gitlstree',
 	     'gitlstree_fusemain',
+	     'scoped_timer',
 	     'strutil'])
 
 CompileLinkRunTest('strutil_test', ['strutil', 'strutil_test'])
@@ -109,6 +111,7 @@ CompileLinkRunTest('git-githubfs_test', ['base64decode',
 					 'git-githubfs_test',
 					 'git-githubfs',
 					 'jsonparser',
+					 'scoped_timer',
 					 'strutil'])
 CompileLink('git-githubfs', ['base64decode',
 			     'basename',
@@ -118,6 +121,7 @@ CompileLink('git-githubfs', ['base64decode',
 			     'git-githubfs_fusemain',
 			     'git-githubfs',
 			     'jsonparser',
+			     'scoped_timer',
 			     'strutil'])
 CompileLinkRunTest('concurrency_limit_test', ['concurrency_limit_test',
 					      'concurrency_limit']);
@@ -184,5 +188,6 @@ CompileLinkRunTest('jsonparser_test',
 CompileLink('jsonparser_util',
 	    ['jsonparser_util', 'jsonparser', 'strutil'])
 CompileLinkRunTest('scoped_timer_test',
-		   ['scoped_timer_test'])
+		   ['scoped_timer',
+		    'scoped_timer_test'])
 Emit()
