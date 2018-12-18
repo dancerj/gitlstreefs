@@ -115,7 +115,7 @@ private:
   std::unique_ptr<Value> ObtainNumber() {
     std::string number = Consume(valid_number);
     // TODO: implement proper handling of JSON number format.
-    return std::unique_ptr<Value>(new NumberValue(strtof(number.c_str(), nullptr)));
+    return std::make_unique<NumberValue>(strtof(number.c_str(), nullptr));
   }
 
   std::unique_ptr<Value> ObtainObject() {
@@ -128,7 +128,7 @@ private:
     while(!Eof()) {
       if (Peek() == '}') {
 	Skip();
-	return std::unique_ptr<Value>(new ObjectValue(std::move(object)));
+	return std::make_unique<ObjectValue>(std::move(object));
       }
       auto key = ObtainString();
       SkipWhitespace();
@@ -165,7 +165,7 @@ private:
     while(!Eof()) {
       if (Peek() == ']') {
 	Skip();
-	return std::unique_ptr<Value>(new ArrayValue(std::move(array)));
+	return std::make_unique<ArrayValue>(std::move(array));
       }
 
       std::unique_ptr<Value> value = ObtainValue();
@@ -201,7 +201,7 @@ private:
 	// End of string.
 	Skip();
 	// TODO: some kind of char code conversion needed?
-	return std::unique_ptr<Value>(new StringValue(std::move(s)));
+	return std::make_unique<StringValue>(std::move(s));
       } else if (Peek() == '\\') {
 	// escaped character.
 	Skip();
@@ -254,7 +254,7 @@ private:
       }
       if (!Skip()) return nullptr;
     }
-    return std::unique_ptr<Value>(new T());
+    return std::make_unique<T>();
   }
 
   std::unique_ptr<Value> ObtainValue() {
