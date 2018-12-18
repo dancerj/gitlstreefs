@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "disallow.h"
+#include "scoped_fd.h"
 
 class Cache {
 public:
@@ -43,7 +44,7 @@ private:
 
   const std::string cache_dir_;
   // for directory.
-  int file_lock_;
+  ScopedFd file_lock_;
   DISALLOW_COPY_AND_ASSIGN(Cache);
 };
 

@@ -47,18 +47,18 @@ Cache::Memory::~Memory() {
 const void* Cache::Memory::memory() const { return memory_; }
 size_t Cache::Memory::size() const { return size_; }
 
-Cache::Cache(const string& cache_dir) : cache_dir_(cache_dir) {
-  file_lock_ = open((cache_dir + "lock").c_str(),
-		    O_CREAT|O_RDWR|O_CLOEXEC, 0700);
+Cache::Cache(const string& cache_dir) :
+  cache_dir_(cache_dir),
+  file_lock_(open((cache_dir + "lock").c_str(),
+		  O_CREAT|O_RDWR|O_CLOEXEC, 0700)) {
   // TODO maybe not crashing and giving better error message is
   // better.
-  assert(file_lock_ != -1);
-  assert(flock(file_lock_, LOCK_EX) != -1);
+  assert(file_lock_.get() != -1);
+  assert(flock(file_lock_.get(), LOCK_EX) != -1);
 }
 
 Cache::~Cache() {
-  assert(flock(file_lock_, LOCK_UN) != -1);
-  close(file_lock_);
+  assert(flock(file_lock_.get(), LOCK_UN) != -1);
 }
 
 void Cache::GetFileName(const string& name,
@@ -111,7 +111,7 @@ const Cache::Memory* Cache::get(const string& name,
     assert(-1 != rename(temporary.c_str(), cache_file_path.c_str()));
   }
   struct stat stbuf;
-  fstat(fd.get(), &stbuf);
+  assert(0==fstat(fd.get(), &stbuf));
   size_t size = stbuf.st_size;
   void* m = mmap(nullptr, size, PROT_READ, MAP_SHARED, fd.get(), 0);
   if (m == MAP_FAILED) {
