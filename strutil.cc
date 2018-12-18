@@ -28,7 +28,7 @@ using namespace std;
   }
 
 bool ReadFromFile(int dirfd, const std::string& filename, string* result) {
-  ScopedFd fd(openat(dirfd, filename.c_str(), O_RDONLY));
+  ScopedFd fd(openat(dirfd, filename.c_str(), O_RDONLY | O_CLOEXEC));
   if (fd.get() == -1) {
     perror(("open ReadFile " + filename).c_str());
     abort();
