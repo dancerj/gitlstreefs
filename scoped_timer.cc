@@ -47,3 +47,40 @@ ScopedTimer::~ScopedTimer() {
   }
   return ss.str();
 }
+
+StatusHandler::StatusHandler() : message_() {}
+
+StatusHandler::~StatusHandler() {}
+
+int StatusHandler::Getattr(struct stat *stbuf) {
+  RefreshMessage();
+  stbuf->st_uid = getuid();
+  stbuf->st_gid = getgid();
+  stbuf->st_mode = S_IFREG | 0400;
+  stbuf->st_size = message_.size();
+  stbuf->st_nlink = 1;
+  return 0;
+}
+
+ssize_t StatusHandler::Read(char *buf, size_t size, off_t offset) {
+  if (offset < static_cast<off_t>(message_.size())) {
+    if (offset + size > message_.size())
+      size = message_.size() - offset;
+    memcpy(buf, message_.data() + offset, size);
+  } else
+    size = 0;
+  return size;
+}
+
+int StatusHandler::Open() {
+  RefreshMessage();
+  return 0;
+}
+
+int StatusHandler::Release() {
+  return 0;
+}
+
+void StatusHandler::RefreshMessage() {
+  message_ = ScopedTimer::dump();
+}

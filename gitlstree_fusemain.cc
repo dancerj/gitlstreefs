@@ -44,7 +44,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi)
     return -ENOENT;
   }
 
-  FileElement* f = dynamic_cast<FileElement*>(fs->mutable_get(path));
+  auto f = reinterpret_cast<directory_container::File*>(fs->mutable_get(path));
   if (!f)
     return -ENOENT;
   fi->fh = reinterpret_cast<uint64_t>(f);
@@ -56,7 +56,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi)
 static int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		   struct fuse_file_info *fi)
 {
-  FileElement* fe = dynamic_cast<FileElement*>(reinterpret_cast<directory_container::File*>(fi->fh));
+  auto fe = reinterpret_cast<directory_container::File*>(fi->fh);
   if (!fe) {
     return -ENOENT;
   }
@@ -64,7 +64,7 @@ static int fs_read(const char *path, char *buf, size_t size, off_t offset,
 }
 
 static int fs_release(const char *path, struct fuse_file_info *fi) {
-  FileElement* fe = dynamic_cast<FileElement*>(reinterpret_cast<directory_container::File*>(fi->fh));
+  auto fe = reinterpret_cast<directory_container::File*>(fi->fh);
   if (!fe) {
     return -ENOENT;
   }

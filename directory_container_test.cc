@@ -24,13 +24,16 @@ class GitFile : public directory_container::File {
 public:
   GitFile() {}
   virtual ~GitFile() {}
-  virtual int Getattr(struct stat *stbuf) {
+  virtual int Getattr(struct stat *stbuf) override {
     return 0;
   }
-  virtual ssize_t Read(char *buf, size_t size, off_t offset) {
+  virtual ssize_t Read(char *buf, size_t size, off_t offset) override {
     return -EINVAL;
   }
-  virtual int Open() {
+  virtual int Open() override {
+    return -EINVAL;
+  };
+  virtual int Release() override {
     return -EINVAL;
   };
 };

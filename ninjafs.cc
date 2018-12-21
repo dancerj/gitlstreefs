@@ -58,6 +58,10 @@ public:
     return 0;
   }
 
+  virtual int Release() override {
+    return 0;
+  }
+
   virtual ssize_t Read(char *target, size_t size, off_t offset) override {
     // Fill in the response
     unique_lock<mutex> l(mutex_);
@@ -130,6 +134,11 @@ public:
     return 0;
   }
 
+  virtual int Release() override {
+    // TODO: do I ever need to clean up?
+    return 0;
+  }
+
   virtual ssize_t Read(char *target, size_t size, off_t offset) override {
     // Fill in the response
     if (!buf_.get()) {
@@ -194,7 +203,7 @@ static int fs_getattr(const char *path, struct stat *stbuf) {
 static int fs_opendir(const char* path, struct fuse_file_info* fi) {
   if (*path == 0)
     return -ENOENT;
-  const directory_container::Directory* d = dynamic_cast<
+  const auto d = dynamic_cast<
     directory_container::Directory*>(fs->mutable_get(path));
   fi->fh = reinterpret_cast<uint64_t>(d);
   return 0;
@@ -232,8 +241,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
 
 static int fs_read(const char *path, char *target, size_t size, off_t offset,
 		   struct fuse_file_info *fi) {
-  directory_container::File* f =
-    reinterpret_cast<directory_container::File*>(fi->fh);
+  auto f = reinterpret_cast<directory_container::File*>(fi->fh);
   if (!f)
     return -ENOENT;
 

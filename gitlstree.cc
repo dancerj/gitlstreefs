@@ -94,6 +94,7 @@ bool GitTree::LoadDirectory(const string& hash, directory_container::DirectoryCo
 					      this));
     }
   }
+  container->add("/.status", make_unique<StatusHandler>());
   return true;
 }
 

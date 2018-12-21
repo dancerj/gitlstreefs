@@ -37,14 +37,14 @@ using std::thread;
 namespace githubfs {
 
 namespace {
-string HttpFetch(const string& url) {
+string HttpFetch(const string& url, const string& key) {
   ScopedConcurrencyLimit l(url);
-  ScopedTimer timer(url);
+  ScopedTimer timer(key);
   vector<string> request{"curl",
       "-s",
       "-A",
-      "git-githubfs(https://github.com/dancerj/gitlstreefs)"};
-  request.push_back(url);
+      "git-githubfs(https://github.com/dancerj/gitlstreefs)",
+      url};
   return PopenAndReadOrDie2(request);
 }
 
@@ -135,7 +135,7 @@ void GitTree::LoadDirectoryInternal(const string& subdir, const string& tree_has
     // Let the remote system recurse.
     fetch_url += "?recursive=true";
   }
-  const string github_tree = HttpFetch(fetch_url);
+  const string github_tree = HttpFetch(fetch_url, "lstree");
   cout << "Loaded directory " << subdir << endl;
   if (ParseTrees(github_tree,
 		  [&](const string& path,
@@ -211,7 +211,7 @@ int FileElement::Open() {
     memory_ = parent_->cache().get(sha1_, [this](string* ret) -> bool {
 	const string url = parent_->get_github_api_prefix() +
 	  "/git/blobs/" + sha1_;
-	string blob_string = HttpFetch(url);
+	string blob_string = HttpFetch(url, "blob");
 	*ret = ParseBlob(blob_string);
 	return true;
       });
@@ -234,10 +234,11 @@ GitTree::GitTree(const char* hash, const char* github_api_prefix,
 		 directory_container::DirectoryContainer* container,
 		 const std::string& cache_dir)
     : github_api_prefix_(github_api_prefix), container_(container), cache_(cache_dir) {
-  string commit = HttpFetch(github_api_prefix_ + "/commits/" + hash);
+  string commit = HttpFetch(github_api_prefix_ + "/commits/" + hash, "commit");
   const string tree_hash = ParseCommit(commit);
 
   LoadDirectoryInternal("", tree_hash, true /* remote recurse*/);
+  container->add("/.status", std::make_unique<StatusHandler>());
 }
 
 GitTree::~GitTree() {}

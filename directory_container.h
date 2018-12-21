@@ -36,6 +36,7 @@ public:
   virtual ssize_t Read(char *buf, size_t size, off_t offset) = 0;
 
   virtual int Open() = 0;
+  virtual int Release() = 0;
 
 private:
   DISALLOW_COPY_AND_ASSIGN(File);
@@ -61,6 +62,11 @@ public:
 
   virtual int Open() override {
     // Can't open a directory?
+    return -EINVAL;
+  }
+
+  virtual int Release() override {
+    // Can't release a directory?
     return -EINVAL;
   }
 

@@ -88,6 +88,7 @@ private:
 
   std::string Consume(const std::set<char>& valid) {
     std::string data{};
+    data.reserve(16);
     while (valid.find(Peek()) != valid.end()) {
       data += Peek();
       if (!Skip()) break;
