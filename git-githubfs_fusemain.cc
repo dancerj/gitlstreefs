@@ -1,6 +1,3 @@
-/*
- * 
- */
 #define FUSE_USE_VERSION 26
 
 #include <assert.h>
@@ -22,7 +19,7 @@ using std::endl;
 
 namespace {
 // Global scope to make it accessible from callback.
-unique_ptr<directory_container::DirectoryContainer> fs;
+unique_ptr<directory_container::DirectoryContainer> fs{};
 }
 
 namespace githubfs {
@@ -36,7 +33,7 @@ static int fs_opendir(const char* path, struct fuse_file_info* fi) {
    if (path == 0 || *path != '/') {
      return -ENOENT;
    }
-  const directory_container::Directory* d = dynamic_cast<
+  const auto d = dynamic_cast<
     directory_container::Directory*>(fs->mutable_get(path));
   if (!d) return -ENOENT;
   fi->fh = reinterpret_cast<uint64_t>(d);
@@ -119,10 +116,10 @@ int main(int argc, char *argv[]) {
   DEFINE_HANDLER(getattr);
   DEFINE_HANDLER(open);
   DEFINE_HANDLER(opendir);
-  DEFINE_HANDLER(releasedir);
   DEFINE_HANDLER(read);
   DEFINE_HANDLER(readdir);
   DEFINE_HANDLER(release);
+  DEFINE_HANDLER(releasedir);
 #undef DEFINE_HANDLER
   o.flag_nopath = true;
 

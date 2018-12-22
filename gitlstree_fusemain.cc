@@ -2,10 +2,11 @@
 
 #include <assert.h>
 #include <fuse.h>
-#include <memory>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <memory>
 
 #include "get_current_dir.h"
 #include "gitlstree.h"
@@ -25,12 +26,28 @@ static int fs_getattr(const char *path, struct stat *stbuf)
   return fs->Getattr(path, stbuf);
 }
 
+static int fs_opendir(const char* path, struct fuse_file_info* fi) {
+   if (path == 0 || *path != '/') {
+     return -ENOENT;
+   }
+  const auto d = dynamic_cast<
+    directory_container::Directory*>(fs->mutable_get(path));
+  if (!d) return -ENOENT;
+  fi->fh = reinterpret_cast<uint64_t>(d);
+  return 0;
+}
+
+static int fs_releasedir(const char*, struct fuse_file_info* fi) {
+  if (fi->fh == 0)
+    return -EBADF;
+  return 0;
+}
+
 static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi) {
   filler(buf, ".", NULL, 0);
   filler(buf, "..", NULL, 0);
-  const directory_container::Directory* d = dynamic_cast<
-    directory_container::Directory*>(fs->mutable_get(path));
+  auto* d = reinterpret_cast<const directory_container::Directory*>(fi->fh);
   if (!d) return -ENOENT;
   d->for_each([&](const string& s, const directory_container::File* unused){
       filler(buf, s.c_str(), NULL, 0);
@@ -44,7 +61,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi)
     return -ENOENT;
   }
 
-  auto f = reinterpret_cast<directory_container::File*>(fs->mutable_get(path));
+  const auto f = reinterpret_cast<directory_container::File*>(fs->mutable_get(path));
   if (!f)
     return -ENOENT;
   fi->fh = reinterpret_cast<uint64_t>(f);
@@ -56,7 +73,7 @@ static int fs_open(const char *path, struct fuse_file_info *fi)
 static int fs_read(const char *path, char *buf, size_t size, off_t offset,
 		   struct fuse_file_info *fi)
 {
-  auto fe = reinterpret_cast<directory_container::File*>(fi->fh);
+  const auto fe = reinterpret_cast<directory_container::File*>(fi->fh);
   if (!fe) {
     return -ENOENT;
   }
@@ -64,7 +81,7 @@ static int fs_read(const char *path, char *buf, size_t size, off_t offset,
 }
 
 static int fs_release(const char *path, struct fuse_file_info *fi) {
-  auto fe = reinterpret_cast<directory_container::File*>(fi->fh);
+  const auto fe = reinterpret_cast<directory_container::File*>(fi->fh);
   if (!fe) {
     return -ENOENT;
   }
@@ -76,7 +93,7 @@ static int fs_ioctl(const char *path, int cmd, void *arg,
   if (flags & FUSE_IOCTL_COMPAT)
     return -ENOSYS;
 
-  FileElement* fe = dynamic_cast<FileElement*>(reinterpret_cast<directory_container::File*>(fi->fh));
+  const auto fe = dynamic_cast<FileElement*>(reinterpret_cast<directory_container::File*>(fi->fh));
   if (!fe) {
     return -ENOENT;
   }
@@ -117,10 +134,13 @@ int main(int argc, char *argv[]) {
   DEFINE_HANDLER(getattr);
   DEFINE_HANDLER(ioctl);
   DEFINE_HANDLER(open);
+  DEFINE_HANDLER(opendir);
   DEFINE_HANDLER(read);
   DEFINE_HANDLER(readdir);
   DEFINE_HANDLER(release);
+  DEFINE_HANDLER(releasedir);
 #undef DEFINE_HANDLER
+  o.flag_nopath = true;
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   gitlstree_config conf{};
