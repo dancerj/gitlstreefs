@@ -44,7 +44,6 @@ public:
   virtual ssize_t Read(char *buf, size_t size, off_t offset) override;
   virtual int Getattr(struct stat *stbuf) override;
   virtual int Release() override;
-  void GetHash(char* hash) const;
 
 private:
   int attribute_;
