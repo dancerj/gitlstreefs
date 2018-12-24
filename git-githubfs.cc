@@ -127,46 +127,6 @@ bool ParseTrees(const string& trees_string, function<void(const string& path,
   return true;
 }
 
-void GitTree::LoadDirectoryInternal(const string& subdir, const string& tree_hash,
-				    bool remote_recurse) {
-  vector<thread> jobs;
-  string fetch_url = github_api_prefix_ + "/git/trees/" + tree_hash;
-  if (remote_recurse) {
-    // Let the remote system recurse.
-    fetch_url += "?recursive=true";
-  }
-  const string github_tree = HttpFetch(fetch_url, "lstree");
-  cout << "Loaded directory " << subdir << endl;
-  if (ParseTrees(github_tree,
-		  [&](const string& path,
-		      int mode,
-		      GitFileType fstype,
-		      const string& sha,
-		      const int size,
-		      const string& url){
-		   const std::string slash_path = string("/") + path;
-		   if (fstype == TYPE_blob) {
-		     container_->add(slash_path,
-				     std::make_unique<FileElement>(mode, sha, size, this));
-		   } else if (fstype == TYPE_tree) {
-		     // Nonempty directories get auto-created, but maybe do it here?
-		     container_->add(slash_path,
-				     std::make_unique<directory_container::Directory>());
-		     if (remote_recurse == false) {
-		       // If remote side recursion didn't work, do recursion here.
-		       jobs.emplace_back(thread([this, subdir, path, sha](){
-			     LoadDirectoryInternal(subdir + path + "/", sha, false);
-			   }));
-		     }
-		   }
-		 })) {
-    for (auto& job : jobs) { job.join(); }
-  } else {
-    cout << "Retry with remote recursion off." << endl;
-    LoadDirectoryInternal(subdir, tree_hash, false);
-  }
-}
-
 // Convert from Git attributes to filesystem attributes.
 int FileElement::Getattr(struct stat *stbuf) {
   stbuf->st_uid = getuid();
@@ -228,6 +188,46 @@ int FileElement::Release() {
   parent_->cache().release(sha1_, memory_);
   memory_ = nullptr;
   return 0;
+}
+
+void GitTree::LoadDirectoryInternal(const string& subdir, const string& tree_hash,
+				    bool remote_recurse) {
+  vector<thread> jobs;
+  string fetch_url = github_api_prefix_ + "/git/trees/" + tree_hash;
+  if (remote_recurse) {
+    // Let the remote system recurse.
+    fetch_url += "?recursive=true";
+  }
+  const string github_tree = HttpFetch(fetch_url, "lstree");
+  cout << "Loaded directory " << subdir << endl;
+  if (ParseTrees(github_tree,
+		  [&](const string& path,
+		      int mode,
+		      GitFileType fstype,
+		      const string& sha,
+		      const int size,
+		      const string& url){
+		   const std::string slash_path = string("/") + path;
+		   if (fstype == TYPE_blob) {
+		     container_->add(slash_path,
+				     std::make_unique<FileElement>(mode, sha, size, this));
+		   } else if (fstype == TYPE_tree) {
+		     // Nonempty directories get auto-created, but maybe do it here?
+		     container_->add(slash_path,
+				     std::make_unique<directory_container::Directory>());
+		     if (remote_recurse == false) {
+		       // If remote side recursion didn't work, do recursion here.
+		       jobs.emplace_back(thread([this, subdir, path, sha](){
+			     LoadDirectoryInternal(subdir + path + "/", sha, false);
+			   }));
+		     }
+		   }
+		 })) {
+    for (auto& job : jobs) { job.join(); }
+  } else {
+    cout << "Retry with remote recursion off." << endl;
+    LoadDirectoryInternal(subdir, tree_hash, false);
+  }
 }
 
 GitTree::GitTree(const char* hash, const char* github_api_prefix,
