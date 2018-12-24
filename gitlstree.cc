@@ -122,18 +122,6 @@ GitTree::~GitTree() {}
 FileElement::FileElement(int attribute, const string& sha1, int size, GitTree* parent) :
   attribute_(attribute), sha1_(sha1), size_(size), parent_(parent) {}
 
-#define TYPE(a) {#a, TYPE_##a}
-const static unordered_map<string, GitFileType> file_type_map {
-  TYPE(blob),
-  TYPE(tree),
-  TYPE(commit)
-};
-#undef TYPE
-
-GitFileType FileTypeStringToFileType(const string& file_type_string) {
-  return file_type_map.find(file_type_string)->second;
-}
-
 int FileElement::Open() {
   unique_lock<mutex> l(buf_mutex_);
   if (!memory_) {

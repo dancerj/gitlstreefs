@@ -41,8 +41,6 @@ private:
   DISALLOW_COPY_AND_ASSIGN(FileElement);
 };
 
-GitFileType FileTypeStringToFileType(const std::string& file_type_string);
-
 class GitTree {
 public:
   static std::unique_ptr<GitTree>
