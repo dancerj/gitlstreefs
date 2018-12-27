@@ -1,8 +1,9 @@
+# gitlstreefs project
 
 This project contains some experimental file system implemented using
 FUSE, that works with git and help building.
 
-# Building #
+## Building
 
 Requires libboost-dev, libfuse, libgit2 and zlib as build time library
 dependencies. The build system depends on nodejs and ninja.
@@ -26,7 +27,7 @@ $ ./configure.js
 $ ninja
 ```
 
-# git file system using git ls-tree, optionally via ssh #
+## gitlstree: git file system using git ls-tree, optionally via ssh
 
 gitlstree -- mounts a filesystem based on directory and hash, to
 mountpoint.  uses git ls-tree as backend.
@@ -47,7 +48,14 @@ $ ./out/gitlstree --ssh=server --path=repos/some.git mountpoint/
 $ fusermount -u mountpoint
 ```
 
-# git file system using github REST API #
+### Known bugs
+
+#### Does not support symlinks.
+
+Try out a tree with symlinks such as linux kernel; trying to read the
+symlinks will fail.
+
+## git-githubfs: git file system using github REST API
 
 git-githubfs -- mounts a filesystem based on github repository. Uses
 github rest API v3.
@@ -59,7 +67,7 @@ $ cat mountpoint/README.md
 $ fusermount -u mountpoint
 ```
 
-# git file system using libgit2 #
+## A git file system using libgit2
 
 experimental/gitfs -- mounts a filesystem based on directory and hash,
 to mountpoint.  uses libgit2
@@ -74,7 +82,9 @@ Although this was the initial approach, compared to other
 implementations this implementation is slower and consumes more
 memory.
 
-# ninja file system #
+## Other file systems
+
+### ninja file system
 
 ninjafs -- a filesystem that lists ninja build targets, and builds on
 demand.  Will return IO error when build fails, you can inspect
@@ -89,7 +99,7 @@ $ ./mountpoint/out/hello_world
 $ fusermount -u mountpoint
 ```
 
-# cow file system #
+### cow file system
 
 cowfs -- a filesystem that uses hardlinks and copy-on-write semantics.
 
@@ -118,6 +128,6 @@ $ sudo ./out/cowfs --lock_path=out/sid-chroot/lock \
       -o nonempty,allow_other,dev,suid,default_permissions
 ```
 
-# Copying #
+## Copying
 
 A BSD-style license.
