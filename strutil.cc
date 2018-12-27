@@ -8,8 +8,8 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "scoped_fd.h"
 
@@ -66,6 +66,12 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
     exit(1);
   case 0: {
     // Child process.
+    //
+    // Change directory before redirecting things so that error
+    // message has a chance of being viewed.
+    if (cwd) {
+      ABORT_ON_ERROR(chdir(cwd->c_str()));
+    }
     // Redirect stdout and stderr, and merge them. Do I care if I have stderr?
     ABORT_ON_ERROR(dup2(pipefd[1], 1));
     ABORT_ON_ERROR(dup2(pipefd[1], 2));
@@ -78,9 +84,6 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
       argv.push_back(const_cast<char*>(s.c_str()));
     }
     argv.push_back(nullptr);
-    if (cwd) {
-      ABORT_ON_ERROR(chdir(cwd->c_str()));
-    }
     ABORT_ON_ERROR(execvp(argv[0], &argv[0]));
     // Should not come here.
     exit(1);
