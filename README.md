@@ -40,12 +40,27 @@ $ ./out/gitlstree mountpoint
 $ fusermount -u mountpoint
 ```
 
+To mount a local repo from a different path
+
+```shell-session
+$ ./out/gitlstree --path=dir/to/some.git mountpoint
+$ fusermount -u mountpoint
+```
+
 To mount a remote repo via ssh connection, using `ssh SERVER 'cd PATH
 && git ls-tree'`:
 
 ```shell-session
 $ ./out/gitlstree --ssh=server --path=repos/some.git mountpoint/
 $ fusermount -u mountpoint
+```
+
+### Development
+
+There is an integration test that can be manually be ran.
+
+```shell-session
+$ ./gitlstree_integrationtest.sh
 ```
 
 ### Known bugs
@@ -65,6 +80,14 @@ $ ./out/git-githubfs --user=dancerj --project=gitlstreefs mountpoint/
 $ ls mountpoint/
 $ cat mountpoint/README.md
 $ fusermount -u mountpoint
+```
+
+### Development
+
+There is an integration test.
+
+```shell-session
+$ ./git-githubfs_test.sh
 ```
 
 ## A git file system using libgit2
