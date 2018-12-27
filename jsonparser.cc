@@ -1,11 +1,13 @@
 // Parser for RFC7159 JSON with some missing implementations.
+#include "jsonparser.h"
+
+#include <assert.h>
+
 #include <iostream>
 #include <map>
 #include <memory>
 #include <set>
 #include <vector>
-
-#include "jsonparser.h"
 
 namespace jjson {
 
@@ -22,19 +24,32 @@ const std::vector<std::unique_ptr<Value> >& Value::get_array() const {
 }
 
 const Value& Value::get(const std::string& key) const {
-  return *dynamic_cast<const ObjectValue*>(this)->value_.find(key)->second;
+  const auto o = dynamic_cast<const ObjectValue*>(this);
+  assert(o != nullptr);
+  const auto& it = o->value_.find(key);
+  assert(it != o->value_.end());
+  const auto& n = it->second;
+  assert(n.get() != nullptr);
+  return *n;
 }
 
 const std::string& Value::get_string() const {
-  return dynamic_cast<const StringValue*>(this)->value_;
+  const auto s = dynamic_cast<const StringValue*>(this);
+  assert(s != nullptr);
+  return s->value_;
 }
 
 float Value::get_number() const {
-  return dynamic_cast<const NumberValue*>(this)->value_;
+  const auto n = dynamic_cast<const NumberValue*>(this);
+  assert(n != nullptr);
+  return n->value_;
 }
 
 float Value::get_int() const {
-  return static_cast<int>(dynamic_cast<const NumberValue*>(this)->value_);
+  assert(this != nullptr);
+  const auto n = dynamic_cast<const NumberValue*>(this);
+  assert(n != nullptr);
+  return static_cast<int>(n->value_);
 }
 
 bool Value::is_true() const {
