@@ -29,6 +29,9 @@ public:
   /** Obtain number. */
   float get_number() const;
 
+  /** Obtain number and convert to int. */
+  float get_int() const;
+
   /** Check if this was 'true' */
   bool is_true() const;
 

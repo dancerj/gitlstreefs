@@ -33,6 +33,10 @@ float Value::get_number() const {
   return dynamic_cast<const NumberValue*>(this)->value_;
 }
 
+float Value::get_int() const {
+  return static_cast<int>(dynamic_cast<const NumberValue*>(this)->value_);
+}
+
 bool Value::is_true() const {
   return dynamic_cast<const TrueValue*>(this) != nullptr;
 }
