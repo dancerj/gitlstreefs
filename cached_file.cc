@@ -101,13 +101,16 @@ const Cache::Memory* Cache::get(const string& name,
     l.lock();
 
     string temporary(cache_file_path + ".tmp");
-    fd.reset(open(temporary.c_str(), O_RDWR | O_CREAT, 0666));
-    if (fd.get() == -1) {
-      perror((string("open ") + temporary).c_str());
-      return nullptr;
+    unlink(temporary.c_str());  // Make sure the file does not exist.
+    {
+      fd.reset(open(temporary.c_str(), O_RDWR | O_CREAT | O_EXCL, 0666));
+      if (fd.get() == -1) {
+	perror((string("open ") + temporary).c_str());
+	return nullptr;
+      }
+      assert(result.size() ==
+	     static_cast<size_t>(write(fd.get(), result.data(), result.size())));
     }
-    assert(result.size() ==
-	   static_cast<size_t>(write(fd.get(), result.data(), result.size())));
     assert(-1 != rename(temporary.c_str(), cache_file_path.c_str()));
   }
   struct stat stbuf;
