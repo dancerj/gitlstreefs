@@ -42,7 +42,7 @@ int PtfsHandler::premount_dirfd_ = -1;
   }
 
 PtfsHandler::PtfsHandler() {
-    assert(premount_dirfd_ != -1);
+  assert(premount_dirfd_ != -1);
 }
 
 PtfsHandler::~PtfsHandler() {}
