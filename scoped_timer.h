@@ -3,6 +3,7 @@
  */
 #include <chrono>
 #include <string>
+#include <map>
 
 #include "directory_container.h"
 
@@ -10,6 +11,7 @@
   system_clock, monotonic_clock and high_resolution_clock are supposed to exist,
   we have steady_clock and system_lock.
  */
+namespace scoped_timer {
 
 class ScopedTimer {
 public:
@@ -39,3 +41,16 @@ private:
   std::string message_;
   DISALLOW_COPY_AND_ASSIGN(StatusHandler);
 };
+
+class StatsHolder {
+public:
+  StatsHolder();
+  ~StatsHolder();
+  typedef long DataType;
+  void Add(const std::string& name, DataType value);
+  std::string Dump();
+private:
+  std::mutex m{};
+  std::unordered_map<std::string /* title */, std::map<int /* bucket */, size_t /* count */> > stats{};
+};
+} // scoped_timer

@@ -52,7 +52,7 @@ int FileElement::Getattr(struct stat *stbuf) {
 // Maybe run remote command if ssh spec is available.
 string GitTree::RunGitCommand(const vector<string>& commands, int* exit_code, 
 			      const std::string& log_tag) {
-  ScopedTimer time(log_tag);
+  scoped_timer::ScopedTimer time(log_tag);
   if (!ssh_.empty()) {
     string command;
     for (const auto& s: commands) {
@@ -94,7 +94,7 @@ bool GitTree::LoadDirectory(const string& hash, directory_container::DirectoryCo
 					      this));
     }
   }
-  container->add("/.status", make_unique<StatusHandler>());
+  container->add("/.status", make_unique<scoped_timer::StatusHandler>());
   return true;
 }
 

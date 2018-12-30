@@ -39,7 +39,7 @@ namespace githubfs {
 namespace {
 string HttpFetch(const string& url, const string& key) {
   ScopedConcurrencyLimit l(url);
-  ScopedTimer timer(key);
+  scoped_timer::ScopedTimer timer(key);
   vector<string> request{"curl",
       "-s",
       "-A",
@@ -238,7 +238,7 @@ GitTree::GitTree(const char* hash, const char* github_api_prefix,
   const string tree_hash = ParseCommit(commit);
 
   LoadDirectoryInternal("", tree_hash, true /* remote recurse*/);
-  container->add("/.status", std::make_unique<StatusHandler>());
+  container->add("/.status", std::make_unique<scoped_timer::StatusHandler>());
 }
 
 GitTree::~GitTree() {}

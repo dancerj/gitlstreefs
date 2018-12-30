@@ -1,4 +1,5 @@
 #include "cached_file.h"
+#include "scoped_timer.h"
 
 #include <assert.h>
 #include <fts.h>
@@ -41,14 +42,17 @@ bool walk(const std::string& dir, std::function<void(FTSENT* entry)> cb) {
 bool Gc() {
   time_t now = time(nullptr);
   std::vector<std::string> to_delete{};
-  assert(walk(".cache", [&to_delete, now](FTSENT* entry) {
+  scoped_timer::StatsHolder stats;
+  assert(walk(".cache", [&to_delete, now, &stats](FTSENT* entry) {
       if (entry->fts_info == FTS_F) {
 	std::string path(entry->fts_path, entry->fts_pathlen);
 	std::string name(entry->fts_name, entry->fts_namelen);
 	struct stat* st = entry->fts_statp;
 	time_t delta = now - st->st_atime;
 	std::cout << path <<
-	  " atime_delta_days:" << (delta / 60 / 60 / 24) << std::endl;
+	  " atime_delta_days:" << (delta / 60 / 60 / 24) << " size:" << st->st_size << std::endl;
+	stats.Add("size", st->st_size);
+	stats.Add("age", delta);
 	// .cache/bf/82c3eab3768308dfe445c7f8a314858cec09e0
 	if (name.size() == 38 && (delta / 60 / 60 / 24) > 60) {
 	  // This is probably a cache file, and is probably hasn't been used for a while
@@ -63,6 +67,7 @@ bool Gc() {
       return false;
     }
   }
+  std::cout << stats.Dump() << std::endl;
   return true;
 }
 

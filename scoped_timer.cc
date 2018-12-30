@@ -10,28 +10,26 @@
 #include <string>
 #include <unordered_map>
 
+namespace scoped_timer {
 namespace {
 // Global scoped variables for tracking metrics.
-std::mutex m{};
-std::unordered_map<std::string /* title */, std::map<int /* bucket */, int /* count */> > stats{};
+StatsHolder timing_stats{};
 }
 
-ScopedTimer::~ScopedTimer() {
-  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  std::chrono::microseconds diff_usec(std::chrono::duration_cast<std::chrono::microseconds>(end - begin_));
-  std::cout << name_ << " " << diff_usec.count() <<
-    std::endl;
-  {
+StatsHolder::StatsHolder() {}
+StatsHolder::~StatsHolder() {}
+
+void StatsHolder::Add(const std::string& name, DataType value) {
     std::unique_lock<std::mutex> l(m);
-    stats[name_][log2(diff_usec.count())] ++;
+    stats[name][log2(value)]++;
   }
-}
 
-/*static*/ std::string ScopedTimer::dump() {
+std::string StatsHolder::Dump() {
   std::stringstream ss;
+  std::unique_lock<std::mutex> l(m);
   for (const auto& stat : stats) {
     const std::string& name = stat.first;
-    const std::map<int, int>& histogram = stat.second;
+    const auto& histogram = stat.second;
     ss << name << std::endl;
     int max_value =
       std::max_element(histogram.begin(), histogram.end(),[](auto& a, auto& b){
@@ -42,10 +40,25 @@ ScopedTimer::~ScopedTimer() {
       const int item = 1 << h.first;
       const int count = h.second;
       ss << item << ":" << count << " " <<
-	std::string(count * 50 / max_value, 'a') << std::endl;
+	std::string(count * 50 / max_value, '*') << std::endl;
     }
   }
   return ss.str();
+}
+
+
+ScopedTimer::~ScopedTimer() {
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  std::chrono::microseconds diff_usec(std::chrono::duration_cast<std::chrono::microseconds>(end - begin_));
+  std::cout << name_ << " " << diff_usec.count() <<
+    std::endl;
+  {
+    timing_stats.Add(name_, diff_usec.count());
+  }
+}
+
+/*static*/ std::string ScopedTimer::dump() {
+  return timing_stats.Dump();
 }
 
 StatusHandler::StatusHandler() : message_() {}
@@ -84,3 +97,4 @@ int StatusHandler::Release() {
 void StatusHandler::RefreshMessage() {
   message_ = ScopedTimer::dump();
 }
+}  // namespace scoped_timer

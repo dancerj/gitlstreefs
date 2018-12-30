@@ -4,7 +4,7 @@
 
 int main() {
   {
-    ScopedTimer timer("hello world");
+    scoped_timer::ScopedTimer timer("hello world");
   }
-  std::cout << ScopedTimer::dump() << std::endl;
+  std::cout << scoped_timer::ScopedTimer::dump() << std::endl;
 }
