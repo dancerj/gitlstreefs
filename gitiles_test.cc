@@ -1,3 +1,4 @@
+#include "base64decode.h"
 #include "jsonparser.h"
 #include "strutil.h"
 
@@ -8,6 +9,19 @@
 #include <iostream>
 #include <memory>
 #include <string>
+
+// This returns base64 data in text format.
+// https://chromium.googlesource.com/chromiumos/third_party/kernel/+/chromeos-4.4/.gitignore?format=TEXT
+std::string FetchBlob(const std::string& blob_text_string) {
+  return base64decode(blob_text_string);
+}
+
+void FetchBlobTest() {
+  std::string gitiles_blob(ReadFromFileOrDie(AT_FDCWD, "testdata/gitiles-blob.txt"));
+  std::string fetched = FetchBlob(gitiles_blob);
+  assert(fetched.size() == 1325);
+  assert(fetched.find("NOTE!") != std::string::npos);
+}
 
 // Parses tree object from json, returns false if it was truncated and
 // needs retry.
@@ -46,7 +60,7 @@ bool ParseTrees(const std::string& trees_string, std::function<void(const std::s
   return true;
 }
 
-void GerritParserTest() {
+void GitilesParserTest() {
   /*
     Try something like:
    https://chromium.googlesource.com/chromiumos/third_party/kernel/+/chromeos-4.4?format=JSON  // not useful, gives a diff?
@@ -64,20 +78,21 @@ void GerritParserTest() {
   https://github.com/google/gitiles/blob/master/java/com/google/gitiles/GitilesFilter.java
   https://github.com/google/gitiles/blob/master/java/com/google/gitiles/TreeJsonData.java
   */
-  std::string gerrit_trees(ReadFromFileOrDie(AT_FDCWD, "testdata/gerrit-tree-recursive.json"));
+  std::string gitiles_trees(ReadFromFileOrDie(AT_FDCWD, "testdata/gitiles-tree-recursive.json"));
 
-  ParseTrees(gerrit_trees.substr(5), [](const std::string& path,
+  ParseTrees(gitiles_trees.substr(5), [](const std::string& path,
 					int mode,
 					const std::string& sha,
-					int size, 
+					int size,
 					const std::string& target) {
-	       std::cout << "gerrit:" << path << " " << std::oct << mode << " " << sha << " "
+	       std::cout << "gitiles:" << path << " " << std::oct << mode << " " << sha << " "
 			 << std::dec << size
 			 << (target.empty()?"":"->") << " " << target << std::endl;
 	     });
 }
 
 int main(int argc, char** argv) {
-  GerritParserTest();
+  GitilesParserTest();
+  FetchBlobTest();
   return 0;
 }

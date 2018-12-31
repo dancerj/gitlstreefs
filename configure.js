@@ -195,8 +195,9 @@ CompileLink('jsonparser_util',
 CompileLinkRunTest('scoped_timer_test',
 		   ['scoped_timer',
 		    'scoped_timer_test'])
-CompileLinkRunTest('gerrit_test',
-		   ['gerrit_test',
+CompileLinkRunTest('gitiles_test',
+		   ['base64decode',
+		    'gitiles_test',
 		    'jsonparser',
 		    'strutil'])
 Emit()
