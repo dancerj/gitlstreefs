@@ -23,13 +23,23 @@ void FetchBlobTest() {
   assert(fetched.find("NOTE!") != std::string::npos);
 }
 
-// Parses tree object from json, returns false if it was truncated and
-// needs retry.
-bool ParseTrees(const std::string& trees_string, std::function<void(const std::string& path,
-								    int mode,
-								    const std::string& sha,
-								    const int size,
-								    const std::string& target)> file_handler) {
+// Parses tree object from json, returns true on success.
+//
+// host_prject_branch_url needs to not end with a /. Should contain
+// http://HOST/PROJECT/+/BRANCH that is used for the original tree
+// request which should have been
+// http://HOST/PROJECT/+/BRANCH/?format=JSON&recursive=TRUE&long=1
+bool ParseTrees(const std::string host_project_branch_url,
+		const std::string& trees_string,
+		std::function<void(const std::string& path,
+				   int mode,
+				   const std::string& sha,
+				   const int size,
+				   const std::string& target,
+				   const std::string& url)> file_handler) {
+  // I assume the URL doesn't end at /.
+  assert(host_project_branch_url[host_project_branch_url.size() - 1] != '/');
+
   // Try parsing github api v3 trees output.
   std::unique_ptr<jjson::Value> value = jjson::Parse(trees_string);
 
@@ -50,44 +60,53 @@ bool ParseTrees(const std::string& trees_string, std::function<void(const std::s
       size = file->get("size").get_int();
     }
 
+    /*
+     * Gitiles API seems to require a commit revision+path for obtaining a blob.
+     * according to https://github.com/google/gitiles/issues/51
+     * Make sure we have one.
+     */
+    std::string name = file->get("name").get_string();
+    std::string url = host_project_branch_url + "/" + name + "?format=TEXT";
     assert(file != nullptr);
-    file_handler(std::string(file->get("name").get_string()),
+    file_handler(name,
 		 mode,
 		 std::string(file->get("id").get_string()),
 		 size,
-		 target);
+		 target,
+		 url);
   }
   return true;
 }
 
 void GitilesParserTest() {
   /*
-    Try something like:
-   https://chromium.googlesource.com/chromiumos/third_party/kernel/+/chromeos-4.4?format=JSON  // not useful, gives a diff?
-   https://chromium.googlesource.com/chromiumos/third_party/kernel/+/chromeos-4.4/?format=JSON  // tree.
-   https://chromium.googlesource.com/chromiumos/third_party/kernel/+/chromeos-4.4/?format=JSON&recursive=TRUE // retursive tree.
-  does not include size.
+    Things I tried:
 
-  long=1
-  Apparently I got it wrong; this component is called gitiles.
+    https://chromium.googlesource.com/chromiumos/third_party/kernel/+/chromeos-4.4?format=JSON
+    -- not useful, gives information about the diff.
 
-  pp=0 -- doesn't seem to do anything.
+    https://chromium.googlesource.com/chromiumos/third_party/kernel/+/chromeos-4.4/?format=JSON
+    -- gives a single tree.
 
-  documentation at https://review.openstack.org/Documentation/rest-api.html#output is something different?
+    https://chromium.googlesource.com/chromiumos/third_party/kernel/+/chromeos-4.4/?format=JSON&recursive=TRUE&long=1
+    -- Recursive tree that contains size also:
 
-  https://github.com/google/gitiles/blob/master/java/com/google/gitiles/GitilesFilter.java
-  https://github.com/google/gitiles/blob/master/java/com/google/gitiles/TreeJsonData.java
+    Probably useful to read through:
+    https://github.com/google/gitiles/blob/master/java/com/google/gitiles/GitilesFilter.java
+    https://github.com/google/gitiles/blob/master/java/com/google/gitiles/TreeJsonData.java
   */
   std::string gitiles_trees(ReadFromFileOrDie(AT_FDCWD, "testdata/gitiles-tree-recursive.json"));
 
-  ParseTrees(gitiles_trees.substr(5), [](const std::string& path,
-					int mode,
-					const std::string& sha,
-					int size,
-					const std::string& target) {
+  ParseTrees("https://chromium.googlesource.com/chromiumos/third_party/kernel/+/chromeos-4.4",
+	     gitiles_trees.substr(5), [](const std::string& path,
+					 int mode,
+					 const std::string& sha,
+					 int size,
+					 const std::string& target,
+					 const std::string& url) {
 	       std::cout << "gitiles:" << path << " " << std::oct << mode << " " << sha << " "
 			 << std::dec << size
-			 << (target.empty()?"":"->") << " " << target << std::endl;
+			 << (target.empty()?"":"->") << " " << target << " " << url << std::endl;
 	     });
 }
 
