@@ -234,6 +234,7 @@ GitTree::GitTree(const char* hash, const char* github_api_prefix,
 		 directory_container::DirectoryContainer* container,
 		 const std::string& cache_dir)
     : github_api_prefix_(github_api_prefix), container_(container), cache_(cache_dir) {
+  cache_.Gc();
   string commit = HttpFetch(github_api_prefix_ + "/commits/" + hash, "commit");
   const string tree_hash = ParseCommit(commit);
 

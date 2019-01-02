@@ -132,7 +132,9 @@ CompileLinkRunTest('directory_container_test', ['directory_container_test',
 
 CompileLink('git_ioctl_client', ['git_ioctl_client']);
 CompileLinkRunTest('scoped_fd_test', ['scoped_fd_test']);
-CompileLinkRunTest('cached_file_test', ['cached_file', 'cached_file_test']);
+CompileLinkRunTest('cached_file_test', ['cached_file',
+				        'cached_file_test',
+					'scoped_timer']);
 CompileLink('cached_file_util', ['cached_file',
 				 'scoped_timer',
 				 'cached_file_util']);

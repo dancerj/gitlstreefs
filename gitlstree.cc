@@ -115,7 +115,9 @@ std::unique_ptr<GitTree> GitTree::NewGitTree(const string& my_gitdir,
 
 GitTree::GitTree(const string& my_gitdir,
 		 const string& maybe_ssh, const string& cached_dir)
-    : gitdir_(my_gitdir), ssh_(maybe_ssh), cache_(cached_dir) {}
+    : gitdir_(my_gitdir), ssh_(maybe_ssh), cache_(cached_dir) {
+  cache_.Gc();
+}
 
 GitTree::~GitTree() {}
 

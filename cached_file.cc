@@ -2,9 +2,11 @@
  * An implementation of a dumb file-backed cache.
  */
 #include "cached_file.h"
+#include "scoped_timer.h"
 
 #include <assert.h>
 #include <fcntl.h>
+#include <fts.h>
 #include <sys/file.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -15,6 +17,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "scoped_fd.h"
 
@@ -55,6 +58,7 @@ Cache::Cache(const string& cache_dir) :
   // better.
   assert(file_lock_.get() != -1);
   assert(flock(file_lock_.get(), LOCK_EX) != -1);
+  assert(cache_dir_[cache_dir_.size()-1] == '/');
 }
 
 Cache::~Cache() {
@@ -135,5 +139,70 @@ bool Cache::release(const string& name, const Cache::Memory* item) {
   }
   assert(&it->second == item);
   mapped_files_.erase(it);
+  return true;
+}
+
+namespace {
+bool walk(const std::string& dir, std::function<void(FTSENT* entry)> cb) {
+  // fts wants a mutable directory name, why?
+  std::string mutable_dir(dir);
+  char * const paths[] = { &mutable_dir[0], nullptr };
+  FTS *f = fts_open(paths, FTS_PHYSICAL,
+		    NULL /* use default ordering */);
+  if (!f) {
+    perror("fts_open");
+    return false;
+  }
+
+  FTSENT* entry;
+  while((entry = fts_read(f)) != NULL) {
+    cb(entry);
+  }
+  if (errno) {
+    perror("fts_read");
+    return false;
+  }
+  if (fts_close(f) == -1) {
+    perror("fts_close");
+    return false;
+  }
+  return true;
+}
+}  // anonymous namespace
+
+bool Cache::Gc() {
+  unique_lock<mutex> l(mutex_);
+
+  time_t now = time(nullptr);
+  std::vector<std::string> to_delete{};
+  scoped_timer::StatsHolder stats;
+  assert(walk(cache_dir_, [&to_delete, now, &stats](FTSENT* entry) {
+      if (entry->fts_info == FTS_F) {
+	std::string path(entry->fts_path, entry->fts_pathlen);
+	std::string name(entry->fts_name, entry->fts_namelen);
+	struct stat* st = entry->fts_statp;
+	time_t delta = now - st->st_atime;
+	/*
+	   std::cout << path <<
+	   " atime_delta_days:" << (delta / 60 / 60 / 24) <<
+	   " size:" << st->st_size << std::endl;
+	*/
+	stats.Add("size", st->st_size);
+	stats.Add("age", delta);
+	// .cache/bf/82c3eab3768308dfe445c7f8a314858cec09e0
+	if (name.size() == 38 && (delta / 60 / 60 / 24) > 60) {
+	  // This is probably a cache file, and is probably hasn't been used for a while
+	  to_delete.push_back(path);
+	}
+      }
+    }));
+  for (const auto& path : to_delete) {
+    std::cout << "garbage collect old files : " << path << std::endl;
+    if (-1 == unlink(path.c_str())) {
+      perror(path.c_str());
+      return false;
+    }
+  }
+  std::cout << stats.Dump() << std::endl;
   return true;
 }

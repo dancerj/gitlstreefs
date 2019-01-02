@@ -36,6 +36,9 @@ public:
   const Memory* get(const std::string& name, std::function<bool(std::string*)> fetch);
   bool release(const std::string& name, const Memory* item);
 
+  // Garbage collect old cache items.
+  bool Gc();
+
 private:
   void GetFileName(const std::string& key, std::string*, std::string*) const;
 
