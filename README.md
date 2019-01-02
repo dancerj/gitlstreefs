@@ -63,13 +63,6 @@ There is an integration test that can be manually be ran.
 $ ./gitlstree_integrationtest.sh
 ```
 
-### Known bugs
-
-#### Does not support symlinks.
-
-Try out a tree with symlinks such as linux kernel; trying to read the
-symlinks will fail.
-
 ## git-githubfs: git file system using github REST API
 
 git-githubfs -- mounts a filesystem based on github repository. Uses
@@ -89,6 +82,13 @@ There is an integration test.
 ```shell-session
 $ ./git-githubfs_test.sh
 ```
+
+### Known bugs
+
+#### Does not support symlinks.
+
+Try out a tree with symlinks such as linux kernel; trying to read the
+symlinks will fail.
 
 ## A git file system using libgit2
 

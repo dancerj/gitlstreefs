@@ -165,6 +165,12 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   return size;
 }
 
+ssize_t FileElement::Readlink(char *target, size_t size) {
+  unique_lock<mutex> l(buf_mutex_);
+  // Not yet supported.
+  assert(0);
+}
+
 int FileElement::Open() {
   unique_lock<mutex> l(buf_mutex_);
   if (!memory_) {

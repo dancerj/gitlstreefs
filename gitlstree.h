@@ -24,11 +24,14 @@ public:
   FileElement(int attribute, const std::string& sha1, int size, GitTree* parent);
   virtual int Open() override;
   virtual ssize_t Read(char *buf, size_t size, off_t offset) override;
+  virtual ssize_t Readlink(char *buf, size_t size) override;
   virtual int Getattr(struct stat *stbuf) override;
   int Release();
   void GetHash(char* hash) const;
 
 private:
+  int maybe_cat_file_locked();
+
   // If file content is read, this should be populated.
   const Cache::Memory* memory_{};
   std::mutex buf_mutex_{};

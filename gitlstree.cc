@@ -124,8 +124,7 @@ GitTree::~GitTree() {}
 FileElement::FileElement(int attribute, const string& sha1, int size, GitTree* parent) :
   attribute_(attribute), sha1_(sha1), size_(size), parent_(parent) {}
 
-int FileElement::Open() {
-  unique_lock<mutex> l(buf_mutex_);
+int FileElement::maybe_cat_file_locked() {
   if (!memory_) {
     memory_ = parent_->cache().get(sha1_, [this](string* ret) -> bool {
 	int exit_code;
@@ -142,7 +141,13 @@ int FileElement::Open() {
   return 0;
 }
 
+int FileElement::Open() {
+  unique_lock<mutex> l(buf_mutex_);
+  return maybe_cat_file_locked();
+}
+
 ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
+  unique_lock<mutex> l(buf_mutex_);
   if (offset < static_cast<off_t>(memory_->size())) {
     if (offset + size > memory_->size())
       size = memory_->size() - offset;
@@ -150,6 +155,19 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   } else
     size = 0;
   return size;
+}
+
+ssize_t FileElement::Readlink(char *target, size_t size) {
+  unique_lock<mutex> l(buf_mutex_);
+  int e = maybe_cat_file_locked();
+  if (e != 0)
+    return e;
+
+  if (size > memory_->size())
+    size = memory_->size();
+  // TODO: does this give trailing 0?
+  memcpy(target, static_cast<const char*>(memory_->memory()), size);
+  return 0;
 }
 
 void FileElement::GetHash(char* hash) const {

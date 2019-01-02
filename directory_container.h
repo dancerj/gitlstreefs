@@ -34,6 +34,9 @@ public:
    * @return >= 0 on success, -errno on fail.
    */
   virtual ssize_t Read(char *buf, size_t size, off_t offset) = 0;
+  virtual ssize_t Readlink(char *buf, size_t size) {
+    return -ENOSYS;
+  }
 
   virtual int Open() = 0;
   virtual int Release() = 0;
@@ -67,6 +70,10 @@ public:
 
   virtual int Release() override {
     // Can't release a directory?
+    return -EINVAL;
+  }
+
+  virtual ssize_t Readlink(char *buf, size_t size) {
     return -EINVAL;
   }
 

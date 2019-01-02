@@ -18,9 +18,9 @@ static int fs_getattr(const char *path, struct stat *stbuf)
 }
 
 static int fs_opendir(const char* path, struct fuse_file_info* fi) {
-   if (path == 0 || *path != '/') {
-     return -ENOENT;
-   }
+  if (path == 0 || *path != '/') {
+    return -ENOENT;
+  }
   const auto d = dynamic_cast<
     directory_container::Directory*>(fs->mutable_get(path));
   if (!d) return -ENOENT;
@@ -71,6 +71,16 @@ static int fs_read(const char *path, char *buf, size_t size, off_t offset,
   return fe->Read(buf, size, offset);
 }
 
+static int fs_readlink(const char *path, char *buf, size_t size)
+{
+  if (path == 0 || *path != '/') {
+    return -ENOENT;
+  }
+
+  auto f = fs->mutable_get(path);
+  return f->Readlink(buf, size);
+}
+
 static int fs_release(const char *path, struct fuse_file_info *fi) {
   auto fe = reinterpret_cast<directory_container::File*>(fi->fh);
   if (!fe) {
@@ -88,6 +98,7 @@ struct fuse_operations GetFuseOperations() {
   DEFINE_HANDLER(opendir);
   DEFINE_HANDLER(read);
   DEFINE_HANDLER(readdir);
+  DEFINE_HANDLER(readlink);
   DEFINE_HANDLER(release);
   DEFINE_HANDLER(releasedir);
 #undef DEFINE_HANDLER
