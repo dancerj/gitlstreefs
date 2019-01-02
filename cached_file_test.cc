@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include <iostream>
 #include <string>
 
 using std::string;
@@ -9,7 +10,9 @@ using std::string;
 static char kTestString[] = "HogeFuga";
 
 int main(int argc, char** argv) {
+  std::cout << "Wait for lock." << std::endl;
   Cache c(".cache/");
+  std::cout << "Start of main test." << std::endl;
   const Cache::Memory* m = c.get("test1", [](string* ret) -> bool {
       *ret = string(kTestString);
       return true;
