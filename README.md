@@ -57,7 +57,7 @@ $ fusermount -u mountpoint
 
 ### Development
 
-There is an integration test that can be manually be ran.
+There is an integration test that can be manually ran.
 
 ```shell-session
 $ ./gitlstree_integrationtest.sh
