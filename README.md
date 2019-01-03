@@ -83,12 +83,14 @@ There is an integration test.
 $ ./git-githubfs_test.sh
 ```
 
-### Known bugs
+#### Attaching GDB
 
-#### Does not support symlinks.
+`-d` is usually a good option so that it won't daemonize.
 
-Try out a tree with symlinks such as linux kernel; trying to read the
-symlinks will fail.
+```shell-session
+$ gdb out/git-githubfs
+(gdb) run --user=torvalds --project=linux ../mountpoint -d 
+```
 
 ## A git file system using libgit2
 

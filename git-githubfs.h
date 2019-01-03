@@ -47,6 +47,8 @@ public:
   virtual int Release() override;
 
 private:
+  ssize_t maybe_cat_file_locked();
+
   int attribute_;
   std::string sha1_;
   int size_;

@@ -21,7 +21,12 @@ public:
     Memory& operator=(Memory&& m);
     ~Memory();
     const void* memory() const;
+    // For utility
+    const char* memory_charp() const;
     size_t size() const;
+
+    // For debugging.
+    std::string get_copy() const;
 
   private:
     void* memory_;

@@ -23,6 +23,9 @@ int main(int argc, char** argv) {
   string test(reinterpret_cast<const char*>(m->memory()), m->size());
   assert(test == kTestString);
   string test2(reinterpret_cast<const char*>(m2->memory()), m2->size());
-  assert(test == kTestString);
+  assert(test2 == kTestString);
+  string test3(m2->memory_charp(), m2->size());
+  assert(test3 == kTestString);
+  assert(m2->get_copy() == kTestString);
   return 0;
 }

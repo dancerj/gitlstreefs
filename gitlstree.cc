@@ -163,9 +163,13 @@ ssize_t FileElement::Readlink(char *target, size_t size) {
   if (e != 0)
     return e;
 
-  if (size > memory_->size())
+  if (size > memory_->size()) {
     size = memory_->size();
-  // TODO: does this give trailing 0?
+    target[size] = 0;
+  } else {
+    // TODO: is this an error condition that we can't fit in the final 0 ?
+  }
+
   memcpy(target, static_cast<const char*>(memory_->memory()), size);
   return 0;
 }

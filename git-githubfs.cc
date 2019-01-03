@@ -167,12 +167,24 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
 
 ssize_t FileElement::Readlink(char *target, size_t size) {
   unique_lock<mutex> l(buf_mutex_);
-  // Not yet supported.
-  assert(0);
+  int e = maybe_cat_file_locked();
+  if (e != 0) {
+    return e;
+  }
+  if (size > memory_->size()) {
+    size = memory_->size();
+    target[size] = 0;
+  } else {
+    // TODO: is this an error condition that we can't fit in the final 0 ?
+  }
+  std::cout << "DEBUG:" << memory_->get_copy() << std::endl;
+  const char* source = static_cast<const char*>(memory_->memory());
+
+  memcpy(target, source, size);
+  return 0;
 }
 
-int FileElement::Open() {
-  unique_lock<mutex> l(buf_mutex_);
+ssize_t FileElement::maybe_cat_file_locked() {
   if (!memory_) {
     memory_ = parent_->cache().get(sha1_, [this](string* ret) -> bool {
 	const string url = parent_->get_github_api_prefix() +
@@ -187,6 +199,11 @@ int FileElement::Open() {
     }
   }
   return 0;
+}
+
+int FileElement::Open() {
+  unique_lock<mutex> l(buf_mutex_);
+  return maybe_cat_file_locked();
 }
 
 int FileElement::Release() {
