@@ -5,19 +5,20 @@
  */
 #define FUSE_USE_VERSION 26
 
-#include <assert.h>
-#include <boost/algorithm/string.hpp>
-#include <fuse.h>
-#include <iostream>
-#include <memory>
-#include <mutex>
-#include <stdio.h>
-#include <string.h>
-#include <unordered_map>
-
 #include "directory_container.h"
 #include "get_current_dir.h"
 #include "strutil.h"
+
+#include <assert.h>
+#include <fuse.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <boost/algorithm/string.hpp>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <unordered_map>
 
 using std::cout;
 using std::endl;
