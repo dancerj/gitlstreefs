@@ -33,6 +33,40 @@ using std::unordered_map;
 using std::vector;
 
 namespace gitlstree {
+namespace {
+class GitHeadHandler : public directory_container::File {
+public:
+  GitHeadHandler(const std::string& rev, GitTree* parent) :
+    rev_(rev), parent_(parent) {}
+  virtual ~GitHeadHandler() {}
+
+  virtual int Getattr(struct stat *stbuf) override {
+    stbuf->st_uid = getuid();
+    stbuf->st_gid = getgid();
+    stbuf->st_mode = S_IFREG | S_IRUSR | S_IWUSR;
+    stbuf->st_size = rev_.size();
+    stbuf->st_nlink = 1;
+    return 0;
+  }
+  virtual ssize_t Read(char *target, size_t size, off_t offset) override {
+    if (offset != 0) {
+      return -EIO;
+    }
+    if (size <= rev_.size()) {
+      return -EIO;
+    }
+    memcpy(target, rev_.c_str(), rev_.size() + 1);
+    return rev_.size() + 1;
+  }
+  virtual int Open() override { return 0; }
+  virtual int Release() override { return 0; }
+private:
+  std::string rev_;
+  GitTree* parent_;
+  DISALLOW_COPY_AND_ASSIGN(GitHeadHandler);
+};
+
+} // anynomous namespace
 
 int FileElement::Getattr(struct stat *stbuf) {
   stbuf->st_uid = getuid();
@@ -50,7 +84,7 @@ int FileElement::Getattr(struct stat *stbuf) {
 }
 
 // Maybe run remote command if ssh spec is available.
-string GitTree::RunGitCommand(const vector<string>& commands, int* exit_code, 
+string GitTree::RunGitCommand(const vector<string>& commands, int* exit_code,
 			      const std::string& log_tag) {
   scoped_timer::ScopedTimer time(log_tag);
   if (!ssh_.empty()) {
@@ -95,6 +129,7 @@ bool GitTree::LoadDirectory(const string& hash, directory_container::DirectoryCo
     }
   }
   container->add("/.status", make_unique<scoped_timer::StatusHandler>());
+  container->add("/.git/HEAD", make_unique<GitHeadHandler>(hash, this));
   return true;
 }
 
