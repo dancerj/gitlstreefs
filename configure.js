@@ -97,7 +97,9 @@ CompileLink('gitlstree',
 	     'strutil'])
 
 CompileLinkRunTest('strutil_test', ['strutil', 'strutil_test'])
-CompileLink('ninjafs', ['ninjafs', 'strutil', 'get_current_dir',
+CompileLink('ninjafs', ['ninjafs',
+			'strutil',
+			'get_current_dir',
 			'basename'])
 RunTestScript('ninjafs_test.sh', {
     extra_depends: ['out/ninjafs']
@@ -145,12 +147,20 @@ CompileLinkRunTest('base64decode_benchmark', ['base64decode',
 
 //Experimental code.
 CompileLink('experimental/gitfs',
-	    ['experimental/gitfs', 'experimental/gitfs_fusemain', 'strutil',
-	     'get_current_dir', 'experimental/gitxx', 'basename'],
+	    ['experimental/gitfs',
+	     'experimental/gitfs_fusemain',
+	     'strutil',
+	     'get_current_dir',
+	     'experimental/gitxx',
+	     'basename'],
 	    {cclink: 'cclinkwithgit2'})
 CompileLinkRunTest('experimental/gitfs_test',
-		   ['experimental/gitfs', 'experimental/gitfs_test', 'strutil',
-		    'get_current_dir', 'experimental/gitxx', 'basename'],
+		   ['experimental/gitfs',
+		    'experimental/gitfs_test',
+		    'strutil',
+		    'get_current_dir',
+		    'experimental/gitxx',
+		    'basename'],
 		   {cclink: 'cclinkwithgit2'})
 CompileLinkRunTest('experimental/libgit2test',
 		   ['experimental/libgit2test', 'experimental/gitxx'],
@@ -183,17 +193,25 @@ CompileLinkRunTest('cowfs_crypt_test', ['cowfs_crypt',
 RunTestScript('cowfs_test.sh', {
     extra_depends: ['out/cowfs', 'out/hello_world']
 })
-CompileLink('ptfs', ['ptfs_main', 'ptfs', 'ptfs_handler',
-		     'relative_path', 'scoped_fileutil', 'strutil',
+CompileLink('ptfs', ['ptfs_main',
+		     'ptfs',
+		     'ptfs_handler',
+		     'relative_path',
+		     'scoped_fileutil',
+		     'strutil',
 		     'update_rlimit'])
 CompileLink('file_copy_test', ['file_copy', 'file_copy_test'])
 CompileLink('experimental/parallel_writer', ['experimental/parallel_writer'])
 CompileLinkRunTest('scoped_fileutil_test',
-		   ['scoped_fileutil_test', 'scoped_fileutil'])
+		   ['scoped_fileutil_test',
+		    'scoped_fileutil'])
 CompileLinkRunTest('jsonparser_test',
-		   ['jsonparser_test', 'jsonparser'])
+		   ['jsonparser_test',
+		    'jsonparser'])
 CompileLink('jsonparser_util',
-	    ['jsonparser_util', 'jsonparser', 'strutil'])
+	    ['jsonparser_util',
+	     'jsonparser',
+	     'strutil'])
 CompileLinkRunTest('scoped_timer_test',
 		   ['scoped_timer',
 		    'scoped_timer_test'])
