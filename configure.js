@@ -83,6 +83,7 @@ CompileLinkRunTest('gitlstree_test',
 		    'gitlstree',
 		    'gitlstree_test',
 		    'scoped_timer',
+		    'stats_holder',
 		    'strutil'])
 
 CompileLink('gitlstree',
@@ -94,6 +95,7 @@ CompileLink('gitlstree',
 	     'gitlstree',
 	     'gitlstree_fusemain',
 	     'scoped_timer',
+	     'stats_holder',
 	     'strutil'])
 
 CompileLinkRunTest('strutil_test', ['strutil', 'strutil_test'])
@@ -115,6 +117,7 @@ CompileLinkRunTest('git-githubfs_test', ['base64decode',
 					 'git-githubfs',
 					 'jsonparser',
 					 'scoped_timer',
+					 'stats_holder',
 					 'strutil'])
 CompileLink('git-githubfs', ['base64decode',
 			     'basename',
@@ -126,6 +129,7 @@ CompileLink('git-githubfs', ['base64decode',
 			     'git-githubfs',
 			     'jsonparser',
 			     'scoped_timer',
+			     'stats_holder',
 			     'strutil'])
 CompileLinkRunTest('concurrency_limit_test', ['concurrency_limit_test',
 					      'concurrency_limit']);
@@ -136,10 +140,10 @@ CompileLink('git_ioctl_client', ['git_ioctl_client']);
 CompileLinkRunTest('scoped_fd_test', ['scoped_fd_test']);
 CompileLinkRunTest('cached_file_test', ['cached_file',
 				        'cached_file_test',
-					'scoped_timer']);
+					'stats_holder']);
 CompileLink('cached_file_util', ['cached_file',
-				 'scoped_timer',
-				 'cached_file_util']);
+				 'cached_file_util',
+				 'stats_holder',]);
 CompileLinkRunTest('base64decode_test', ['base64decode',
 					 'base64decode_test']);
 CompileLinkRunTest('base64decode_benchmark', ['base64decode',
@@ -214,7 +218,8 @@ CompileLink('jsonparser_util',
 	     'strutil'])
 CompileLinkRunTest('scoped_timer_test',
 		   ['scoped_timer',
-		    'scoped_timer_test'])
+		    'scoped_timer_test',
+		    'stats_holder'])
 CompileLinkRunTest('gitiles_test',
 		   ['base64decode',
 		    'gitiles_test',

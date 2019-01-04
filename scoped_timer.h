@@ -3,7 +3,6 @@
  */
 #include <chrono>
 #include <string>
-#include <map>
 
 #include "directory_container.h"
 
@@ -40,17 +39,5 @@ private:
   void RefreshMessage();
   std::string message_;
   DISALLOW_COPY_AND_ASSIGN(StatusHandler);
-};
-
-class StatsHolder {
-public:
-  StatsHolder();
-  ~StatsHolder();
-  typedef long DataType;
-  void Add(const std::string& name, DataType value);
-  std::string Dump();
-private:
-  std::mutex m{};
-  std::unordered_map<std::string /* title */, std::map<int /* bucket */, size_t /* count */> > stats{};
 };
 } // scoped_timer

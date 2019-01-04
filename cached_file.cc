@@ -2,7 +2,7 @@
  * An implementation of a dumb file-backed cache.
  */
 #include "cached_file.h"
-#include "scoped_timer.h"
+#include "stats_holder.h"
 
 #include <assert.h>
 #include <fcntl.h>
@@ -181,7 +181,7 @@ bool Cache::Gc() {
 
   time_t now = time(nullptr);
   std::vector<std::string> to_delete{};
-  scoped_timer::StatsHolder stats;
+  stats_holder::StatsHolder stats;
   assert(walk(cache_dir_, [&to_delete, now, &stats](FTSENT* entry) {
       if (entry->fts_info == FTS_F) {
 	std::string path(entry->fts_path, entry->fts_pathlen);
