@@ -25,3 +25,4 @@ A base64-encoded base64encode.cc
 ## symlink
 
 For testing symlink operation.
+This string is used for integration testing, do not change.
