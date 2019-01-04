@@ -1,6 +1,7 @@
 #ifndef GITLSTREE_H_
 #define GITLSTREE_H_
 
+#include <assert.h>
 #include <sys/ioctl.h>
 
 #include <mutex>

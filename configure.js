@@ -79,6 +79,7 @@ CompileLinkRunTest('gitlstree_test',
 		   ['basename',
 		    'cached_file',
 		    'concurrency_limit',
+		    'directory_container',
 		    'get_current_dir',
 		    'gitlstree',
 		    'gitlstree_test',
@@ -90,6 +91,7 @@ CompileLink('gitlstree',
 	    ['basename',
 	     'cached_file',
 	     'concurrency_limit',
+	     'directory_container',
 	     'get_current_dir',
 	     'git_adapter',
 	     'gitlstree',
@@ -99,10 +101,11 @@ CompileLink('gitlstree',
 	     'strutil'])
 
 CompileLinkRunTest('strutil_test', ['strutil', 'strutil_test'])
-CompileLink('ninjafs', ['ninjafs',
-			'strutil',
+CompileLink('ninjafs', ['basename',
+			'directory_container',
 			'get_current_dir',
-			'basename'])
+			'ninjafs',
+			'strutil'])
 RunTestScript('ninjafs_test.sh', {
     extra_depends: ['out/ninjafs']
 })
@@ -112,6 +115,7 @@ CompileLinkRunTest('git-githubfs_test', ['base64decode',
 					 'basename',
 					 'cached_file',
 					 'concurrency_limit',
+					 'directory_container',
 					 'get_current_dir',
 					 'git-githubfs_test',
 					 'git-githubfs',
@@ -123,6 +127,7 @@ CompileLink('git-githubfs', ['base64decode',
 			     'basename',
 			     'cached_file',
 			     'concurrency_limit',
+			     'directory_container',
 			     'get_current_dir',
 			     'git_adapter',
 			     'git-githubfs_fusemain',
@@ -133,7 +138,8 @@ CompileLink('git-githubfs', ['base64decode',
 			     'strutil'])
 CompileLinkRunTest('concurrency_limit_test', ['concurrency_limit_test',
 					      'concurrency_limit']);
-CompileLinkRunTest('directory_container_test', ['directory_container_test',
+CompileLinkRunTest('directory_container_test', ['directory_container',
+						'directory_container_test',
 						'basename']);
 
 CompileLink('git_ioctl_client', ['git_ioctl_client']);

@@ -1,5 +1,9 @@
 #include "directory_container.h"
 
+#include "basename.h"
+
+#include <assert.h>
+
 #include <functional>
 #include <iostream>
 #include <map>
@@ -7,7 +11,6 @@
 #include <string>
 #include <vector>
 
-#include "basename.h"
 
 using std::cout;
 using std::endl;

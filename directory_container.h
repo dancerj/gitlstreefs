@@ -1,19 +1,13 @@
 #ifndef DIRECTORY_CONTAINER_H_
 #define DIRECTORY_CONTAINER_H_
 
-#include <string.h>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
-#include <cassert>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
 
-#include "basename.h"
 #include "disallow.h"
 
 namespace directory_container {
@@ -47,16 +41,10 @@ private:
 
 class Directory : public File {
 public:
-  Directory() : mutex_() {}
-  virtual ~Directory() {}
+  Directory();
+  virtual ~Directory();
 
-  virtual int Getattr(struct stat *stbuf) override {
-    stbuf->st_uid = getuid();
-    stbuf->st_gid = getgid();
-    stbuf->st_mode = S_IFDIR | 0755;
-    stbuf->st_nlink = 2;
-    return 0;
-  };
+  virtual int Getattr(struct stat *stbuf) override;
 
   virtual ssize_t Read(char *buf, size_t size, off_t offset) override {
     // Can't read from a directory.
@@ -98,16 +86,7 @@ public:
     }
   }
 
-  void dump(int indent = 0) {
-    std::lock_guard<std::mutex> l(mutex_);
-    for (const auto& file: files_) {
-      std::cout << std::string(indent, ' ') << file.first << std::endl;
-      Directory* d = dynamic_cast<Directory*>(file.second.get());
-      if (d) {
-	d->dump(indent + 1);
-      }
-    }
-  }
+  void dump(int indent = 0);
 
 private:
   typedef std::unordered_map<std::string,
@@ -120,39 +99,13 @@ private:
 
 class DirectoryContainer {
 public:
-  DirectoryContainer() {
-    files_["/"] = &root_;
-    clock_gettime(CLOCK_REALTIME, &mount_time_);
-  };
-  ~DirectoryContainer() {};
+  DirectoryContainer();
+  ~DirectoryContainer();
 
-  void add(const std::string& path, std::unique_ptr<File> file) {
-    std::lock_guard<std::mutex> l(path_mutex_);
-    std::string dirname(DirName(path));
-    Directory* dir = MaybeCreateParentDir(dirname);
-    files_[path] = file.get();
-    dir->add(BaseName(path), move(file));
-  }
-
-  const File* get(const std::string& path) const {
-    std::lock_guard<std::mutex> l(path_mutex_);
-    auto it = files_.find(path);
-    if (it != files_.end())
-      return it->second;
-    else
-      return nullptr;
-  }
-
-  File* mutable_get(const std::string& path) {
-    std::lock_guard<std::mutex> l(path_mutex_);
-    auto it = files_.find(path);
-    if (it != files_.end())
-      return it->second;
-    else
-      return nullptr;
-  }
-
-  bool is_directory(const std::string& path) {
+  void add(const std::string& path, std::unique_ptr<File> file);
+  const File* get(const std::string& path) const;
+  File* mutable_get(const std::string& path);
+  bool is_directory(const std::string& path) const {
     std::lock_guard<std::mutex> l(path_mutex_);
     auto it = files_.find(path);
     if (it != files_.end())
@@ -160,26 +113,9 @@ public:
     return false;
   }
 
-  int Getattr(const std::string& path, struct stat *stbuf) {
-    memset(stbuf, 0, sizeof(struct stat));
-    stbuf->st_atim = stbuf->st_mtim = stbuf->st_ctim =
-      mount_time_;
-    File* f = mutable_get(path);
-    if (!f) return -ENOENT;
-    return f->Getattr(stbuf);
-  }
+  int Getattr(const std::string& path, struct stat *stbuf);
 
-  void dump() {
-    std::lock_guard<std::mutex> l(path_mutex_);
-    std::cout << "Files map" << std::endl;
-    for (const auto& file : files_) {
-      std::cout << file.first << " " << file.second << std::endl;
-      std::cout << "Is directory: "
-		<< (dynamic_cast<Directory*>(file.second) != nullptr) << std::endl;
-    }
-    std::cout << "Directory map" << std::endl;
-    root_.dump();
-  };
+  void dump();
 
   void for_each(const std::string& path,
 		std::function<void(const std::string& name, const File* f)> callback) const {
@@ -193,26 +129,7 @@ public:
 
 private:
   // Maybe recursively create directories up to path, and return the Directory object.
-  Directory* MaybeCreateParentDir(const std::string& dirname) {
-    if (dirname == "") return &root_;
-    auto it = files_.find(dirname);
-    if (it != files_.end()) {
-      return static_cast<Directory*>(it->second);
-    }
-
-    Directory* directory = new Directory();
-    std::string parent(DirName(dirname));
-    auto parent_it = files_.find(parent);
-    Directory* parent_directory;
-    if (parent_it != files_.end()) {
-      parent_directory = static_cast<Directory*>(parent_it->second);
-    } else {
-      parent_directory = MaybeCreateParentDir(parent);
-    }
-    files_[dirname] = directory;
-    parent_directory->add(BaseName(dirname), std::unique_ptr<File>(directory));
-    return directory;
-  }
+  Directory* MaybeCreateParentDir(const std::string& dirname);
 
   std::unordered_map<std::string /* fullpath */ , File*> files_{};
   Directory root_{};

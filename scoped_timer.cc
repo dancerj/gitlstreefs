@@ -1,6 +1,9 @@
 #include "stats_holder.h"
 #include "scoped_timer.h"
 
+#include <unistd.h>
+#include <string.h>
+
 #include <cmath>
 
 #include <iostream>

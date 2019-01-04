@@ -1,13 +1,15 @@
+#include "git-githubfs.h"
+
+#include "get_current_dir.h"
+#include "strutil.h"
+
+#include <assert.h>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <sys/stat.h>
-
-#include "git-githubfs.h"
-#include "get_current_dir.h"
-#include "strutil.h"
 
 using githubfs::GitFileType;
 using githubfs::ParseBlob;
