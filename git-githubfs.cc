@@ -177,7 +177,6 @@ ssize_t FileElement::Readlink(char *target, size_t size) {
   } else {
     // TODO: is this an error condition that we can't fit in the final 0 ?
   }
-  std::cout << "DEBUG:" << memory_->get_copy() << std::endl;
   const char* source = static_cast<const char*>(memory_->memory());
 
   memcpy(target, source, size);
