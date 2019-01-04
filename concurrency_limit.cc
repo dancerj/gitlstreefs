@@ -6,10 +6,11 @@
 
 using std::condition_variable;
 using std::cout;
+using std::lock_guard;
+using std::unique_lock;
 using std::mutex;
 using std::set;
 using std::string;
-using std::unique_lock;
 
 void ScopedConcurrencyLimit::DumpStatus() const {
   // TODO: assert lock is held.
@@ -35,7 +36,7 @@ ScopedConcurrencyLimit::ScopedConcurrencyLimit(const string& message) :
 
 ScopedConcurrencyLimit::~ScopedConcurrencyLimit() {
   {
-    unique_lock<mutex> l(m_);
+    lock_guard<mutex> l(m_);
     messages_.erase(&message_);
     DumpStatus();
   }

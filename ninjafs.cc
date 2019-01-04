@@ -23,10 +23,10 @@
 using std::cout;
 using std::endl;
 using std::function;
+using std::lock_guard;
 using std::make_unique;
 using std::mutex;
 using std::string;
-using std::unique_lock;
 using std::unique_ptr;
 using std::unordered_map;
 using std::vector;
@@ -48,7 +48,7 @@ public:
   virtual ~NinjaLog() {}
 
   virtual int Getattr(struct stat *stbuf) override {
-    unique_lock<mutex> l(mutex_);
+    lock_guard<mutex> l(mutex_);
     stbuf->st_mode = S_IFREG | 0555;
     stbuf->st_nlink = 1;
     stbuf->st_size = log_.size();
@@ -65,7 +65,7 @@ public:
 
   virtual ssize_t Read(char *target, size_t size, off_t offset) override {
     // Fill in the response
-    unique_lock<mutex> l(mutex_);
+    lock_guard<mutex> l(mutex_);
     if (offset < static_cast<off_t>(log_.size())) {
       if (offset + size > log_.size())
 	size = log_.size() - offset;
@@ -76,7 +76,7 @@ public:
   }
 
   void UpdateLog(const string&& log) {
-    unique_lock<mutex> l(mutex_);
+    lock_guard<mutex> l(mutex_);
     log_ = move(log);
   }
 
@@ -97,7 +97,7 @@ public:
   virtual int Getattr(struct stat *stbuf) override {
     stbuf->st_mode = S_IFREG | 0555;
     stbuf->st_nlink = 1;
-    unique_lock<mutex> l(mutex_);
+    lock_guard<mutex> l(mutex_);
     if (buf_.get()) {
       stbuf->st_size = buf_->size();
     } else {
@@ -113,12 +113,12 @@ public:
   }
 
   virtual int Open() override {
-    unique_lock<mutex> l(mutex_);
+    lock_guard<mutex> l(mutex_);
     if (!buf_.get()) {
       int exit_code;
       // Fill in the content if it didn't exist before.
       assert(ninja_log);  // Initialization should have set this value.
-      unique_lock<mutex> l(global_ninja_mutex);
+      lock_guard<mutex> l(global_ninja_mutex);
       ninja_log->UpdateLog(PopenAndReadOrDie2({"ninja", original_target_name_},
 					      &cwd(), &exit_code));
 
@@ -146,7 +146,7 @@ public:
       // If buffer is empty, give back error.
       return -EIO;
     }
-    unique_lock<mutex> l(mutex_);
+    lock_guard<mutex> l(mutex_);
     if (offset < static_cast<off_t>(buf_->size())) {
       if (offset + size > buf_->size())
 	size = buf_->size() - offset;

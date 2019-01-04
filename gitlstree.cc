@@ -24,10 +24,10 @@ mount-able filesystem.
 #include "strutil.h"
 #include "scoped_timer.h"
 
+using std::lock_guard;
 using std::make_unique;
 using std::mutex;
 using std::string;
-using std::unique_lock;
 using std::unique_ptr;
 using std::unordered_map;
 using std::vector;
@@ -177,12 +177,12 @@ int FileElement::maybe_cat_file_locked() {
 }
 
 int FileElement::Open() {
-  unique_lock<mutex> l(buf_mutex_);
+  lock_guard<mutex> l(buf_mutex_);
   return maybe_cat_file_locked();
 }
 
 ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
-  unique_lock<mutex> l(buf_mutex_);
+  lock_guard<mutex> l(buf_mutex_);
   if (offset < static_cast<off_t>(memory_->size())) {
     if (offset + size > memory_->size())
       size = memory_->size() - offset;
@@ -193,7 +193,7 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
 }
 
 ssize_t FileElement::Readlink(char *target, size_t size) {
-  unique_lock<mutex> l(buf_mutex_);
+  lock_guard<mutex> l(buf_mutex_);
   int e = maybe_cat_file_locked();
   if (e != 0)
     return e;
@@ -214,7 +214,7 @@ void FileElement::GetHash(char* hash) const {
 }
 
 int FileElement::Release() {
-  unique_lock<mutex> l(buf_mutex_);
+  lock_guard<mutex> l(buf_mutex_);
   parent_->cache().release(sha1_, memory_);
   memory_ = nullptr;
   return 0;

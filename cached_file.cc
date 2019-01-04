@@ -22,6 +22,7 @@
 #include "scoped_fd.h"
 
 using std::function;
+using std::lock_guard;
 using std::mutex;
 using std::string;
 using std::unique_lock;
@@ -137,7 +138,7 @@ const Cache::Memory* Cache::get(const string& name,
 
 bool Cache::release(const string& name, const Cache::Memory* item) {
   // Delete the name, assert that the value was item.
-  unique_lock<mutex> l(mutex_);
+  lock_guard<mutex> l(mutex_);
 
   auto it = mapped_files_.find(name);
   if (it != mapped_files_.end()) {
@@ -177,7 +178,7 @@ bool walk(const std::string& dir, std::function<void(FTSENT* entry)> cb) {
 }  // anonymous namespace
 
 bool Cache::Gc() {
-  unique_lock<mutex> l(mutex_);
+  lock_guard<mutex> l(mutex_);
 
   time_t now = time(nullptr);
   std::vector<std::string> to_delete{};

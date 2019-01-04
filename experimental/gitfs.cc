@@ -31,6 +31,7 @@ using std::endl;
 using std::move;
 using std::mutex;
 using std::string;
+using std::lock_guard;
 using std::unique_lock;
 using std::unique_ptr;
 using std::unordered_map;
@@ -128,7 +129,7 @@ void GitTree::dump() const {
 
 ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   {
-    unique_lock<mutex> l(buf_mutex_);
+    lock_guard<mutex> l(buf_mutex_);
     if (!buf_.get()) {
       buf_.reset(new string(object_->GetBlobContent()));
     }

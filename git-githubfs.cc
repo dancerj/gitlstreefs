@@ -25,14 +25,14 @@
 using std::cout;
 using std::endl;
 using std::function;
+using std::lock_guard;
 using std::map;
 using std::mutex;
 using std::string;
-using std::unique_lock;
+using std::thread;
 using std::unique_ptr;
 using std::unordered_map;
 using std::vector;
-using std::thread;
 
 namespace githubfs {
 
@@ -154,7 +154,7 @@ FileElement::FileElement(int attribute,const std::string& sha1, int size, GitTre
   attribute_(attribute), sha1_(sha1), size_(size), parent_(parent) {}
 
 ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
-  unique_lock<mutex> l(buf_mutex_);
+  lock_guard<mutex> l(buf_mutex_);
   if (!memory_) return -1;
   if (offset < static_cast<off_t>(memory_->size())) {
     if (offset + size > memory_->size())
@@ -166,7 +166,7 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
 }
 
 ssize_t FileElement::Readlink(char *target, size_t size) {
-  unique_lock<mutex> l(buf_mutex_);
+  lock_guard<mutex> l(buf_mutex_);
   int e = maybe_cat_file_locked();
   if (e != 0) {
     return e;
@@ -202,12 +202,12 @@ ssize_t FileElement::maybe_cat_file_locked() {
 }
 
 int FileElement::Open() {
-  unique_lock<mutex> l(buf_mutex_);
+  lock_guard<mutex> l(buf_mutex_);
   return maybe_cat_file_locked();
 }
 
 int FileElement::Release() {
-  unique_lock<mutex> l(buf_mutex_);
+  lock_guard<mutex> l(buf_mutex_);
   parent_->cache().release(sha1_, memory_);
   memory_ = nullptr;
   return 0;

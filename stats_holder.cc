@@ -10,13 +10,13 @@ StatsHolder::StatsHolder() {}
 StatsHolder::~StatsHolder() {}
 
 void StatsHolder::Add(const std::string& name, DataType value) {
-    std::unique_lock<std::mutex> l(m);
+    std::lock_guard<std::mutex> l(m);
     stats[name][log2(value)]++;
   }
 
 std::string StatsHolder::Dump() {
   std::stringstream ss;
-  std::unique_lock<std::mutex> l(m);
+  std::lock_guard<std::mutex> l(m);
   for (const auto& stat : stats) {
     const std::string& name = stat.first;
     const auto& histogram = stat.second;

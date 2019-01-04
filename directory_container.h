@@ -47,7 +47,7 @@ private:
 
 class Directory : public File {
 public:
-  Directory() {}
+  Directory() : mutex_() {}
   virtual ~Directory() {}
 
   virtual int Getattr(struct stat *stbuf) override {
@@ -78,10 +78,12 @@ public:
   }
 
   void add(const std::string& path, std::unique_ptr<File> f) {
+    std::lock_guard<std::mutex> l(mutex_);
     files_[path] = move(f);
   }
 
   File* get(const std::string& path) {
+    std::lock_guard<std::mutex> l(mutex_);
     auto it = files_.find(path);
     if (it != files_.end()) {
       return it->second.get();
@@ -90,12 +92,14 @@ public:
   }
 
   void for_each(std::function<void(const std::string& filename, const File* f)> callback) const {
+    std::lock_guard<std::mutex> l(mutex_);
     for (const auto& file: files_) {
       callback(file.first, file.second.get());
     }
   }
 
   void dump(int indent = 0) {
+    std::lock_guard<std::mutex> l(mutex_);
     for (const auto& file: files_) {
       std::cout << std::string(indent, ' ') << file.first << std::endl;
       Directory* d = dynamic_cast<Directory*>(file.second.get());
@@ -108,6 +112,8 @@ public:
 private:
   typedef std::unordered_map<std::string,
 			     std::unique_ptr<File> > FileElementMap;
+  mutable std::mutex mutex_{};
+
   FileElementMap files_{};
   DISALLOW_COPY_AND_ASSIGN(Directory);
 };
@@ -121,7 +127,7 @@ public:
   ~DirectoryContainer() {};
 
   void add(const std::string& path, std::unique_ptr<File> file) {
-    std::unique_lock<std::mutex> l(path_mutex_);
+    std::lock_guard<std::mutex> l(path_mutex_);
     std::string dirname(DirName(path));
     Directory* dir = MaybeCreateParentDir(dirname);
     files_[path] = file.get();
@@ -129,6 +135,7 @@ public:
   }
 
   const File* get(const std::string& path) const {
+    std::lock_guard<std::mutex> l(path_mutex_);
     auto it = files_.find(path);
     if (it != files_.end())
       return it->second;
@@ -137,6 +144,7 @@ public:
   }
 
   File* mutable_get(const std::string& path) {
+    std::lock_guard<std::mutex> l(path_mutex_);
     auto it = files_.find(path);
     if (it != files_.end())
       return it->second;
@@ -145,6 +153,7 @@ public:
   }
 
   bool is_directory(const std::string& path) {
+    std::lock_guard<std::mutex> l(path_mutex_);
     auto it = files_.find(path);
     if (it != files_.end())
       return dynamic_cast<Directory*>(it->second) != nullptr;
@@ -161,6 +170,7 @@ public:
   }
 
   void dump() {
+    std::lock_guard<std::mutex> l(path_mutex_);
     std::cout << "Files map" << std::endl;
     for (const auto& file : files_) {
       std::cout << file.first << " " << file.second << std::endl;
@@ -206,7 +216,7 @@ private:
 
   std::unordered_map<std::string /* fullpath */ , File*> files_{};
   Directory root_{};
-  std::mutex path_mutex_{};
+  mutable std::mutex path_mutex_{};
 
   struct timespec mount_time_{};
   DISALLOW_COPY_AND_ASSIGN(DirectoryContainer);
