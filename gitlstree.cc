@@ -186,7 +186,7 @@ ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   if (offset < static_cast<off_t>(memory_->size())) {
     if (offset + size > memory_->size())
       size = memory_->size() - offset;
-    memcpy(target, static_cast<const char*>(memory_->memory()) + offset, size);
+    memcpy(target, memory_->memory_charp() + offset, size);
   } else
     size = 0;
   return size;
@@ -205,7 +205,7 @@ ssize_t FileElement::Readlink(char *target, size_t size) {
     // TODO: is this an error condition that we can't fit in the final 0 ?
   }
 
-  memcpy(target, static_cast<const char*>(memory_->memory()), size);
+  memcpy(target, memory_->memory_charp(), size);
   return 0;
 }
 

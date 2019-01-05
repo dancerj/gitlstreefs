@@ -20,12 +20,10 @@ int main(int argc, char** argv) {
   const Cache::Memory* m2 = c.get("test1", [](string* ret) -> bool {
       return false;
     });
-  string test(reinterpret_cast<const char*>(m->memory()), m->size());
+  string test(m->memory_charp(), m->size());
   assert(test == kTestString);
-  string test2(reinterpret_cast<const char*>(m2->memory()), m2->size());
+  string test2(m2->memory_charp(), m2->size());
   assert(test2 == kTestString);
-  string test3(m2->memory_charp(), m2->size());
-  assert(test3 == kTestString);
   assert(m2->get_copy() == kTestString);
   return 0;
 }

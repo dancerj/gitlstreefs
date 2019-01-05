@@ -8,12 +8,28 @@
 #include <syslog.h>
 #include <unistd.h>
 
+#include <iostream>
 #include <string>
 #include <vector>
 
 #include "scoped_fd.h"
 
 using namespace std;
+
+namespace {
+std::ostream& operator<<(std::ostream& os, const std::vector<std::string>& v) {
+  bool first = true;
+  for (const auto& i : v) {
+    if (!first) {
+      os << ", ";
+    }
+    first = false;
+    os << "\"" << i << "\"";
+  }
+  os << std::endl;
+  return os;
+}
+}
 
 #define ABORT_ON_ERROR(A) if ((A) == -1) { \
     perror(#A);				   \
@@ -109,10 +125,14 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
     ABORT_ON_ERROR(close(pipefd[0]));
     int status;
     assert(pid == waitpid(pid, &status, 0));
-    assert(WIFEXITED(status));
+    if (!WIFEXITED(status)) {
+      std::cerr << "Did not complete " << command << std::endl;
+      abort();
+    }
     if (maybe_exit_code)
       *maybe_exit_code = WEXITSTATUS(status);
   }  // end Parent process.
   }
   return retval;
 }
+

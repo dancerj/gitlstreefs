@@ -20,8 +20,7 @@ public:
     // Move assignment.
     Memory& operator=(Memory&& m);
     ~Memory();
-    const void* memory() const;
-    // For utility
+
     const char* memory_charp() const;
     size_t size() const;
 

@@ -48,7 +48,6 @@ Cache::Memory::~Memory() {
     munmap(memory_, size_);
   }
 }
-const void* Cache::Memory::memory() const { return memory_; }
 size_t Cache::Memory::size() const { return size_; }
 const char* Cache::Memory::memory_charp() const {
   return static_cast<const char*>(memory_);
