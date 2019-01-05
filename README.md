@@ -11,8 +11,11 @@ dependencies. The build system depends on nodejs and ninja.
 ```shell-session
 # apt-get install \
       attr \
+      coreutils \
       curl \
       fuse \
+      g++ \
+      git \
       libattr1-dev \
       libboost-dev \
       libboost-filesystem-dev \

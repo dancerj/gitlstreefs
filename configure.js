@@ -74,6 +74,14 @@ function CompileLinkRunTest(target, sources, opts) {
     RunTest(target, opts);
 }
 
+// Option parsing
+var commandLineArgs = {};
+process.argv.slice(2).forEach(function (val, index, array) {
+    if (val.substr(0,2) === '--') {
+	commandLineArgs[val.substr(2)] = true;
+    }
+});
+
 // Rules
 CompileLinkRunTest('gitlstree_test',
 		   ['basename',
@@ -106,9 +114,11 @@ CompileLink('ninjafs', ['basename',
 			'get_current_dir',
 			'ninjafs',
 			'strutil'])
-RunTestScript('ninjafs_test.sh', {
-    extra_depends: ['out/ninjafs']
-})
+if (!commandLineArgs['nofuse']) {
+    RunTestScript('ninjafs_test.sh', {
+	extra_depends: ['out/ninjafs']
+    })
+}
 CompileLink('hello_world', ['hello_world'])
 CompileLinkRunTest('basename_test', ['basename_test', 'basename'])
 CompileLinkRunTest('git-githubfs_test', ['base64decode',
@@ -181,17 +191,21 @@ CompileLink('experimental/unkofs', ['experimental/unkofs',
 				    'relative_path',
 				    'update_rlimit'
 				   ])
-RunTestScript('experimental/unkofs_test.sh', {
-    extra_depends: ['out/experimental/unkofs']
-})
+if (!commandLineArgs['nofuse']) {
+    RunTestScript('experimental/unkofs_test.sh', {
+	extra_depends: ['out/experimental/unkofs']
+    })
+}
 CompileLink('experimental/globfs', ['experimental/globfs',
 				    'experimental/roptfs',
 				    'relative_path',
 				    'update_rlimit'
 				   ])
-RunTestScript('experimental/globfs_test.sh', {
-    extra_depends: ['out/experimental/globfs']
-})
+if (!commandLineArgs['nofuse']) {
+    RunTestScript('experimental/globfs_test.sh', {
+	extra_depends: ['out/experimental/globfs']
+    })
+}
 CompileLink('cowfs', ['cowfs', 'cowfs_crypt', 'file_copy',
 		      'ptfs', 'ptfs_handler',
 		      'relative_path', 'scoped_fileutil', 'strutil',
@@ -200,9 +214,11 @@ CompileLink('cowfs', ['cowfs', 'cowfs_crypt', 'file_copy',
 CompileLinkRunTest('cowfs_crypt_test', ['cowfs_crypt',
 					'cowfs_crypt_test'],
 		   {cclink: 'cclinkcowfs'});
-RunTestScript('cowfs_test.sh', {
-    extra_depends: ['out/cowfs', 'out/hello_world']
-})
+if (!commandLineArgs['nofuse']) {
+    RunTestScript('cowfs_test.sh', {
+	extra_depends: ['out/cowfs', 'out/hello_world']
+    })
+}
 CompileLink('ptfs', ['ptfs_main',
 		     'ptfs',
 		     'ptfs_handler',
