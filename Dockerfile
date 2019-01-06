@@ -1,10 +1,13 @@
 FROM debian
 
-RUN apt-get update
+RUN apt-get clean && apt-get update
 RUN apt-get install -yq \
       attr \
+      coreutils \
       curl \
       fuse \
+      g++ \
+      git \
       libattr1-dev \
       libboost-dev \
       libboost-filesystem-dev \
@@ -14,11 +17,8 @@ RUN apt-get install -yq \
       nodejs \
       unionfs-fuse \
       zlib1g-dev
-RUN apt-get install -yq g++
-RUN apt-get install -yq coreutils
-RUN apt-get install -yq git
-
 COPY . src/
-RUN cd src/ && git clean -f -x
-RUN cd src/ && ./configure.js --nofuse
+RUN cd src/ && \
+    git clean -f -x && \
+    ./configure.js --nofuse
 RUN cd src/ && ninja -k 10
