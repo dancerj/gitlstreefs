@@ -3,14 +3,15 @@
  */
 
 #include <assert.h>
-#include <boost/algorithm/string.hpp>
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+
 #include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <stdio.h>
 #include <string>
-#include <sys/stat.h>
 #include <thread>
 #include <unordered_map>
 #include <vector>
