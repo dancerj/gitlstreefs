@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -174,19 +173,14 @@ bool LoadDirectory() {
 
   int status;
   string ninja_targets = PopenAndReadOrDie2({"ninja", "-t", "targets", "all"},
-					    nullptr, 
+					    nullptr,
 					    &status);
   if (status) {
     return false;
   }
-  vector<string> lines;
-  boost::algorithm::split(lines, ninja_targets,
-			  boost::is_any_of("\n"));
+  const vector<string> lines = SplitStringUsing(ninja_targets, '\n', false);
   for (const auto& line : lines)  {
-    vector<string> elements;
-    boost::algorithm::split(elements, line,
-			    boost::is_any_of(":"),
-			    boost::algorithm::token_compress_on);
+    vector<string> elements = SplitStringUsing(line, ':', true);
     if (elements.size() == 2) {
       assert(elements[0][0] != '/'); // ninja targets do not start with /.
       const string& filename = elements[0];

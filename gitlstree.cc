@@ -11,12 +11,13 @@ mount-able filesystem.
  */
 
 #include <assert.h>
-#include <boost/algorithm/string.hpp>
-#include <iostream>
-#include <memory>
 #include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unordered_map>
+
+#include <iostream>
+#include <memory>
 #include <vector>
 
 #include "concurrency_limit.h"
@@ -109,22 +110,23 @@ bool GitTree::LoadDirectory(const string& hash, directory_container::DirectoryCo
     // Failed to load directory.
     return false;
   }
-  vector<string> lines;
-
-  boost::algorithm::split(lines, git_ls_tree,
-			  boost::is_any_of("\n"));
+  const vector<string> lines = SplitStringUsing(git_ls_tree, '\n', true);
   for (const auto& line : lines)  {
-    vector<string> elements;
-    boost::algorithm::split(elements, line,
-			    boost::is_any_of(" \t"),
-			    boost::algorithm::token_compress_on);
-    if (elements.size() == 5) {
-      const string& file_path = elements[4];
+    const vector<string> elements = SplitStringUsing(line, ' ', true);
+    // TODO split with tab too.
+    // TODO
+    if (elements.size() == 4) {
+      const vector<string> elements3 = SplitStringUsing(elements[3], '\t', false);
+      assert(elements3.size() == 2);
+      const string& file_path = elements3[1];
+      const string& sha1 = elements[2];
+      mode_t attribute = strtol(elements[0].c_str(), NULL, 8);
+      size_t size = atoi(elements3[0].c_str());
       assert(file_path[0] != '/');  // git ls-tree do not start with /.
       container->add(string("/") + file_path,
-		     make_unique<FileElement>(strtol(elements[0].c_str(), NULL, 8),
-					      elements[2],
-					      atoi(elements[3].c_str()),
+		     make_unique<FileElement>(attribute,
+					      sha1,
+					      size,
 					      this));
     }
   }

@@ -136,3 +136,16 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
   return retval;
 }
 
+std::vector<std::string> SplitStringUsing(const std::string s, char c,
+					  bool token_compress) {
+  std::vector<std::string> result{};
+  int prev = 0;
+  for (std::string::size_type i = 0; i < s.size(); prev = i + 1) {
+    i = s.find(c, prev);
+    if (token_compress && (i - prev == 0)) {
+      continue;
+    }
+    result.emplace_back(s.substr(prev, i - prev));
+  }
+  return result;
+}
