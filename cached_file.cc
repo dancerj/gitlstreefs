@@ -58,11 +58,19 @@ std::string Cache::Memory::get_copy() const {
 
 Cache::Cache(const string& cache_dir) :
   cache_dir_(cache_dir),
-  file_lock_(open((cache_dir + "lock").c_str(),
-		  O_CREAT|O_RDWR|O_CLOEXEC, 0700)) {
-  // TODO maybe not crashing and giving better error message is
-  // better.
-  assert(file_lock_.get() != -1);
+  file_lock_(-1) {
+  if (-1 == mkdir(cache_dir_.c_str(), 0700) && errno != EEXIST) {
+    perror((string("Cannot create cache dir ") + cache_dir).c_str());
+    abort();
+  }
+  assert(cache_dir_[cache_dir_.size() - 1] == '/');
+  string lock_file_name{cache_dir + "lock"};
+  file_lock_.reset(open(lock_file_name.c_str(),
+			O_CREAT|O_RDWR|O_CLOEXEC, 0700));
+  if (file_lock_.get() == -1) {
+    perror((string("Cannot open ") + lock_file_name).c_str());
+    abort();
+  }
   assert(flock(file_lock_.get(), LOCK_EX) != -1);
   assert(cache_dir_[cache_dir_.size()-1] == '/');
 }
