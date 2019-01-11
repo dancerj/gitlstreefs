@@ -5,7 +5,7 @@ FUSE, that works with git and help building.
 
 ## Building
 
-Requires libboost-dev, libfuse, libgit2 and zlib as build time library
+Requires libfuse, libgit2 and zlib as build time library
 dependencies. The build system depends on nodejs and ninja.
 
 ```shell-session
@@ -17,8 +17,6 @@ dependencies. The build system depends on nodejs and ninja.
       g++ \
       git \
       libattr1-dev \
-      libboost-dev \
-      libboost-filesystem-dev \
       libfuse-dev \
       libgit2-dev \
       ninja-build \

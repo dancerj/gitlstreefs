@@ -3,10 +3,10 @@
  */
 #include "cached_file.h"
 #include "stats_holder.h"
+#include "walk_filesystem.h"
 
 #include <assert.h>
 #include <fcntl.h>
-#include <fts.h>
 #include <sys/file.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -149,31 +149,6 @@ bool Cache::release(const string& name, const Cache::Memory* item) {
 }
 
 namespace {
-bool walk(const std::string& dir, std::function<void(FTSENT* entry)> cb) {
-  // fts wants a mutable directory name, why?
-  std::string mutable_dir(dir);
-  char * const paths[] = { &mutable_dir[0], nullptr };
-  FTS *f = fts_open(paths, FTS_PHYSICAL,
-		    NULL /* use default ordering */);
-  if (!f) {
-    perror("fts_open");
-    return false;
-  }
-
-  FTSENT* entry;
-  while((entry = fts_read(f)) != NULL) {
-    cb(entry);
-  }
-  if (errno) {
-    perror("fts_read");
-    return false;
-  }
-  if (fts_close(f) == -1) {
-    perror("fts_close");
-    return false;
-  }
-  return true;
-}
 }  // anonymous namespace
 
 bool Cache::Gc() {
@@ -182,7 +157,7 @@ bool Cache::Gc() {
   time_t now = time(nullptr);
   std::vector<std::string> to_delete{};
   stats_holder::StatsHolder stats;
-  assert(walk(cache_dir_, [&to_delete, now, &stats](FTSENT* entry) {
+  assert(WalkFilesystem(cache_dir_, [&to_delete, now, &stats](FTSENT* entry) {
       if (entry->fts_info == FTS_F) {
 	std::string path(entry->fts_path, entry->fts_pathlen);
 	std::string name(entry->fts_name, entry->fts_namelen);

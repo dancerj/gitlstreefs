@@ -9,8 +9,6 @@ RUN apt-get install -yq \
       g++ \
       git \
       libattr1-dev \
-      libboost-dev \
-      libboost-filesystem-dev \
       libfuse-dev \
       libgit2-dev \
       ninja-build \

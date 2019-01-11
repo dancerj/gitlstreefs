@@ -18,7 +18,7 @@ var data = [
     'rule cclinkwithgit2',
     '  command = $gxx $in -o $out -lgit2 $ldflags',
     'rule cclinkcowfs',
-    '  command = $gxx $in -o $out -lboost_filesystem -lboost_system -lgcrypt $ldflags',
+    '  command = $gxx $in -o $out -lgcrypt $ldflags',
     'rule runtest',
     '  command = ./$in > $out.tmp 2>&1 && mv $out.tmp $out || ( cat $out.tmp; exit 1 )',
     'rule ninjagenerator',

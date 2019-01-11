@@ -11,11 +11,11 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <fuse.h>
+#include <stddef.h>
 #include <sys/file.h>
 #include <sys/sysinfo.h>
 #include <syslog.h>
 
-#include <boost/filesystem.hpp>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -30,8 +30,8 @@
 #include "scoped_fileutil.h"
 #include "strutil.h"
 #include "update_rlimit.h"
+#include "walk_filesystem.h"
 
-namespace fs = boost::filesystem; // std::experimental::filesystem;
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -43,6 +43,13 @@ using std::vector;
 
 namespace {
 string repository_path;
+
+std::string Canonicalize(const std::string& path) {
+  char* c = canonicalize_file_name(path.c_str());
+  std::string r{c};
+  free(c);
+  return r;
+}
 }  // anonymous namespace
 
 class ScopedLock {
@@ -90,19 +97,14 @@ private:
 
 void GcTree(const string& repo) {
   cout << "GCing things we don't need" << endl;
-  auto end = fs::recursive_directory_iterator();
   vector<string> to_delete{};
-  for(auto it = fs::recursive_directory_iterator(repo); it != end; ++it) {
-    // it points to a directory_entry().
-    fs::path p(*it);
-    if (fs::is_regular_file(p) && !fs::is_symlink(p)) {
-      // cout << p.string() << " nlink=" << fs::hard_link_count(p) << endl;
-      if (fs::hard_link_count(p) == 1) {
+  WalkFilesystem(repo, [&to_delete](FTSENT* entry) {
+      if (entry->fts_info == FTS_F && entry->fts_statp->st_nlink  == 1) {
 	// This is a stale file
-	to_delete.emplace_back(p.string());
+	std::string path(entry->fts_path, entry->fts_pathlen);
+	to_delete.emplace_back(path);
       }
-    }
-  }
+    });
   for (const auto& s: to_delete) {
     if (-1 == unlink(s.c_str())) {
       cout << s << " is no longer needed " << endl;
@@ -286,21 +288,18 @@ bool FindOutRepoAndMaybeHardlink(int target_dirfd, const string& target_filename
 // this can fail with an error message.
 void HardlinkTree(const string& repo, const string& directory) {
   cout << "Hardlinking files we do need" << endl;
-  int ncpu = get_nprocs();
+  const int ncpu = get_nprocs();
   vector<vector<string> > to_hardlink(ncpu);
   int cpu = 0;
-  auto end = fs::recursive_directory_iterator();
-  for(auto it = fs::recursive_directory_iterator(directory); it != end; ++it) {
-    // it points to a directory_entry().
-    fs::path p(*it);
-    if (fs::is_regular_file(p) && !fs::is_symlink(p)) {
-      if (fs::hard_link_count(p) == 1) {
-	to_hardlink[cpu].emplace_back(p.string());
+  WalkFilesystem(directory, [&to_hardlink, &cpu, ncpu](FTSENT* entry){
+      if (entry->fts_info == FTS_F && entry->fts_statp->st_nlink  == 1) {
+	// A regular file and not a symlink.
+	std::string path(entry->fts_path, entry->fts_pathlen);
+	to_hardlink[cpu].emplace_back(path);
 	++cpu;
 	cpu %= ncpu;
       }
-    }
-  }
+    });
   vector<thread> jobs;
   for (int i = 0; i < ncpu; ++i) {
     jobs.emplace_back(thread(bind([i, &repo](const vector<string>* tasks){
@@ -435,7 +434,7 @@ int main(int argc, char** argv) {
     return 1;
   }
   ScopedLock fslock(conf.lock_path, "cowfs");
-  repository_path = fs::canonical(conf.repository).string();
+  repository_path = Canonicalize(conf.repository);
   GcTree(conf.repository);
   HardlinkTree(conf.repository, conf.underlying_path);
   ptfs::PtfsHandler::premount_dirfd_ = open(conf.underlying_path, O_PATH|O_DIRECTORY);
