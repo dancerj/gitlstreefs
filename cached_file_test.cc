@@ -11,7 +11,7 @@ static char kTestString[] = "HogeFuga";
 
 int main(int argc, char** argv) {
   std::cout << "Wait for lock." << std::endl;
-  Cache c(".cache/");
+  Cache c("out/cached_file_test_cache/");
   std::cout << "Start of main test." << std::endl;
   const Cache::Memory* m = c.get("test1", [](string* ret) -> bool {
       *ret = string(kTestString);
