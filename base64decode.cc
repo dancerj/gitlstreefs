@@ -5,6 +5,8 @@
 #include <string>
 #include <array>
 
+#include "disallow.h"
+
 using std::string;
 using std::array;
 
@@ -49,6 +51,7 @@ public:
   }
 private:
   array<int64_t, 256> lookup_{};
+  DISALLOW_COPY_AND_ASSIGN(Base64Decoder);
 };
 
 static Base64Decoder b;

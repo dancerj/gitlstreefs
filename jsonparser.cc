@@ -313,6 +313,7 @@ private:
 
   const std::string& text_;
   size_t position_{0};
+  DISALLOW_COPY_AND_ASSIGN(Parser);
 };
 }  // anonymous namespace
 
