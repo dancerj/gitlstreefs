@@ -1,3 +1,5 @@
+#ifndef SCOPED_TIMER_H_
+#define SCOPED_TIMER_H_
 /**
  * Utility class to dump usecs.
  */
@@ -41,3 +43,5 @@ private:
   DISALLOW_COPY_AND_ASSIGN(StatusHandler);
 };
 } // scoped_timer
+
+#endif

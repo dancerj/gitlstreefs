@@ -2,8 +2,8 @@
  * Adapter for FUSE operations and directory_container.
  */
 
-#ifndef GIT_ADAPTER__
-#define GIT_ADAPTER__
+#ifndef GIT_ADAPTER_H_
+#define GIT_ADAPTER_H_
 #include "directory_container.h"
 #include <fuse.h>
 

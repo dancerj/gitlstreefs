@@ -1,3 +1,5 @@
+#ifndef STATS_HOLDER_H_
+#define STATS_HOLDER_H_
 #include <map>
 #include <mutex>
 #include <string>
@@ -17,3 +19,4 @@ private:
 };
 
 }  // stats_holder
+#endif
