@@ -77,6 +77,7 @@ private:
   const std::string github_api_prefix_;
   directory_container::DirectoryContainer* container_;
   Cache cache_;
+  DISALLOW_COPY_AND_ASSIGN(GitTree);
 };
 
 } // namespace githubfs

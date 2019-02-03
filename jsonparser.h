@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+#include "disallow.h"
+
 namespace jjson {
 
 class Value {
@@ -40,6 +42,9 @@ public:
 
   /** Check if this was 'null' */
   bool is_null() const;
+
+private:
+  DISALLOW_COPY_AND_ASSIGN(Value);
 };
 
 template <class T> class SpecialValue : public Value {

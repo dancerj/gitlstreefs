@@ -7,6 +7,7 @@
 #include <string>
 
 #include "directory_container.h"
+#include "disallow.h"
 
 /*
   system_clock, monotonic_clock and high_resolution_clock are supposed to exist,
