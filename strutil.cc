@@ -13,23 +13,9 @@
 #include <vector>
 
 #include "scoped_fd.h"
+#include "ostream_vector.h"
 
 using namespace std;
-
-namespace {
-std::ostream& operator<<(std::ostream& os, const std::vector<std::string>& v) {
-  bool first = true;
-  for (const auto& i : v) {
-    if (!first) {
-      os << ", ";
-    }
-    first = false;
-    os << "\"" << i << "\"";
-  }
-  os << std::endl;
-  return os;
-}
-}
 
 #define ABORT_ON_ERROR(A) if ((A) == -1) { \
     perror(#A);				   \

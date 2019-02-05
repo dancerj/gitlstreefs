@@ -24,6 +24,7 @@ mount-able filesystem.
 #include "gitlstree.h"
 #include "strutil.h"
 #include "scoped_timer.h"
+#include "ostream_vector.h"
 
 using std::lock_guard;
 using std::make_unique;
@@ -38,7 +39,8 @@ namespace {
 class GitHeadHandler : public directory_container::File {
 public:
   GitHeadHandler(const std::string& rev, GitTree* parent) :
-    rev_(rev), parent_(parent) {}
+    rev_(rev + "\n"),  // Has a terminating newline.
+    parent_(parent) {}
   virtual ~GitHeadHandler() {}
 
   virtual int Getattr(struct stat *stbuf) override {
@@ -87,6 +89,10 @@ int FileElement::Getattr(struct stat *stbuf) {
 // Maybe run remote command if ssh spec is available.
 string GitTree::RunGitCommand(const vector<string>& commands, int* exit_code,
 			      const std::string& log_tag) {
+  constexpr bool verbose = false;
+  if (verbose) {
+    std::cout << commands << std::endl;
+  }
   scoped_timer::ScopedTimer time(log_tag);
   if (!ssh_.empty()) {
     string command;
@@ -102,8 +108,17 @@ string GitTree::RunGitCommand(const vector<string>& commands, int* exit_code,
   }
 }
 
-bool GitTree::LoadDirectory(const string& hash, directory_container::DirectoryContainer* container) {
+bool GitTree::LoadDirectory(const string& ref, directory_container::DirectoryContainer* container) {
   int exit_code;
+  int exit_code_revparse;
+  string hash{RunGitCommand({"git", "rev-parse", ref}, &exit_code_revparse, "rev-parse")};
+  // truncate the final newline.
+  hash.resize(hash.size() - 1);
+  if (exit_code_revparse != 0) {
+    std::cerr << "Could not resolve " << ref << std::endl;
+    return false;
+  }
+
   string git_ls_tree(RunGitCommand({"git", "ls-tree", "-l", "-r", hash},
 				   &exit_code, "lstree"));
   if (exit_code != 0) {
