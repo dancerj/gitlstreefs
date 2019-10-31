@@ -41,7 +41,8 @@ bool ParseTrees(const std::string host_project_branch_url,
   // I assume the URL doesn't end at /.
   assert(host_project_branch_url[host_project_branch_url.size() - 1] != '/');
 
-  // Try parsing github api v3 trees output.
+  // Try parsing gitiles json output, which is similar to github api
+  // v3 trees output but not quite.
   std::unique_ptr<jjson::Value> value = jjson::Parse(trees_string);
 
   for (const auto& file : (*value)["entries"].get_array()) {
