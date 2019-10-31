@@ -5,6 +5,7 @@ RUN apt-get update && \
     attr \
     coreutils \
     curl \
+    file \
     fuse \
     g++ \
     git \
@@ -19,5 +20,5 @@ RUN apt-get update && \
 COPY . src/
 RUN cd src/ && \
     git clean -f -x && \
-    ./configure.js --nofuse
+    ./configure.js
 RUN cd src/ && ninja -k 10

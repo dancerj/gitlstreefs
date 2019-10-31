@@ -13,6 +13,7 @@ dependencies. The build system depends on nodejs and ninja.
       attr \
       coreutils \
       curl \
+      file \
       fuse \
       g++ \
       git \
