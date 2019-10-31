@@ -1,20 +1,21 @@
 FROM debian
 
-RUN apt-get clean && apt-get update
-RUN apt-get install -yq \
-      attr \
-      coreutils \
-      curl \
-      fuse \
-      g++ \
-      git \
-      libattr1-dev \
-      libfuse-dev \
-      libgit2-dev \
-      ninja-build \
-      nodejs \
-      unionfs-fuse \
-      zlib1g-dev
+RUN apt-get update && \
+    apt-get install -yq \
+    attr \
+    coreutils \
+    curl \
+    fuse \
+    g++ \
+    git \
+    libattr1-dev \
+    libfuse-dev \
+    libgit2-dev \
+    ninja-build \
+    nodejs \
+    unionfs-fuse \
+    zlib1g-dev && \
+    apt-get clean
 COPY . src/
 RUN cd src/ && \
     git clean -f -x && \
