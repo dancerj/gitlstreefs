@@ -7,7 +7,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <functional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -15,7 +14,6 @@
 #include "../scoped_fd.h"
 
 using std::vector;
-using std::bind;
 using std::thread;
 using std::string;
 using std::to_string;
@@ -59,7 +57,9 @@ int main(int argc, char** argv) {
   num_iteration = atoi(argv[3]);
   vector<thread> threads;
   for (int i = 0; i < kFiles; ++i) {
-    threads.emplace_back(thread(bind(writer, i)));
+    threads.emplace_back(thread([i](){
+	  writer(i);
+	}));
   }
   for (auto &t : threads) {
     t.join();

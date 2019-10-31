@@ -32,7 +32,6 @@
 #include "update_rlimit.h"
 #include "walk_filesystem.h"
 
-using std::bind;
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -303,12 +302,14 @@ void HardlinkTree(const string& repo, const string& directory) {
     });
   vector<thread> jobs;
   for (int i = 0; i < ncpu; ++i) {
-    jobs.emplace_back(thread(bind([i, &repo](const vector<string>* tasks){
-	    for (const auto& s: *tasks) {
-	      assert(FindOutRepoAndMaybeHardlink(AT_FDCWD, s, repo));
-	    }
-	    cout << "task " << i << " with " << tasks->size() << " tasks" << endl;
-	  }, &to_hardlink[i])));
+    vector<string>& tasks = to_hardlink[i];
+
+    jobs.emplace_back(thread([i, &repo, &tasks](){
+	  for (const auto& s: tasks) {
+	    assert(FindOutRepoAndMaybeHardlink(AT_FDCWD, s, repo));
+	  }
+	  cout << "task " << i << " with " << tasks.size() << " tasks" << endl;
+	}));
   }
   for (auto& job : jobs) { job.join(); }
 }
