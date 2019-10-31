@@ -4,6 +4,8 @@
 
 #include "disallow.h"
 
+#include <functional>
+
 namespace gitxx {
 class Repository;
 class Object;
@@ -13,11 +15,11 @@ class Tree {
 public:
   Tree(const Repository* repo, git_tree* tree);
   ~Tree();
-  void for_each_file(std::function<void(const std::string& name, 
-					int attribute, 
-					git_otype file_type, 
-					const std::string& sha1, 
-					int size, 
+  void for_each_file(std::function<void(const std::string& name,
+					int attribute,
+					git_otype file_type,
+					const std::string& sha1,
+					int size,
 					std::unique_ptr<Object> object)> file_handler,
 		     std::function<void(const std::string& name,
 					Tree* tree)> tree_handler) const;

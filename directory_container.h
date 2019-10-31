@@ -3,6 +3,7 @@
 
 #include <sys/stat.h>
 
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <unordered_map>

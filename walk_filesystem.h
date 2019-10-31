@@ -2,6 +2,8 @@
 #define WALK_FILESYSTEM_H_
 #include <fts.h>
 
+#include <functional>
+
 bool WalkFilesystem(const std::string& dir, std::function<void(FTSENT* entry)> cb) {
   // fts wants a mutable directory name, why?
   std::string mutable_dir(dir);

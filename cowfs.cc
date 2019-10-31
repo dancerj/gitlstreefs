@@ -32,6 +32,7 @@
 #include "update_rlimit.h"
 #include "walk_filesystem.h"
 
+using std::bind;
 using std::cerr;
 using std::cout;
 using std::endl;
