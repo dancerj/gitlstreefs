@@ -2,8 +2,8 @@
 
 #include <assert.h>
 
-#include <string>
 #include <array>
+#include <string>
 
 #include "disallow.h"
 
@@ -24,7 +24,7 @@ public:
   }
   ~Base64Decoder() {}
 
-  string doit(const string& b64) {
+  string doit(const string& b64) const {
     string output;
     output.reserve(b64.size() * 0.7);
 
@@ -55,8 +55,8 @@ private:
 };
 
 static Base64Decoder b;
+}  // anonymous namespace
 
-}
 string base64decode(const string& b64) {
   return b.doit(b64);
 }
