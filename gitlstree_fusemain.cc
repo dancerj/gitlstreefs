@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   gitlstree_config conf{};
-  fuse_opt_parse(&args, &conf, gitlstree_opts, NULL);
+  fuse_opt_parse(&args, &conf, gitlstree_opts, nullptr);
 
   string revision(conf.revision?conf.revision:"HEAD");
   string path(conf.path?conf.path:GetCurrentDir());
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  int ret = fuse_main(args.argc, args.argv, &o, NULL);
+  int ret = fuse_main(args.argc, args.argv, &o, nullptr);
   fuse_opt_free_args(&args);
   return ret;
 }

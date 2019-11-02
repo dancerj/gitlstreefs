@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   githubfs_config conf{};
-  fuse_opt_parse(&args, &conf, githubfs_opts, NULL);
+  fuse_opt_parse(&args, &conf, githubfs_opts, nullptr);
   if (!(conf.user && conf.project)) {
     cerr << argv[0] << " --user=USER --project=PROJECT MOUNTPOINT --revision=HEAD" << endl
 	 << " example: " << argv[0]
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     std::make_unique<githubfs::GitTree>(conf.revision?conf.revision:"HEAD",
 					github_api_prefix.c_str(), git_adapter::GetDirectoryContainer(),
 					cache_path);
-  int ret = fuse_main(args.argc, args.argv, &o, NULL);
+  int ret = fuse_main(args.argc, args.argv, &o, nullptr);
   fuse_opt_free_args(&args);
   return ret;
 }

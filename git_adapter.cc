@@ -36,12 +36,12 @@ static int fs_releasedir(const char*, struct fuse_file_info* fi) {
 
 static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi) {
-  filler(buf, ".", NULL, 0);
-  filler(buf, "..", NULL, 0);
+  filler(buf, ".", nullptr, 0);
+  filler(buf, "..", nullptr, 0);
   auto* d = reinterpret_cast<const directory_container::Directory*>(fi->fh);
   if (!d) return -ENOENT;
   d->for_each([&](const std::string& s, const directory_container::File* unused){
-      filler(buf, s.c_str(), NULL, 0);
+      filler(buf, s.c_str(), nullptr, 0);
     });
   return 0;
 }

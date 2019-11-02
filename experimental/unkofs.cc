@@ -85,6 +85,6 @@ int main(int argc, char** argv) {
   struct fuse_operations o = {};
   roptfs::FillFuseOperations<UnkoFsHandler>(&o);
 
-  return fuse_main(argc, argv, &o, NULL);
+  return fuse_main(argc, argv, &o, nullptr);
 }
 

@@ -37,10 +37,10 @@ static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     return -ENOENT;
   }
 
-  filler(buf, ".", NULL, 0);
-  filler(buf, "..", NULL, 0);
+  filler(buf, ".", nullptr, 0);
+  filler(buf, "..", nullptr, 0);
   fe->for_each_filename([&](const string& filename) {
-      filler(buf, filename.c_str(), NULL, 0);
+      filler(buf, filename.c_str(), nullptr, 0);
     });
 
   return 0;
@@ -82,5 +82,5 @@ int main(int argc, char *argv[]) {
   DEFINE_HANDLER(open);
   DEFINE_HANDLER(read);
 #undef DEFINE_HANDLER
-  return fuse_main(argc, argv, &o, NULL);
+  return fuse_main(argc, argv, &o, nullptr);
 }

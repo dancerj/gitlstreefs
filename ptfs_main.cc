@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
   ptfs::FillFuseOperations<ptfs::PtfsHandler>(&o);
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   ptfs_config conf{};
-  fuse_opt_parse(&args, &conf, ptfs_opts, NULL);
+  fuse_opt_parse(&args, &conf, ptfs_opts, nullptr);
 
   if (!conf.underlying_path) {
     cerr << argv[0]
@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
   }
   ptfs::PtfsHandler::premount_dirfd_ = open(conf.underlying_path, O_PATH|O_DIRECTORY);
 
-  int ret = fuse_main(args.argc, args.argv, &o, NULL);
+  int ret = fuse_main(args.argc, args.argv, &o, nullptr);
   fuse_opt_free_args(&args);
   return ret;
 }

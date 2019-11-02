@@ -9,14 +9,14 @@ bool WalkFilesystem(const std::string& dir, std::function<void(FTSENT* entry)> c
   std::string mutable_dir(dir);
   char * const paths[] = { &mutable_dir[0], nullptr };
   FTS *f = fts_open(paths, FTS_PHYSICAL,
-		    NULL /* use default ordering */);
+		    nullptr /* use default ordering */);
   if (!f) {
     perror("fts_open");
     return false;
   }
 
   FTSENT* entry;
-  while((entry = fts_read(f)) != NULL) {
+  while((entry = fts_read(f)) != nullptr) {
     cb(entry);
   }
   if (errno) {

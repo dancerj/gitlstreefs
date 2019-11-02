@@ -25,7 +25,7 @@ bool FileCopyInternal(int dirfd, int from_fd, const struct stat& st,
     return false;
   }
 
-  ssize_t read_bytes = sendfile(to_fd.get(), from_fd, NULL, st.st_size);
+  ssize_t read_bytes = sendfile(to_fd.get(), from_fd, nullptr, st.st_size);
   if (read_bytes == -1) {
     perror("sendfile");
     return false;

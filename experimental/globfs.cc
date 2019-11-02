@@ -28,8 +28,8 @@ public:
   int ReadDir(const std::string& relative_path,
 	      void *buf, fuse_fill_dir_t filler,
 	      off_t offset) override {
-    filler(buf, ".", NULL, 0);
-    filler(buf, "..", NULL, 0);
+    filler(buf, ".", nullptr, 0);
+    filler(buf, "..", nullptr, 0);
     struct dirent **namelist{nullptr};
     int scandir_count = scandirat(premount_dirfd_,
 				  relative_path.c_str(),
@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   globfs_config conf{};
-  fuse_opt_parse(&args, &conf, globfs_opts, NULL);
+  fuse_opt_parse(&args, &conf, globfs_opts, nullptr);
 
   if (conf.glob_pattern == nullptr ||
       conf.underlying_path == nullptr) {
@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
   struct fuse_operations o = {};
   roptfs::FillFuseOperations<GlobFsHandler>(&o);
 
-  int ret = fuse_main(args.argc, args.argv, &o, NULL);
+  int ret = fuse_main(args.argc, args.argv, &o, nullptr);
   fuse_opt_free_args(&args);
   return ret;
 }

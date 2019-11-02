@@ -119,7 +119,7 @@ bool ParseTrees(const string& trees_string, function<void(const string& path,
     }
     GitFileType fstype = FileTypeStringToFileType(file->get("type").get_string());
     file_handler(file->get("path").get_string(),
-		 strtol(file->get("mode").get_string().c_str(), NULL, 8),
+		 strtol(file->get("mode").get_string().c_str(), nullptr, 8),
 		 fstype,
 		 file->get("sha").get_string(),
 		 file_size,

@@ -79,10 +79,10 @@ static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   if (strcmp(path, "/") != 0)
     return -ENOENT;
 
-  filler(buf, ".", NULL, 0);
-  filler(buf, "..", NULL, 0);
+  filler(buf, ".", nullptr, 0);
+  filler(buf, "..", nullptr, 0);
   fs->for_each_filename([&](const string& s){
-      filler(buf, s.c_str(), NULL, 0);
+      filler(buf, s.c_str(), nullptr, 0);
     });
 
   return 0;
@@ -141,10 +141,10 @@ int main(int argc, char *argv[]) {
 
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   hellofs_config conf{};
-  fuse_opt_parse(&args, &conf, hellofs_opts, NULL);
+  fuse_opt_parse(&args, &conf, hellofs_opts, nullptr);
   printf("filename:%s and content:%s\n", conf.filename, conf.content);
   fs.reset(new FlagFs(conf.filename, conf.content));
-  int ret = fuse_main(args.argc, args.argv, &o, NULL);
+  int ret = fuse_main(args.argc, args.argv, &o, nullptr);
   fuse_opt_free_args(&args);
   return ret;
 }

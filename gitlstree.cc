@@ -135,7 +135,7 @@ bool GitTree::LoadDirectory(const string& ref, directory_container::DirectoryCon
       assert(elements3.size() == 2);
       const string& file_path = elements3[1];
       const string& sha1 = elements[2];
-      mode_t attribute = strtol(elements[0].c_str(), NULL, 8);
+      mode_t attribute = strtol(elements[0].c_str(), nullptr, 8);
       size_t size = atoi(elements3[0].c_str());
       assert(file_path[0] != '/');  // git ls-tree do not start with /.
       container->add(string("/") + file_path,

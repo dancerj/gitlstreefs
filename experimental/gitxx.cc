@@ -128,7 +128,7 @@ unique_ptr<Tree> Object::GetTreeFromCommit() const {
 }
 
 Repository::Repository(const string& repo_path) {
-  git_repository_open_ext(&repo, repo_path.c_str(), 0, NULL);
+  git_repository_open_ext(&repo, repo_path.c_str(), 0, nullptr);
 }
 Repository::~Repository() {
   git_repository_free(repo);

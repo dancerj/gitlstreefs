@@ -427,7 +427,7 @@ int main(int argc, char** argv) {
   ptfs::FillFuseOperations<CowFileSystemHandler>(&o);
   fuse_args args = FUSE_ARGS_INIT(argc, argv);
   cowfs_config conf{};
-  fuse_opt_parse(&args, &conf, cowfs_opts, NULL);
+  fuse_opt_parse(&args, &conf, cowfs_opts, nullptr);
 
   if (!conf.underlying_path || !conf.lock_path || !conf.repository) {
     cerr << argv[0]
@@ -441,7 +441,7 @@ int main(int argc, char** argv) {
   HardlinkTree(conf.repository, conf.underlying_path);
   ptfs::PtfsHandler::premount_dirfd_ = open(conf.underlying_path, O_PATH|O_DIRECTORY);
 
-  int ret = fuse_main(args.argc, args.argv, &o, NULL);
+  int ret = fuse_main(args.argc, args.argv, &o, nullptr);
   fuse_opt_free_args(&args);
   return ret;
 }

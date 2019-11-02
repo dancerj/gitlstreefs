@@ -89,9 +89,7 @@ int PtfsHandler::Unlink(const std::string& relative_path) {
 int PtfsHandler::ReadDir(const std::string& relative_path,
 			 void *buf, fuse_fill_dir_t filler,
 			 off_t offset) {
-  // Directory would contain . and ..
-  // filler(buf, ".", NULL, 0);
-  // filler(buf, "..", NULL, 0);
+  // Host directory would already contain . and .. so just pass them through.
   struct dirent **namelist{nullptr};
   int scandir_count = scandirat(premount_dirfd_,
 				relative_path.c_str(),

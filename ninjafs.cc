@@ -212,13 +212,13 @@ static int fs_releasedir(const char*, struct fuse_file_info* fi) {
 
 static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi) {
-  filler(buf, ".", NULL, 0);
-  filler(buf, "..", NULL, 0);
+  filler(buf, ".", nullptr, 0);
+  filler(buf, "..", nullptr, 0);
   const directory_container::Directory* d = reinterpret_cast<
     directory_container::Directory*>(fi->fh);
   if (!d) return -ENOENT;
   d->for_each([&](const string& s, const directory_container::File* unused){
-      filler(buf, s.c_str(), NULL, 0);
+      filler(buf, s.c_str(), nullptr, 0);
     });
   return 0;
 }
@@ -265,5 +265,5 @@ int main(int argc, char *argv[]) {
 #undef DEFINE_HANDLER
   o.flag_nopath = true;
 
-  return fuse_main(argc, argv, &o, NULL);
+  return fuse_main(argc, argv, &o, nullptr);
 }
