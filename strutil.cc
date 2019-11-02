@@ -83,9 +83,9 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
     for (auto& s: command) {
       // Const cast is necessary because the interface requires
       // mutable char* even though it probably doesn't. Love posix.
-      argv.push_back(const_cast<char*>(s.c_str()));
+      argv.emplace_back(const_cast<char*>(s.c_str()));
     }
-    argv.push_back(nullptr);
+    argv.emplace_back(nullptr);
     ABORT_ON_ERROR(execvp(argv[0], &argv[0]));
     // Should not come here.
     exit(1);

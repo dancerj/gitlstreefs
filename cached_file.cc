@@ -181,7 +181,7 @@ bool Cache::Gc() {
 	// .cache/bf/82c3eab3768308dfe445c7f8a314858cec09e0
 	if (name.size() == 38 && (delta / 60 / 60 / 24) > 60) {
 	  // This is probably a cache file, and is probably hasn't been used for a while
-	  to_delete.push_back(path);
+	  to_delete.emplace_back(path);
 	}
       }
     }));
