@@ -16,10 +16,10 @@
 #include <sys/sysinfo.h>
 #include <syslog.h>
 
+#include <future>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "cowfs_crypt.h"
@@ -32,11 +32,12 @@
 #include "update_rlimit.h"
 #include "walk_filesystem.h"
 
+using std::async;
 using std::cerr;
 using std::cout;
 using std::endl;
+using std::future;
 using std::string;
-using std::thread;
 using std::to_string;
 using std::unique_ptr;
 using std::vector;
@@ -300,18 +301,17 @@ void HardlinkTree(const string& repo, const string& directory) {
 	cpu %= ncpu;
       }
     });
-  vector<thread> jobs;
+  vector<future<void> > jobs;
   for (int i = 0; i < ncpu; ++i) {
     vector<string>& tasks = to_hardlink[i];
 
-    jobs.emplace_back(thread([i, &repo, &tasks](){
+    jobs.emplace_back(async([i, &repo, &tasks](){
 	  for (const auto& s: tasks) {
 	    assert(FindOutRepoAndMaybeHardlink(AT_FDCWD, s, repo));
 	  }
 	  cout << "task " << i << " with " << tasks.size() << " tasks" << endl;
 	}));
   }
-  for (auto& job : jobs) { job.join(); }
 }
 
 class CowFileHandle : public ptfs::FileHandle {

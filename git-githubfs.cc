@@ -8,11 +8,11 @@
 #include <sys/stat.h>
 
 #include <functional>
+#include <future>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <string>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -23,14 +23,15 @@
 #include "strutil.h"
 #include "scoped_timer.h"
 
+using std::async;
 using std::cout;
 using std::endl;
 using std::function;
+using std::future;
 using std::lock_guard;
 using std::map;
 using std::mutex;
 using std::string;
-using std::thread;
 using std::unique_ptr;
 using std::unordered_map;
 using std::vector;
@@ -215,7 +216,7 @@ int FileElement::Release() {
 
 void GitTree::LoadDirectoryInternal(const string& subdir, const string& tree_hash,
 				    bool remote_recurse) {
-  vector<thread> jobs;
+  vector<future<void> > jobs;
   string fetch_url = github_api_prefix_ + "/git/trees/" + tree_hash;
   if (remote_recurse) {
     // Let the remote system recurse.
@@ -240,13 +241,12 @@ void GitTree::LoadDirectoryInternal(const string& subdir, const string& tree_has
 				     std::make_unique<directory_container::Directory>());
 		     if (remote_recurse == false) {
 		       // If remote side recursion didn't work, do recursion here.
-		       jobs.emplace_back(thread([this, subdir, path, sha](){
+		       jobs.emplace_back(async([this, subdir, path, sha](){
 			     LoadDirectoryInternal(subdir + path + "/", sha, false);
 			   }));
 		     }
 		   }
 		 })) {
-    for (auto& job : jobs) { job.join(); }
   } else {
     cout << "Retry with remote recursion off." << endl;
     LoadDirectoryInternal(subdir, tree_hash, false);

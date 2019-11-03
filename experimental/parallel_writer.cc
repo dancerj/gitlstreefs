@@ -7,16 +7,17 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <future>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "../scoped_fd.h"
 
-using std::vector;
-using std::thread;
+using std::async;
+using std::future;
 using std::string;
 using std::to_string;
+using std::vector;
 
 const char kData[] = "This is one kind of data";
 int num_iteration;
@@ -55,13 +56,10 @@ int main(int argc, char** argv) {
   path_prefix = argv[1];
   const int kFiles = atoi(argv[2]);
   num_iteration = atoi(argv[3]);
-  vector<thread> threads;
+  vector<future<void> > tasks;
   for (int i = 0; i < kFiles; ++i) {
-    threads.emplace_back(thread([i](){
+    tasks.emplace_back(async([i](){
 	  writer(i);
 	}));
-  }
-  for (auto &t : threads) {
-    t.join();
   }
 }

@@ -1,11 +1,12 @@
 #include <fcntl.h>
 
-#include <thread>
+#include <future>
 #include <vector>
 
 #include "scoped_fileutil.h"
 
-using std::thread;
+using std::async;
+using std::future;
 using std::vector;
 
 void locker() {
@@ -13,14 +14,11 @@ void locker() {
 }
 
 int main() {
-  vector<thread> threads;
+  vector<future<void> > tasks;
   const int kThreads = 10;
 
   for (int i = 0; i < kThreads; ++i) {
-    threads.emplace_back(thread(locker));
-  }
-  for (auto &t : threads) {
-    t.join();
+    tasks.emplace_back(async(locker));
   }
   return 0;
 }
