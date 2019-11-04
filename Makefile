@@ -1,4 +1,4 @@
-CFLAGS=$(pkg-config fuse --libs --cflags) -D_FILE_OFFSET_BITS=64 -std=c++14
+CFLAGS=$(pkg-config fuse --libs --cflags) -D_FILE_OFFSET_BITS=64 -std=c++17 -Wall -Werror
 all:
 	ninja
 
