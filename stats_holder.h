@@ -12,7 +12,7 @@ class StatsHolder {
 public:
   StatsHolder();
   ~StatsHolder();
-  typedef long DataType;
+  using DataType = long;
   void Add(const std::string& name, DataType value);
   std::string Dump();
 private:

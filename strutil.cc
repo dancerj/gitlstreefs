@@ -23,10 +23,10 @@ using namespace std;
     abort();				   \
   }
 
-#define FALSE_ON_ERROR(A) if ((A) == -1) { \
-    perror(#A);				   \
-    syslog(LOG_ERR, #A);		   \
-    return false;			   \
+#define RETURN_FALSE_ON_ERROR(A) if ((A) == -1) { \
+    perror(#A);					  \
+    syslog(LOG_ERR, #A);			  \
+    return false;				  \
   }
 
 bool ReadFromFile(int dirfd, const std::string& filename, string* result) {
@@ -36,10 +36,10 @@ bool ReadFromFile(int dirfd, const std::string& filename, string* result) {
     abort();
   }
   struct stat st;
-  FALSE_ON_ERROR(fstat(fd.get(), &st));
+  RETURN_FALSE_ON_ERROR(fstat(fd.get(), &st));
   result->resize(st.st_size, '-');
   ssize_t read_length;
-  FALSE_ON_ERROR(read_length = read(fd.get(), &(*result)[0], st.st_size));
+  RETURN_FALSE_ON_ERROR(read_length = read(fd.get(), &(*result)[0], st.st_size));
   if (st.st_size != read_length) { return false; }
   return true;
 }
