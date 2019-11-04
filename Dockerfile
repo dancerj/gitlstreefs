@@ -18,8 +18,7 @@ RUN apt-get update && \
     zlib1g-dev && \
     apt-get clean
 COPY . src/
-RUN ls -la src/
 RUN cd src/ && \
-    git clean -f -x && \
-    ./configure.js
-RUN cd src/ && ninja -k 10
+    ./configure.js && \
+    ninja -t clean && \
+    ninja -k 10
