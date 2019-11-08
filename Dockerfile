@@ -17,8 +17,6 @@ RUN apt-get update && \
     unionfs-fuse \
     zlib1g-dev && \
     apt-get clean
-COPY . src/
-RUN cd src/ && \
-    ./configure.js && \
-    ninja -t clean && \
-    ninja -k 10
+
+COPY build.sh /build.sh
+ENTRYPOINT [ "/build.sh" ]

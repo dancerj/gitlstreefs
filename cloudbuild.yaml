@@ -1,6 +1,7 @@
 steps:
 - name: 'gcr.io/kaniko-project/executor:latest'
   args:
-    - --cache-repo=gcr.io/$PROJECT_ID/image/cache
+    - --destination=gcr.io/$PROJECT_ID/gitlstreefsbuilder
     - --cache=true
-    - --no-push
+- name: 'gcr.io/$PROJECT_ID/gitlstreefsbuilder'
+
