@@ -158,3 +158,8 @@ $ sudo ./out/cowfs --lock_path=out/sid-chroot/lock \
 ## Copying
 
 A BSD-style license.
+
+## TODO
+
+- use git-cat-file daemon mode.
+- implement gitiles file system.
