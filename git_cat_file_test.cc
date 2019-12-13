@@ -9,6 +9,17 @@
 #include <string>
 #include <vector>
 
+#include "disallow.h"
+#include "scoped_timer.h"
+#include "strutil.h"
+
+// Benchmarking fork/exec and cat-file daemon
+//
+//
+// $ ./out/git_cat_file_test 1000
+// ForkExec 2329447
+// Daemon 80830
+
 #define ABORT_ON_ERROR(A) if ((A) == -1) { \
     perror(#A);				   \
     syslog(LOG_ERR, #A);		   \
@@ -98,13 +109,41 @@ private:
   int read_fd_{-1};
   int write_fd_{-1};
   pid_t pid_{-1};
+
+  DISALLOW_COPY_AND_ASSIGN(BidirectionalPopen);
 };
 
-int main() {
+void GitCatFileWithDaemon(int n) {
   BidirectionalPopen p({"/usr/bin/git", "cat-file", "--batch"}, nullptr);
-  p.Write("5c7b5c80891eee3ae35687f3706567544a149e73\n");
-  std::string result = p.Read(8192);
-  std::cout << result << std::endl;
+  for (int i = 0; i < n; ++i) {
+    p.Write("5c7b5c80891eee3ae35687f3706567544a149e73\n");
+    std::string result = p.Read(8192);
+    // std::cout << result << std::endl;
+  }
   // TODO implement something.
+}
+
+void GitCatFileWithoutDaemon(int n) {
+  for (int i = 0; i < n; ++i) {
+    std::string result = PopenAndReadOrDie2({"git", "cat-file", "blob",
+	"5c7b5c80891eee3ae35687f3706567544a149e73"},
+    nullptr, nullptr);
+  }
+  // std::cout << result << std::endl;
+}
+
+int main(int argc, char** argv) {
+  int n = 1;
+  if (argc == 2) {
+    n = atoi(argv[1]);
+  }
+  {
+    scoped_timer::ScopedTimer timer("ForkExec");
+    GitCatFileWithoutDaemon(n);
+  }
+  {
+    scoped_timer::ScopedTimer timer("Daemon");
+    GitCatFileWithDaemon(n);
+  }
   return 0;
 }
