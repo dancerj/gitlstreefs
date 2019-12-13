@@ -69,6 +69,7 @@ public:
   }
 
   ~BidirectionalPopen() {
+    kill(pid_, SIGTERM);
     int status;
     assert(pid_ == waitpid(pid_, &status, 0));
     assert(WIFSIGNALED(status));
@@ -93,13 +94,10 @@ public:
     return buf;
   }
 
-  void Kill() {
-    kill(pid_, SIGTERM);
-  }
 private:
   int read_fd_{-1};
   int write_fd_{-1};
-  pid_t pid_;
+  pid_t pid_{-1};
 };
 
 int main() {
@@ -107,7 +105,6 @@ int main() {
   p.Write("5c7b5c80891eee3ae35687f3706567544a149e73\n");
   std::string result = p.Read(8192);
   std::cout << result << std::endl;
-  p.Kill();
   // TODO implement something.
   return 0;
 }
