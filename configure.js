@@ -239,4 +239,6 @@ CompileLinkRunTest('gitiles_test',
 		    'gitiles_test',
 		    'jsonparser',
 		    'strutil'])
+CompileLinkRunTest('git_cat_file_test',
+		   ['git_cat_file_test'])
 Emit()
