@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <mutex>
 
 #include "disallow.h"
 #include "scoped_timer.h"
@@ -113,20 +114,40 @@ private:
   DISALLOW_COPY_AND_ASSIGN(BidirectionalPopen);
 };
 
-void GitCatFileWithDaemon(int n) {
-  BidirectionalPopen p({"/usr/bin/git", "cat-file", "--batch"}, nullptr);
-  for (int i = 0; i < n; ++i) {
-    p.Write("5c7b5c80891eee3ae35687f3706567544a149e73\n");
-    std::string result = p.Read(8192);
-    // std::cout << result << std::endl;
+class GitCatFileDaemon {
+public:
+  GitCatFileDaemon() : process_({"/usr/bin/git", "cat-file", "--batch"}, nullptr) {}
+  ~GitCatFileDaemon() {}
+
+  std::string Request(const std::string& ref, ssize_t max_response_size) {
+    std::lock_guard<std::mutex> l(m_);
+
+    process_.Write(ref + "\n");
+    // TODO remove the need for max response size.
+    return process_.Read(max_response_size);
   }
-  // TODO implement something.
+
+private:
+  BidirectionalPopen process_;
+  std::mutex m_;
+};
+
+const char* kConfigureJsHash = "5c7b5c80891eee3ae35687f3706567544a149e73";
+
+void GitCatFileWithDaemon(int n) {
+  GitCatFileDaemon d;
+  // BidirectionalPopen p({"/usr/bin/git", "cat-file", "--batch"}, nullptr);
+  for (int i = 0; i < n; ++i) {
+    std::string result = d.Request(kConfigureJsHash, 8192);
+    // std::cout << result << std::endl;
+    // TODO verify the output.
+  }
 }
 
 void GitCatFileWithoutDaemon(int n) {
   for (int i = 0; i < n; ++i) {
     std::string result = PopenAndReadOrDie2({"git", "cat-file", "blob",
-	"5c7b5c80891eee3ae35687f3706567544a149e73"},
+	  kConfigureJsHash},
     nullptr, nullptr);
   }
   // std::cout << result << std::endl;
