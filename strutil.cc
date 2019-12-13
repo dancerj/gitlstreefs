@@ -15,8 +15,6 @@
 #include "scoped_fd.h"
 #include "ostream_vector.h"
 
-using namespace std;
-
 #define ABORT_ON_ERROR(A) if ((A) == -1) { \
     perror(#A);				   \
     syslog(LOG_ERR, #A);		   \
@@ -29,7 +27,7 @@ using namespace std;
     return false;				  \
   }
 
-bool ReadFromFile(int dirfd, const std::string& filename, string* result) {
+bool ReadFromFile(int dirfd, const std::string& filename, std::string* result) {
   ScopedFd fd(openat(dirfd, filename.c_str(), O_RDONLY | O_CLOEXEC));
   if (fd.get() == -1) {
     perror(("open ReadFile " + filename).c_str());
@@ -45,7 +43,7 @@ bool ReadFromFile(int dirfd, const std::string& filename, string* result) {
 }
 
 std::string ReadFromFileOrDie(int dirfd, const std::string& filename) {
-  string s;
+  std::string s;
   assert(ReadFromFile(dirfd, filename, &s));
   return s;
 }
@@ -54,9 +52,9 @@ std::string ReadFromFileOrDie(int dirfd, const std::string& filename) {
 // gitlstreefs benchmarks, we're spending 5% of CPU time initializing
 // shell startup.
 std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
-			       const string* cwd,
+			       const std::string* cwd,
 			       int* maybe_exit_code) {
-  string retval;  // only used on successful exit from parent.
+  std::string retval;  // only used on successful exit from parent.
   pid_t pid;
   int pipefd[2];
   assert(0 == pipe(pipefd));
@@ -79,7 +77,7 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
     ABORT_ON_ERROR(dup2(pipefd[1], 2));
     ABORT_ON_ERROR(close(pipefd[0]));
     ABORT_ON_ERROR(close(pipefd[1]));
-    vector<char*> argv;
+    std::vector<char*> argv;
     for (auto& s: command) {
       // Const cast is necessary because the interface requires
       // mutable char* even though it probably doesn't. Love posix.
@@ -93,7 +91,7 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
   default: {
     // Parent process.
     ABORT_ON_ERROR(close(pipefd[1]));
-    string readbuf;
+    std::string readbuf;
     const int bufsize = 4096;
     readbuf.resize(bufsize);
     while(1) {

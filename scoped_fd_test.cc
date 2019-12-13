@@ -7,12 +7,10 @@
 
 #include <iostream>
 
-using namespace std;
-
 void TestMove() {
   // assume a file that is larger than 10 bytes.
   ScopedFd fd(open("scoped_fd_test.cc", O_RDONLY));
-  ScopedFd fd2 = move(fd);
+  ScopedFd fd2 = std::move(fd);
   assert(fd.get() == -1);
   assert(fd2.get() != -1);
   char buf[11];
