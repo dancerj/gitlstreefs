@@ -114,10 +114,10 @@ private:
   DISALLOW_COPY_AND_ASSIGN(BidirectionalPopen);
 };
 
-class GitCatFileDaemon {
+class GitCatFileProcess {
 public:
-  GitCatFileDaemon() : process_({"/usr/bin/git", "cat-file", "--batch"}, nullptr) {}
-  ~GitCatFileDaemon() {}
+  GitCatFileProcess() : process_({"/usr/bin/git", "cat-file", "--batch"}, nullptr) {}
+  ~GitCatFileProcess() {}
 
   std::string Request(const std::string& ref, ssize_t max_response_size) {
     std::lock_guard<std::mutex> l(m_);
@@ -134,8 +134,8 @@ private:
 
 const char* kConfigureJsHash = "5c7b5c80891eee3ae35687f3706567544a149e73";
 
-void GitCatFileWithDaemon(int n) {
-  GitCatFileDaemon d;
+void GitCatFileWithProcess(int n) {
+  GitCatFileProcess d;
   // BidirectionalPopen p({"/usr/bin/git", "cat-file", "--batch"}, nullptr);
   for (int i = 0; i < n; ++i) {
     std::string result = d.Request(kConfigureJsHash, 8192);
@@ -144,13 +144,44 @@ void GitCatFileWithDaemon(int n) {
   }
 }
 
-void GitCatFileWithoutDaemon(int n) {
+void GitCatFileWithoutProcess(int n) {
   for (int i = 0; i < n; ++i) {
     std::string result = PopenAndReadOrDie2({"git", "cat-file", "blob",
 	  kConfigureJsHash},
     nullptr, nullptr);
   }
   // std::cout << result << std::endl;
+}
+
+// TODO make this class generic.
+class GitCatFileMetadata {
+public:
+  GitCatFileMetadata(const std::string& header) {
+    auto newline = header.find('\n');
+    assert(newline != std::string::npos);
+    std::string first_line = header.substr(0, newline);
+    auto space1 = first_line.find(' ');
+    auto space2 = first_line.find(' ', space1 + 1);
+    assert(space1 != std::string::npos);
+    assert(space2 != std::string::npos);
+    assert(space1 != space2);
+    std::string sha1 = first_line.substr(0, space1);
+    std::string type = first_line.substr(space1 + 1,
+					 space2 - space1 - 1);
+    std::cout << type << "<" << std::endl;
+    std::string size = first_line.substr(space2 + 1,
+					 first_line.size() - space2 - 1);
+    assert(first_line == "5c7b5c80891eee3ae35687f3706567544a149e73 blob 7177");
+    assert(sha1 == "5c7b5c80891eee3ae35687f3706567544a149e73");
+    assert(type == "blob");
+    assert(size == "7177");
+  }
+  ~GitCatFileMetadata() {}
+private:
+};
+
+void testParseFirstLine() {
+  GitCatFileMetadata m("5c7b5c80891eee3ae35687f3706567544a149e73 blob 7177\n");
 }
 
 int main(int argc, char** argv) {
@@ -160,11 +191,12 @@ int main(int argc, char** argv) {
   }
   {
     scoped_timer::ScopedTimer timer("ForkExec");
-    GitCatFileWithoutDaemon(n);
+    GitCatFileWithoutProcess(n);
   }
   {
-    scoped_timer::ScopedTimer timer("Daemon");
-    GitCatFileWithDaemon(n);
+    scoped_timer::ScopedTimer timer("Process");
+    GitCatFileWithProcess(n);
   }
+  testParseFirstLine();
   return 0;
 }
