@@ -41,6 +41,10 @@ public:
     case -1:
       // Failed to fork.
       perror("Fork");
+      close(write_pipefd[0]);
+      close(write_pipefd[1]);
+      close(read_pipefd[0]);
+      close(read_pipefd[1]);
       exit(1);
     case 0: {
       // Child process.

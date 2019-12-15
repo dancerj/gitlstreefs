@@ -63,6 +63,8 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
   case -1:
     // Failed to fork.
     perror("Fork");
+    close(pipefd[0]);
+    close(pipefd[1]);
     exit(1);
   case 0: {
     // Child process.
