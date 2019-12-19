@@ -29,7 +29,7 @@ void TryReadFileTest(directory_container::DirectoryContainer* fs, const string& 
 
 void ScenarioTest() {
   auto fs = std::make_unique<directory_container::DirectoryContainer>();
-  auto git = gitlstree::GitTree::NewGitTree(GetCurrentDir(), "HEAD", "",
+  auto git = gitlstree::GitTree::NewGitTree(GetCurrentDir() + "/out/fetch_test_repo/gitlstreefs", "HEAD", "",
 					    GetCurrentDir() + "/out/gitlstree_test_cache/",
 					    fs.get());
   fs->dump();

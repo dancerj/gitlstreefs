@@ -93,8 +93,10 @@ CompileLinkRunTest('gitlstree_test',
 		    'gitlstree_test',
 		    'scoped_timer',
 		    'stats_holder',
-		    'strutil'])
-
+		    'strutil'],
+		   {
+		       extra_depends: ['out/fetch_test_repo.sh.result']
+		   })
 CompileLink('gitlstree',
 	    ['basename',
 	     'cached_file',
@@ -108,7 +110,7 @@ CompileLink('gitlstree',
 	     'stats_holder',
 	     'strutil'])
 
-CompileLinkRunTest('strutil_test', ['strutil', 'strutil_test'])
+CompileLinkRunTest('strutil_test', ['strutil', 'strutil_test'] )
 CompileLink('ninjafs', ['basename',
 			'directory_container',
 			'get_current_dir',
@@ -179,10 +181,12 @@ CompileLinkRunTest('experimental/gitfs_test',
 		    'get_current_dir',
 		    'experimental/gitxx',
 		    'basename'],
-		   {cclink: 'cclinkwithgit2'})
+		   {cclink: 'cclinkwithgit2',
+		    extra_depends: ['out/fetch_test_repo.sh.result']})
 CompileLinkRunTest('experimental/libgit2test',
 		   ['experimental/libgit2test', 'experimental/gitxx'],
-		   {cclink: 'cclinkwithgit2'})
+		   {cclink: 'cclinkwithgit2',
+		    extra_depends: ['out/fetch_test_repo.sh.result']})
 CompileLink('experimental/hello_fuseflags', ['experimental/hello_fuseflags'])
 CompileLink('experimental/unkofs', ['experimental/unkofs',
 				    'experimental/roptfs',
@@ -244,4 +248,5 @@ CompileLinkRunTest('git_cat_file_test',
 		    'scoped_timer',
 		    'stats_holder',
 		    'strutil'])
+RunTestScript('fetch_test_repo.sh')
 Emit()

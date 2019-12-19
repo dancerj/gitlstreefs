@@ -28,7 +28,7 @@ void DumpCommitTree(gitxx::Repository& repo, const string& rev) {
 }
 
 int main() {
-  gitxx::Repository repo(".");
+  gitxx::Repository repo("./out/fetch_test_repo/gitlstreefs");
   CatRevision(repo);
   DumpCommitTree(repo, "HEAD");
   DumpCommitTree(repo, "70a926d68853b09e304b75e5b39c77c0b42e889b");

@@ -27,7 +27,7 @@ void TryReadFileTest(gitfs::GitTree* fs, const string& name) {
 }
 
 void ScenarioTest() {
-  auto fs = std::make_unique<gitfs::GitTree>("HEAD", GetCurrentDir());
+  auto fs = std::make_unique<gitfs::GitTree>("HEAD", GetCurrentDir() + "/out/fetch_test_repo/gitlstreefs");
   fs->dump();
 
   assert(fs->get("dummytestdirectory/README") != nullptr);
