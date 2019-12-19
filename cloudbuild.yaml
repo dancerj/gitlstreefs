@@ -3,7 +3,5 @@ steps:
   args:
     - --destination=gcr.io/$PROJECT_ID/gitlstreefsbuilder
     - --cache=true
-- name: 'gcr.io/cloud-builders/git'
-  args: ['fetch', '--unshallow']
 - name: 'gcr.io/$PROJECT_ID/gitlstreefsbuilder'
 
