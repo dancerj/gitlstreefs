@@ -118,51 +118,13 @@ private:
   DISALLOW_COPY_AND_ASSIGN(BidirectionalPopen);
 };
 
-class GitCatFileProcess {
-public:
-  GitCatFileProcess() : process_({"/usr/bin/git", "cat-file", "--batch"}, nullptr) {}
-  ~GitCatFileProcess() {}
-
-  std::string Request(const std::string& ref, ssize_t max_response_size) {
-    std::lock_guard<std::mutex> l(m_);
-
-    process_.Write(ref + "\n");
-    // TODO remove the need for max response size.
-    return process_.Read(max_response_size);
-  }
-
-private:
-  BidirectionalPopen process_;
-  std::mutex m_;
-};
-
-const char* kConfigureJsHash = "5c7b5c80891eee3ae35687f3706567544a149e73";
-
-void GitCatFileWithProcess(int n) {
-  GitCatFileProcess d;
-  // BidirectionalPopen p({"/usr/bin/git", "cat-file", "--batch"}, nullptr);
-  for (int i = 0; i < n; ++i) {
-    std::string result = d.Request(kConfigureJsHash, 8192);
-    // std::cout << result << std::endl;
-    // TODO verify the output.
-  }
-}
-
-void GitCatFileWithoutProcess(int n) {
-  for (int i = 0; i < n; ++i) {
-    std::string result = PopenAndReadOrDie2({"git", "cat-file", "blob",
-	  kConfigureJsHash},
-    nullptr, nullptr);
-  }
-  // std::cout << result << std::endl;
-}
-
 class GitCatFileMetadata {
 public:
   GitCatFileMetadata(const std::string& header) {
     auto newline = header.find('\n');
     assert(newline != std::string::npos);
     std::string first_line = header.substr(0, newline);
+    first_line_size_ = first_line.size() + 1;
     auto space1 = first_line.find(' ');
     auto space2 = first_line.find(' ', space1 + 1);
     assert(space1 != std::string::npos);
@@ -177,10 +139,61 @@ public:
   }
   ~GitCatFileMetadata() {}
 
+  // The header size, including the terminating newline.
+  int first_line_size_{-1};
+
+  // The size of the message content.
   int size_{-1};
   std::string sha1_;
   std::string type_;
 };
+
+class GitCatFileProcess {
+public:
+  GitCatFileProcess() : process_({"/usr/bin/git", "cat-file", "--batch"}, nullptr) {}
+  ~GitCatFileProcess() {}
+  const int kMaxHeaderSize = 4096;
+
+  // TODO: probably getting the full response string is not what the
+  // user wants, but more structured with metadata vs blob content.
+  std::string Request(const std::string& ref) {
+    std::lock_guard<std::mutex> l(m_);
+
+    process_.Write(ref + "\n");
+    // TODO remove the need for max response size.
+    std::string result = process_.Read(kMaxHeaderSize);
+    GitCatFileMetadata metadata(result);
+    if (metadata.size_ > kMaxHeaderSize) {
+      result += process_.Read(metadata.size_ + metadata.first_line_size_ - kMaxHeaderSize);
+    }
+    return result;
+  }
+
+private:
+  BidirectionalPopen process_;
+  std::mutex m_;
+};
+
+const char* kConfigureJsHash = "5c7b5c80891eee3ae35687f3706567544a149e73";
+
+void GitCatFileWithProcess(int n) {
+  GitCatFileProcess d;
+  // BidirectionalPopen p({"/usr/bin/git", "cat-file", "--batch"}, nullptr);
+  for (int i = 0; i < n; ++i) {
+    std::string result = d.Request(kConfigureJsHash);
+    // std::cout << result << std::endl;
+    // TODO verify the output.
+  }
+}
+
+void GitCatFileWithoutProcess(int n) {
+  for (int i = 0; i < n; ++i) {
+    std::string result = PopenAndReadOrDie2({"git", "cat-file", "blob",
+	  kConfigureJsHash},
+    nullptr, nullptr);
+  }
+  // std::cout << result << std::endl;
+}
 
 void testParseFirstLine() {
   GitCatFileMetadata m("5c7b5c80891eee3ae35687f3706567544a149e73 blob 7177\n");
@@ -188,6 +201,7 @@ void testParseFirstLine() {
   assert(m.sha1_ == "5c7b5c80891eee3ae35687f3706567544a149e73");
   assert(m.type_ == "blob");
   assert(m.size_ == 7177);
+  assert(m.first_line_size_ == 51);
 }
 
 int main(int argc, char** argv) {
