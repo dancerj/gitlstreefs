@@ -157,7 +157,6 @@ void GitCatFileWithoutProcess(int n) {
   // std::cout << result << std::endl;
 }
 
-// TODO make this class generic.
 class GitCatFileMetadata {
 public:
   GitCatFileMetadata(const std::string& header) {
@@ -169,23 +168,26 @@ public:
     assert(space1 != std::string::npos);
     assert(space2 != std::string::npos);
     assert(space1 != space2);
-    std::string sha1 = first_line.substr(0, space1);
-    std::string type = first_line.substr(space1 + 1,
-					 space2 - space1 - 1);
-    std::cout << type << "<" << std::endl;
-    std::string size = first_line.substr(space2 + 1,
+    sha1_ = first_line.substr(0, space1);
+    type_ = first_line.substr(space1 + 1,
+			      space2 - space1 - 1);
+    std::string size_str = first_line.substr(space2 + 1,
 					 first_line.size() - space2 - 1);
-    assert(first_line == "5c7b5c80891eee3ae35687f3706567544a149e73 blob 7177");
-    assert(sha1 == "5c7b5c80891eee3ae35687f3706567544a149e73");
-    assert(type == "blob");
-    assert(size == "7177");
+    size_ = atoi(size_str.c_str());
   }
   ~GitCatFileMetadata() {}
-private:
+
+  int size_{-1};
+  std::string sha1_;
+  std::string type_;
 };
 
 void testParseFirstLine() {
   GitCatFileMetadata m("5c7b5c80891eee3ae35687f3706567544a149e73 blob 7177\n");
+
+  assert(m.sha1_ == "5c7b5c80891eee3ae35687f3706567544a149e73");
+  assert(m.type_ == "blob");
+  assert(m.size_ == 7177);
 }
 
 int main(int argc, char** argv) {
