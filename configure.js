@@ -244,7 +244,8 @@ CompileLinkRunTest('gitiles_test',
 		    'jsonparser',
 		    'strutil'])
 CompileLinkRunTest('git_cat_file_test',
-		   ['git_cat_file_test',
+		   ['get_current_dir',
+		    'git_cat_file_test',
 		    'scoped_timer',
 		    'stats_holder',
 		    'strutil'])

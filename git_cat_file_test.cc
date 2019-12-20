@@ -11,6 +11,7 @@
 #include <mutex>
 
 #include "disallow.h"
+#include "get_current_dir.h"
 #include "scoped_timer.h"
 #include "strutil.h"
 
@@ -150,7 +151,8 @@ public:
 
 class GitCatFileProcess {
 public:
-  GitCatFileProcess() : process_({"/usr/bin/git", "cat-file", "--batch"}, nullptr) {}
+  explicit GitCatFileProcess(const std::string* cwd) :
+    process_({"/usr/bin/git", "cat-file", "--batch"}, cwd) {}
   ~GitCatFileProcess() {}
   const int kMaxHeaderSize = 4096;
 
@@ -176,8 +178,8 @@ private:
 
 const char* kConfigureJsHash = "5c7b5c80891eee3ae35687f3706567544a149e73";
 
-void GitCatFileWithProcess(int n) {
-  GitCatFileProcess d;
+void GitCatFileWithProcess(int n, const std::string& git_dir) {
+  GitCatFileProcess d(&git_dir);
   // BidirectionalPopen p({"/usr/bin/git", "cat-file", "--batch"}, nullptr);
   for (int i = 0; i < n; ++i) {
     std::string result = d.Request(kConfigureJsHash);
@@ -186,11 +188,11 @@ void GitCatFileWithProcess(int n) {
   }
 }
 
-void GitCatFileWithoutProcess(int n) {
+void GitCatFileWithoutProcess(int n, const std::string& git_dir) {
   for (int i = 0; i < n; ++i) {
     std::string result = PopenAndReadOrDie2({"git", "cat-file", "blob",
 	  kConfigureJsHash},
-      nullptr, nullptr);
+      &git_dir, nullptr);
     assert(result.find("#!/usr/bin/env nodejs") != std::string::npos);
   }
   // std::cout << result << std::endl;
@@ -210,13 +212,14 @@ int main(int argc, char** argv) {
   if (argc == 2) {
     n = atoi(argv[1]);
   }
+  const std::string git_dir = GetCurrentDir() + "/out/fetch_test_repo/gitlstreefs";
   {
     scoped_timer::ScopedTimer timer("ForkExec");
-    GitCatFileWithoutProcess(n);
+    GitCatFileWithoutProcess(n, git_dir);
   }
   {
     scoped_timer::ScopedTimer timer("Process");
-    GitCatFileWithProcess(n);
+    GitCatFileWithProcess(n, git_dir);
   }
   testParseFirstLine();
   return 0;
