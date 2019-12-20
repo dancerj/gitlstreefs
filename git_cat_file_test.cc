@@ -1,18 +1,9 @@
 #include "git_cat_file.h"
 
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <syslog.h>
-#include <unistd.h>
-
 #include <cassert>
 #include <iostream>
 #include <string>
-#include <vector>
-#include <mutex>
 
-#include "disallow.h"
 #include "get_current_dir.h"
 #include "scoped_timer.h"
 #include "strutil.h"
@@ -59,7 +50,7 @@ void testParseFirstLine() {
 }
 
 int main(int argc, char** argv) {
-  int n = 1;
+  int n = 2;
   if (argc == 2) {
     n = atoi(argv[1]);
   }

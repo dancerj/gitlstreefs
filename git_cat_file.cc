@@ -7,15 +7,11 @@
 #include <unistd.h>
 
 #include <cassert>
-#include <iostream>
 #include <string>
 #include <vector>
 #include <mutex>
 
 #include "disallow.h"
-#include "get_current_dir.h"
-#include "scoped_timer.h"
-#include "strutil.h"
 
 #define ABORT_ON_ERROR(A) if ((A) == -1) { \
     perror(#A);				   \
@@ -138,7 +134,7 @@ std::string GitCatFileProcess::Request(const std::string& ref) {
   std::string result = process_.Read(kMaxHeaderSize);
   GitCatFileMetadata metadata(result);
   if (metadata.size_ > kMaxHeaderSize) {
-    result += process_.Read(metadata.size_ + metadata.first_line_size_ - kMaxHeaderSize);
+    result += process_.Read((metadata.size_ + metadata.first_line_size_ + 1 /* closing LF */) - result.size());
   }
   return result;
 }
