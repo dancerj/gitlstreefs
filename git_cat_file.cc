@@ -124,18 +124,21 @@ GitCatFileProcess::GitCatFileProcess(const std::string* cwd) :
   process_({"/usr/bin/git", "cat-file", "--batch"}, cwd) {}
 GitCatFileProcess::~GitCatFileProcess() {}
 
-std::string GitCatFileProcess::Request(const std::string& ref) {
-  // TODO: probably getting the full response string is not what the
-  // user wants, but more structured with metadata vs blob content.
+std::pair<GitCatFileMetadata, std::string>
+GitCatFileProcess::Request(const std::string& ref) {
+
   const int kMaxHeaderSize = 4096;
   std::lock_guard<std::mutex> l(m_);
 
   process_.Write(ref + "\n");
-  std::string result = process_.Read(kMaxHeaderSize);
-  GitCatFileMetadata metadata(result);
+  std::string response = process_.Read(kMaxHeaderSize);
+
+  std::pair<GitCatFileMetadata, std::string> result(response, "");
+  const GitCatFileMetadata& metadata{result.first};
   if (metadata.size_ > kMaxHeaderSize) {
-    result += process_.Read((metadata.size_ + metadata.first_line_size_ + 1 /* closing LF */) - result.size());
+    response += process_.Read((metadata.size_ + metadata.first_line_size_ + 1 /* closing LF */) - response.size());
   }
+  result.second = response.substr(metadata.first_line_size_, metadata.size_);
   return result;
 }
 }  // namespace GitCatFile

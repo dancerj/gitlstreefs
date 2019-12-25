@@ -24,8 +24,8 @@ void GitCatFileWithProcess(int n, const std::string& git_dir) {
   GitCatFileProcess d(&git_dir);
   // BidirectionalPopen p({"/usr/bin/git", "cat-file", "--batch"}, nullptr);
   for (int i = 0; i < n; ++i) {
-    std::string result = d.Request(kConfigureJsHash);
-    // std::cout << result << std::endl;
+    std::string result = d.Request(kConfigureJsHash).second;
+    std::cout << result << std::endl;
     assert(result.find("#!/usr/bin/env nodejs") != std::string::npos);
   }
 }
