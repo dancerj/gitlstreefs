@@ -7,9 +7,10 @@
 #include <unistd.h>
 
 #include <cassert>
+#include <iostream>
+#include <mutex>
 #include <string>
 #include <vector>
-#include <mutex>
 
 #include "disallow.h"
 
@@ -100,16 +101,22 @@ std::string BidirectionalPopen::Read(int max_size) {
   return buf;
 }
 
+#define ASSERT_NE(A, B, CONTEXT) {				      \
+  if ((A) == (B)) {					      \
+  std::cout << "[" << A << "] != [" << B << "] [" << CONTEXT << "]" << std::endl; \
+  assert(0);						      \
+  }}
+
 GitCatFileMetadata::GitCatFileMetadata(const std::string& header) {
   auto newline = header.find('\n');
-  assert(newline != std::string::npos);
+  ASSERT_NE(newline, std::string::npos, header);
   std::string first_line = header.substr(0, newline);
   first_line_size_ = first_line.size() + 1;
   auto space1 = first_line.find(' ');
   auto space2 = first_line.find(' ', space1 + 1);
-  assert(space1 != std::string::npos);
-  assert(space2 != std::string::npos);
-  assert(space1 != space2);
+  ASSERT_NE(space1, std::string::npos, header);
+  ASSERT_NE(space2, std::string::npos, header);
+  ASSERT_NE(space1, space2, header);
   sha1_ = first_line.substr(0, space1);
   type_ = first_line.substr(space1 + 1,
 			    space2 - space1 - 1);
