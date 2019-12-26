@@ -30,8 +30,8 @@ public:
   BidirectionalPopen(const std::vector<std::string>& command,
 		     const std::string* cwd);
   ~BidirectionalPopen();
-  void Write(const std::string& s);
-  std::string Read(int max_size);
+  void Write(const std::string& s) const;
+  std::string Read(int max_size) const;
 private:
   int read_fd_{-1};
   int write_fd_{-1};
@@ -45,11 +45,11 @@ public:
   explicit GitCatFileProcess(const std::string* cwd);
   ~GitCatFileProcess();
 
-  std::string Request(const std::string& ref);
+  std::string Request(const std::string& ref) const;
 
 private:
-  BidirectionalPopen process_;
-  std::mutex m_;
+  const BidirectionalPopen process_;
+  mutable std::mutex m_;
 };
 }
 

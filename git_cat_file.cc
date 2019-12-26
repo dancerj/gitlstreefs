@@ -86,11 +86,11 @@ BidirectionalPopen::~BidirectionalPopen() {
     // int exit_code = WEXITSTATUS(status);
   }
 
-void BidirectionalPopen::Write(const std::string& s) {
+void BidirectionalPopen::Write(const std::string& s) const {
   write(write_fd_, s.data(), s.size());
 }
 
-std::string BidirectionalPopen::Read(int max_size) {
+std::string BidirectionalPopen::Read(int max_size) const {
   std::string buf;
   buf.resize(max_size);
   ssize_t size = read(read_fd_, &buf[0], buf.size());
@@ -132,7 +132,7 @@ GitCatFileProcess::GitCatFileProcess(const std::string* cwd) :
   process_({"/usr/bin/git", "cat-file", "--batch"}, cwd) {}
 GitCatFileProcess::~GitCatFileProcess() {}
 
-std::string GitCatFileProcess::Request(const std::string& ref) {
+std::string GitCatFileProcess::Request(const std::string& ref) const {
   const int kMaxHeaderSize = 4096;
   std::lock_guard<std::mutex> l(m_);
 

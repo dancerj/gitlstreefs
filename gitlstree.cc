@@ -21,10 +21,11 @@ mount-able filesystem.
 #include <vector>
 
 #include "concurrency_limit.h"
+#include "git_cat_file.h"
 #include "gitlstree.h"
-#include "strutil.h"
-#include "scoped_timer.h"
 #include "ostream_vector.h"
+#include "scoped_timer.h"
+#include "strutil.h"
 
 using std::lock_guard;
 using std::make_unique;
@@ -167,7 +168,8 @@ std::unique_ptr<GitTree> GitTree::NewGitTree(const string& my_gitdir,
 
 GitTree::GitTree(const string& my_gitdir,
 		 const string& maybe_ssh, const string& cached_dir)
-    : gitdir_(my_gitdir), ssh_(maybe_ssh), cache_(cached_dir) {
+    : gitdir_(my_gitdir), ssh_(maybe_ssh), cache_(cached_dir),
+      git_cat_file_(std::make_unique<GitCatFile::GitCatFileProcess>(&my_gitdir)) {
   cache_.Gc();
 }
 
@@ -179,11 +181,10 @@ FileElement::FileElement(int attribute, const string& sha1, int size, GitTree* p
 int FileElement::maybe_cat_file_locked() {
   if (!memory_) {
     memory_ = parent_->cache().get(sha1_, [this](string* ret) -> bool {
-	int exit_code;
-	*ret = string(parent_->RunGitCommand({"git", "cat-file", "blob", sha1_},
-					     &exit_code,
-					     "cat-file"));
-	return exit_code == 0;
+	// TODO add error handling in git_cat_file instead of assert()
+	// and abort.
+	*ret = parent_->git_cat_file()->Request(sha1_);
+	return true;
       });
     if (!memory_) {
       // If still failed, something failed in the process.
