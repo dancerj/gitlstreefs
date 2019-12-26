@@ -45,7 +45,7 @@ public:
   explicit GitCatFileProcess(const std::string* cwd);
   ~GitCatFileProcess();
 
-  std::pair<GitCatFileMetadata, std::string> Request(const std::string& ref);
+  std::string Request(const std::string& ref);
 
 private:
   BidirectionalPopen process_;
