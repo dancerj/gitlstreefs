@@ -9,7 +9,7 @@ Requires libfuse, libgit2 and zlib as build time library
 dependencies. The build system depends on nodejs and ninja.
 
 ```shell-session
-# apt-get install \
+$ sudo apt-get install \
       attr \
       coreutils \
       curl \
