@@ -26,7 +26,9 @@ void GitCatFileWithProcess(int n, const std::string& git_dir) {
   for (int i = 0; i < n; ++i) {
     std::string result = d.Request(kConfigureJsHash);
     // std::cout << result << std::endl;
-    assert(result.find("#!/usr/bin/env nodejs") != std::string::npos);
+    assert(result.find("#!/usr/bin/env nodejs") == 0);
+    assert(result.rfind("Emit()\n") == 7170);
+    assert(result.size() == 7177);
   }
 }
 
@@ -35,7 +37,9 @@ void GitCatFileWithoutProcess(int n, const std::string& git_dir) {
     std::string result = PopenAndReadOrDie2({"git", "cat-file", "blob",
 	  kConfigureJsHash},
       &git_dir, nullptr);
-    assert(result.find("#!/usr/bin/env nodejs") != std::string::npos);
+    assert(result.find("#!/usr/bin/env nodejs") == 0);
+    assert(result.rfind("Emit()\n") == 7170);
+    assert(result.size() == 7177);
   }
   // std::cout << result << std::endl;
 }
