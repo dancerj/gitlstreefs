@@ -102,10 +102,11 @@ std::string BidirectionalPopen::Read(int max_size) {
 }
 
 #define ASSERT_NE(A, B, CONTEXT) {				      \
-  if ((A) == (B)) {					      \
-  std::cout << "[" << A << "] != [" << B << "] [" << CONTEXT << "]" << std::endl; \
-  assert(0);						      \
-  }}
+    if ((A) == (B)) {						      \
+      std::cout << #A << "[" << A << "] != " <<			      \
+      #B << " [" << B << "] [" << CONTEXT << "]" << std::endl;	      \
+      assert(0);						      \
+    }}
 
 GitCatFileMetadata::GitCatFileMetadata(const std::string& header) {
   auto newline = header.find('\n');
@@ -139,12 +140,15 @@ std::string GitCatFileProcess::Request(const std::string& ref) {
   std::string response = process_.Read(kMaxHeaderSize);
 
   const GitCatFileMetadata metadata{response};
-  if (metadata.size_ > kMaxHeaderSize) {
-    response += process_.Read((metadata.size_ +
-			       metadata.first_line_size_ +
-			       1 /* closing LF */)  /* The size of what we want to read */
-			      - response.size() /* What we've already read */);
+  int remaining;
+  while ((remaining = (metadata.size_ +
+		       metadata.first_line_size_ +
+		       1 /* closing LF */)  /* The size of what we want to read */
+	  - response.size() /* What we've already read */
+	  ) > 0) {
+    response += process_.Read(remaining);
   }
+  assert(response[response.size()-1] == '\n');
   return response.substr(metadata.first_line_size_, metadata.size_);
 }
 
