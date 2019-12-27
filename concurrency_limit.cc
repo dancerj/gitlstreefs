@@ -12,7 +12,7 @@ using std::mutex;
 using std::set;
 using std::string;
 
-void ScopedConcurrencyLimit::DumpStatus() const {
+void ScopedConcurrencyLimit::DumpStatusLocked() const {
   // TODO: assert lock is held.
   string output;
   for (const string* message : messages_) {
@@ -26,7 +26,7 @@ ScopedConcurrencyLimit::ScopedConcurrencyLimit(const string& message) :
   message_(message) {
   unique_lock<mutex> l(m_);
   if (messages_.size() > kLimit) {
-    DumpStatus();
+    DumpStatusLocked();
     cv_.wait(l, []{
 	return messages_.size() <= kLimit;
       });
@@ -38,7 +38,7 @@ ScopedConcurrencyLimit::~ScopedConcurrencyLimit() {
   {
     lock_guard<mutex> l(m_);
     messages_.erase(&message_);
-    DumpStatus();
+    DumpStatusLocked();
   }
   cv_.notify_one();
 }
