@@ -181,9 +181,12 @@ FileElement::FileElement(int attribute, const string& sha1, int size, GitTree* p
 int FileElement::maybe_cat_file_locked() {
   if (!memory_) {
     memory_ = parent_->cache().get(sha1_, [this](string* ret) -> bool {
-	// TODO add error handling in git_cat_file instead of assert()
-	// and abort.
-	*ret = parent_->git_cat_file()->Request(sha1_);
+	try {
+	  *ret = parent_->git_cat_file()->Request(sha1_);
+	} catch (GitCatFile::GitCatFileProcess::ObjectNotFoundException& e) {
+	  // If the object was not found, caching the result is not useful.
+	  return false;
+	}
 	return true;
       });
     if (!memory_) {

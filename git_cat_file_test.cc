@@ -53,6 +53,17 @@ void testParseFirstLine() {
   assert(m.first_line_size_ == 51);
 }
 
+void testFailureCase(const std::string& git_dir) {
+  GitCatFileProcess d(&git_dir);
+  try {
+    std::string result = d.Request("deadbeef");
+  } catch (GitCatFile::GitCatFileProcess::ObjectNotFoundException& e) {
+    return;
+  }
+  // Should not reach here.
+  assert(0);
+}
+
 int main(int argc, char** argv) {
   int n = 2;
   if (argc == 2) {
@@ -68,5 +79,6 @@ int main(int argc, char** argv) {
     GitCatFileWithProcess(n, git_dir);
   }
   testParseFirstLine();
+  testFailureCase(git_dir);
   return 0;
 }

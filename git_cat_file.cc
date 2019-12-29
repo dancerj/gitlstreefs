@@ -114,11 +114,18 @@ GitCatFileMetadata::GitCatFileMetadata(const std::string& header) {
   std::string first_line = header.substr(0, newline);
   first_line_size_ = first_line.size() + 1;
   auto space1 = first_line.find(' ');
-  auto space2 = first_line.find(' ', space1 + 1);
   ASSERT_NE(space1, std::string::npos, header);
+  sha1_ = first_line.substr(0, space1);
+
+  auto space2 = first_line.find(' ', space1 + 1);
+  if (space2 == std::string::npos) {
+    // There's only two when the object could not be found.
+      type_ = first_line.substr(space1 + 1,
+				newline - space1 - 1);
+    return;
+  }
   ASSERT_NE(space2, std::string::npos, header);
   ASSERT_NE(space1, space2, header);
-  sha1_ = first_line.substr(0, space1);
   type_ = first_line.substr(space1 + 1,
 			    space2 - space1 - 1);
   std::string size_str = first_line.substr(space2 + 1,
@@ -140,6 +147,10 @@ std::string GitCatFileProcess::Request(const std::string& ref) const {
   std::string response = process_.Read(kMaxHeaderSize);
 
   const GitCatFileMetadata metadata{response};
+  if (metadata.type_ == "missing") {
+    throw ObjectNotFoundException();
+    // return "";
+  }
   int remaining;
   while ((remaining = (metadata.size_ +
 		       metadata.first_line_size_ +

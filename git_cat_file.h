@@ -46,6 +46,7 @@ public:
   ~GitCatFileProcess();
 
   std::string Request(const std::string& ref) const;
+  struct ObjectNotFoundException {};
 
 private:
   const BidirectionalPopen process_;
