@@ -6,6 +6,7 @@
 #include <string>
 
 #include "disallow.h"
+#include "scoped_fd.h"
 
 namespace GitCatFile {
 
@@ -33,8 +34,8 @@ public:
   void Write(const std::string& s) const;
   std::string Read(int max_size) const;
 private:
-  int read_fd_{-1};
-  int write_fd_{-1};
+  ScopedFd read_fd_{-1};
+  ScopedFd write_fd_{-1};
   pid_t pid_{-1};
 
   DISALLOW_COPY_AND_ASSIGN(BidirectionalPopen);

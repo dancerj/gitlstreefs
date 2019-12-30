@@ -48,6 +48,13 @@ std::string ReadFromFileOrDie(int dirfd, const std::string& filename) {
   return s;
 }
 
+std::pair<ScopedFd, ScopedFd> ScopedPipe() {
+  int pipefd[2];
+  assert(0 == pipe(pipefd));
+  return std::make_pair(ScopedFd(pipefd[0]),
+		   ScopedFd(pipefd[1]));
+}
+
 // A popen implementation that does not require forking a shell. In
 // gitlstreefs benchmarks, we're spending 5% of CPU time initializing
 // shell startup.
@@ -56,15 +63,12 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
 			       int* maybe_exit_code) {
   std::string retval;  // only used on successful exit from parent.
   pid_t pid;
-  int pipefd[2];
-  assert(0 == pipe(pipefd));
+  auto pipefd = ScopedPipe();
 
   switch (pid = fork()) {
   case -1:
     // Failed to fork.
     perror("Fork");
-    close(pipefd[0]);
-    close(pipefd[1]);
     exit(1);
   case 0: {
     // Child process.
@@ -75,10 +79,11 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
       ABORT_ON_ERROR(chdir(cwd->c_str()));
     }
     // Redirect stdout and stderr, and merge them. Do I care if I have stderr?
-    ABORT_ON_ERROR(dup2(pipefd[1], 1));
-    ABORT_ON_ERROR(dup2(pipefd[1], 2));
-    ABORT_ON_ERROR(close(pipefd[0]));
-    ABORT_ON_ERROR(close(pipefd[1]));
+    ABORT_ON_ERROR(dup2(pipefd.second.get(), 1));
+    ABORT_ON_ERROR(dup2(pipefd.second.get(), 2));
+    pipefd.first.clear();
+    pipefd.second.clear();
+
     std::vector<char*> argv;
     for (auto& s: command) {
       // Const cast is necessary because the interface requires
@@ -92,13 +97,13 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
   }
   default: {
     // Parent process.
-    ABORT_ON_ERROR(close(pipefd[1]));
+    pipefd.second.clear();
     std::string readbuf;
     const int bufsize = 4096;
     readbuf.resize(bufsize);
     while(1) {
       ssize_t read_length;
-      ABORT_ON_ERROR(read_length = read(pipefd[0], &readbuf[0], bufsize));
+      ABORT_ON_ERROR(read_length = read(pipefd.first.get(), &readbuf[0], bufsize));
       if (read_length == -1) {
 	perror("read from pipe");
 	break;
@@ -108,7 +113,7 @@ std::string PopenAndReadOrDie2(const std::vector<std::string>& command,
       }
       retval += readbuf.substr(0, read_length);
     }
-    ABORT_ON_ERROR(close(pipefd[0]));
+    pipefd.first.clear();
     int status;
     assert(pid == waitpid(pid, &status, 0));
     if (!WIFEXITED(status)) {
