@@ -50,9 +50,9 @@ std::string ReadFromFileOrDie(int dirfd, const std::string& filename) {
 
 std::pair<ScopedFd, ScopedFd> ScopedPipe() {
   int pipefd[2];
-  assert(0 == pipe(pipefd));
+  assert(0 == pipe2(pipefd, O_CLOEXEC));
   return std::make_pair(ScopedFd(pipefd[0]),
-		   ScopedFd(pipefd[1]));
+			ScopedFd(pipefd[1]));
 }
 
 // A popen implementation that does not require forking a shell. In
