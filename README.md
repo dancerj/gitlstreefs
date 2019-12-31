@@ -65,6 +65,13 @@ There is an integration test that can be manually ran.
 $ ./gitlstree_test.sh
 ```
 
+There is an integration test for remote ssh feature. Requires a
+different host that works with ssh, and be specified as parameter.
+
+```shell-session
+$ ./gitlstree_remote_test.sh server
+```
+
 ## git-githubfs: git file system using github REST API
 
 git-githubfs -- mounts a filesystem based on github repository. Uses
