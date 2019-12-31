@@ -67,7 +67,8 @@ $ ./gitlstree_test.sh
 
 There is an integration test for remote ssh feature. Requires a
 different host that works with ssh, and be specified as parameter.
-The remote needs to have the git repository `git/gitlstreefs`.
+The remote needs to have the git repository `git/gitlstreefs_remote`
+that contains gitlstreefs git repository.
 
 ```shell-session
 $ ./gitlstree_remote_test.sh server
