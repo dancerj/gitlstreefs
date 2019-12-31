@@ -44,6 +44,7 @@ private:
 class GitCatFileProcess {
 public:
   explicit GitCatFileProcess(const std::string* cwd);
+  GitCatFileProcess(const std::string& cwd, const std::string& ssh);
   ~GitCatFileProcess();
 
   std::string Request(const std::string& ref) const;

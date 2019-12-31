@@ -133,6 +133,10 @@ GitCatFileMetadata::~GitCatFileMetadata() {}
 GitCatFileProcess::GitCatFileProcess(const std::string* cwd) :
   process_({"/usr/bin/git", "cat-file", "--batch"}, cwd) {}
 
+GitCatFileProcess::GitCatFileProcess(const std::string& cwd, const std::string& ssh) :
+  process_({"/usr/bin/ssh", ssh, "cd", cwd, "&&", "/usr/bin/git", "cat-file", "--batch"},
+	   nullptr /* local cwd should not matter */) {}
+
 GitCatFileProcess::~GitCatFileProcess() {}
 
 std::string GitCatFileProcess::Request(const std::string& ref) const {

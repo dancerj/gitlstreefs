@@ -170,5 +170,4 @@ A BSD-style license.
 
 ## TODO
 
-- use git-cat-file daemon mode.
 - implement gitiles file system.
