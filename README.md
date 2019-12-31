@@ -62,7 +62,7 @@ $ fusermount -u mountpoint
 There is an integration test that can be manually ran.
 
 ```shell-session
-$ ./gitlstree_integrationtest.sh
+$ ./gitlstree_test.sh
 ```
 
 ## git-githubfs: git file system using github REST API
