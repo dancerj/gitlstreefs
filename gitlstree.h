@@ -10,10 +10,6 @@
 #include "directory_container.h"
 #include "disallow.h"
 
-namespace GitCatFile {
-class GitCatFileProcess;
-}
-
 namespace gitlstree {
 
 enum GitFileType {
@@ -63,9 +59,6 @@ public:
 			    int* exit_code, const std::string& log_tag);
 
   Cache& cache() { return cache_; }
-  const GitCatFile::GitCatFileProcess* git_cat_file() const {
-    return git_cat_file_.get();
-  }
 
 private:
   GitTree(const std::string& gitdir,
@@ -78,7 +71,6 @@ private:
   const std::string gitdir_;
   const std::string ssh_;
   Cache cache_;
-  const std::unique_ptr<GitCatFile::GitCatFileProcess> git_cat_file_;
 
   DISALLOW_COPY_AND_ASSIGN(GitTree);
 };
