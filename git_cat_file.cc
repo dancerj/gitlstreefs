@@ -106,26 +106,25 @@ std::string BidirectionalPopen::Read(int max_size) const {
 GitCatFileMetadata::GitCatFileMetadata(const std::string& header) {
   auto newline = header.find('\n');
   ASSERT_NE(newline, std::string::npos, header);
-  std::string first_line = header.substr(0, newline);
-  first_line_size_ = first_line.size() + 1;
-  auto space1 = first_line.find(' ');
+  first_line_size_ = newline + 1;
+  auto space1 = header.find(' ');
   ASSERT_NE(space1, std::string::npos, header);
-  sha1_ = first_line.substr(0, space1);
+  assert(space1 < newline);
+  sha1_ = header.substr(0, space1);
 
-  auto space2 = first_line.find(' ', space1 + 1);
-  if (space2 == std::string::npos) {
+  auto space2 = header.find(' ', space1 + 1);
+  if (space2 == std::string::npos || space2 > newline) {
     // There's only two when the object could not be found.
-    type_ = first_line.substr(space1 + 1,
-			      newline - space1 - 1);
+    type_ = header.substr(space1 + 1,
+			  newline - space1 - 1);
     return;
   }
   ASSERT_NE(space2, std::string::npos, header);
+  assert(space2 < newline);
   ASSERT_NE(space1, space2, header);
-  type_ = first_line.substr(space1 + 1,
-			    space2 - space1 - 1);
-  std::string size_str = first_line.substr(space2 + 1,
-					   first_line.size() - space2 - 1);
-  size_ = atoi(size_str.c_str());
+  type_ = header.substr(space1 + 1,
+			space2 - space1 - 1);
+  size_ = atoi(header.c_str() + space2 + 1);
 }
 
 GitCatFileMetadata::~GitCatFileMetadata() {}
