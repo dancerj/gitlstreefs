@@ -9,10 +9,13 @@ cleanup() {
 if [ -z "$1" ]; then
     echo "Please set parameter to be the server name of the ssh remote that has git/gitlstreefs."
     exit 1
+else
+    echo "Trying connecting to remote server"
+    ssh "$1" uname -a
 fi
 
 cleanup
-mkdir mountpoint2 tmp || true
+mkdir mountpoint mountpoint2 tmp || true
 ./configure.js
 ninja
 trap cleanup exit

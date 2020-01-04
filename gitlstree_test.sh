@@ -6,7 +6,7 @@ cleanup() {
     rm -rf tmp
 }
 cleanup
-mkdir mountpoint2 tmp || true
+mkdir mountpoint mountpoint2 tmp || true
 ./configure.js
 ninja
 trap cleanup exit
