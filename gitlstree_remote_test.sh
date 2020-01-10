@@ -1,9 +1,11 @@
 #!/bin/bash
 set -ex
 cleanup() {
-    fusermount -u mountpoint2 || true
-    fusermount -u mountpoint || true
+    fusermount -u -z mountpoint2 || true
+    fusermount -u -z mountpoint || true
     rm -rf tmp
+    rmdir mountpoint || true
+    rmdir mountpoint2 || true
 }
 
 if [ -z "$1" ]; then
@@ -35,8 +37,8 @@ unionfs-fuse tmp=RW:mountpoint mountpoint2
     cd mountpoint2
     mkdir out
     ./configure.js
-    ninja -k10 -j10 out/hello_world
-    ninja out/hello_world out/gitlstree out/git-githubfs
+    time ninja -k10 -j10 out/hello_world
+    time ninja out/hello_world out/gitlstree out/git-githubfs
     ./out/hello_world | grep 'Hello World'
 )
 echo '*** COMPLETE ***'

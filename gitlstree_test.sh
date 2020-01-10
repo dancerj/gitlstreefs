@@ -1,9 +1,11 @@
 #!/bin/bash
 set -ex
 cleanup() {
-    fusermount -u mountpoint2 || true
-    fusermount -u mountpoint || true
+    fusermount -u -z mountpoint2 || true
+    fusermount -u -z mountpoint || true
     rm -rf tmp
+    rmdir mountpoint || true
+    rmdir mountpoint2 || true
 }
 cleanup
 mkdir mountpoint mountpoint2 tmp || true
