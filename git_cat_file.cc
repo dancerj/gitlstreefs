@@ -85,7 +85,12 @@ BidirectionalPopen::~BidirectionalPopen() {
     assert(WTERMSIG(status) == SIGTERM);
   } else {
     // TODO: ssh sometimes gives me 255.
-    assert(WEXITSTATUS(status) == 255);
+
+    // For most cases if given enough time, git cat-file should
+    // terminate with exit code 0.
+    std::cout << WEXITSTATUS(status) << std::endl;
+    assert((WEXITSTATUS(status) == 255) ||
+	   (WEXITSTATUS(status) == 0));
   }
 }
 
