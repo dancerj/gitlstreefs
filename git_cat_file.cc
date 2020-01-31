@@ -73,12 +73,20 @@ BidirectionalPopen::BidirectionalPopen(const std::vector<std::string>& command,
 }
 
 BidirectionalPopen::~BidirectionalPopen() {
+  // Kill the file descriptors.
+  read_fd_.reset(-1);
+  write_fd_.reset(-1);
+
+  // Kill the process.
   kill(pid_, SIGTERM);
   int status;
   assert(pid_ == waitpid(pid_, &status, 0));
-  assert(WIFSIGNALED(status));
-  assert(WTERMSIG(status) == SIGTERM);
-  // int exit_code = WEXITSTATUS(status);
+  if (WIFSIGNALED(status)) {
+    assert(WTERMSIG(status) == SIGTERM);
+  } else {
+    // TODO: ssh sometimes gives me 255.
+    assert(WEXITSTATUS(status) == 255);
+  }
 }
 
 void BidirectionalPopen::Write(const std::string& s) const {
@@ -147,6 +155,7 @@ std::string GitCatFileProcess::Request(const std::string& ref) const {
 
   const GitCatFileMetadata metadata{response};
   if (metadata.type_ == "missing") {
+    std::cout << "Object response for " << ref << " was missing." << std::endl;
     throw ObjectNotFoundException();
   }
 

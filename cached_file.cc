@@ -108,15 +108,17 @@ const Cache::Memory* Cache::get(const string& name,
   if (fd.get() == -1) {
     // Populate cache.
     string result;
-    l.unlock();
-    // This is RPC that may take arbitrary amount of time, we
-    // shouldn't be blocking others. TODO: handle multiple requests to
-    // one cache entry.
+    // TODO: This is RPC that may take arbitrary amount of time, we
+    // shouldn't be blocking others. However it does not properly:
+    // handle multiple requests to one cache entry.
+
+    // l.unlock();
     if (!fetch(&result)) {
       // Uncached fetching failed.
+      std::cout << "Uncached fetching failed: " << name << std::endl;
       return nullptr;
     }
-    l.lock();
+    // l.lock();
 
     string temporary(cache_file_path + ".tmp");
     unlink(temporary.c_str());  // Make sure the file does not exist.

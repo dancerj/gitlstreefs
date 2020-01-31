@@ -21,6 +21,7 @@ mkdir mountpoint mountpoint2 tmp || true
 ./configure.js
 ninja
 trap cleanup exit
+rm -rf .cache
 ./out/gitlstree "--ssh=$1" --path=git/gitlstreefs_remote mountpoint/
 
 # Minimal testing.

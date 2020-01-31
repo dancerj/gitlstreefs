@@ -187,6 +187,7 @@ int FileElement::maybe_cat_file_locked() {
 	  *ret = parent_->git_cat_file()->Request(sha1_);
 	} catch (GitCatFile::GitCatFileProcess::ObjectNotFoundException& e) {
 	  // If the object was not found, caching the result is not useful.
+	  abort();
 	  return false;
 	}
 	return true;
@@ -206,6 +207,7 @@ int FileElement::Open() {
 
 ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   lock_guard<mutex> l(buf_mutex_);
+  assert(!!memory_);  // This may happen if caching is broken.
   if (offset < static_cast<off_t>(memory_->size())) {
     if (offset + size > memory_->size())
       size = memory_->size() - offset;
