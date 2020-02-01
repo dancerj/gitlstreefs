@@ -12,7 +12,9 @@ mkdir mountpoint mountpoint2 tmp || true
 ./configure.js
 ninja
 trap cleanup exit
-./out/gitlstree mountpoint/
+rm -rf .cache
+./out/gitlstree mountpoint/ -d > out/log.gitlstree_test.sh 2>&1 &
+sleep 1
 
 # Minimal testing.
 ls -l mountpoint

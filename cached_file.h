@@ -43,6 +43,8 @@ public:
   // Garbage collect old cache items.
   bool Gc();
 
+  void dump() const;
+
 private:
   void GetFileName(const std::string& key, std::string*, std::string*) const;
 

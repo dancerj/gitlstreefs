@@ -165,7 +165,6 @@ std::unique_ptr<GitTree> GitTree::NewGitTree(const string& my_gitdir,
   }
 }
 
-
 GitTree::GitTree(const string& my_gitdir,
 		 const string& maybe_ssh, const string& cached_dir)
     : gitdir_(my_gitdir), ssh_(maybe_ssh), cache_(cached_dir),
@@ -194,9 +193,11 @@ int FileElement::maybe_cat_file_locked() {
       });
     if (!memory_) {
       // If still failed, something failed in the process.
+      abort();
       return -EIO;
     }
   }
+  assert(!!memory_);
   return 0;
 }
 
@@ -207,6 +208,13 @@ int FileElement::Open() {
 
 ssize_t FileElement::Read(char *target, size_t size, off_t offset) {
   lock_guard<mutex> l(buf_mutex_);
+  if (!memory_) {
+    // Dump some debug information.
+    std::cout << "file: "  << sha1_ << std::endl;
+    parent_->cache().dump();
+    // Work around where RELEASE gets called before READ.
+    maybe_cat_file_locked();
+  }
   assert(!!memory_);  // This may happen if caching is broken.
   if (offset < static_cast<off_t>(memory_->size())) {
     if (offset + size > memory_->size())
@@ -240,7 +248,9 @@ void FileElement::GetHash(char* hash) const {
 
 int FileElement::Release() {
   lock_guard<mutex> l(buf_mutex_);
-  parent_->cache().release(sha1_, memory_);
+  // When your file name based map is destroyed that is not a good timing to destroy the cache.
+  // TODO add refcounting.
+  // parent_->cache().release(sha1_, memory_);
   memory_ = nullptr;
   return 0;
 }

@@ -90,9 +90,11 @@ const Cache::Memory* Cache::get(const string& name,
 				function<bool(string*)> fetch) {
   unique_lock<mutex> l(mutex_);
   // Check if we've already mapped the cache to memory.
-  auto it = mapped_files_.find(name);
-  if (it != mapped_files_.end()) {
-    return &it->second;
+  {
+    auto it = mapped_files_.find(name);
+    if (it != mapped_files_.end()) {
+      return &it->second;
+    }
   }
 
   string cache_file_dir;
@@ -106,19 +108,27 @@ const Cache::Memory* Cache::get(const string& name,
   // Try if we've cached to file.
   ScopedFd fd(open(cache_file_path.c_str(), O_RDONLY));
   if (fd.get() == -1) {
+    assert(errno == ENOENT);
     // Populate cache.
     string result;
     // TODO: This is RPC that may take arbitrary amount of time, we
-    // shouldn't be blocking others. However it does not properly:
+    // shouldn't be blocking others. However it does not properly
     // handle multiple requests to one cache entry.
 
-    // l.unlock();
+    l.unlock();
     if (!fetch(&result)) {
       // Uncached fetching failed.
       std::cout << "Uncached fetching failed: " << name << std::endl;
       return nullptr;
     }
-    // l.lock();
+    l.lock();
+
+    // Re-check if we've already mapped the cache to memory by another
+    // thread.
+    auto it2 = mapped_files_.find(name);
+    if (it2 != mapped_files_.end()) {
+      return &it2->second;
+    }
 
     string temporary(cache_file_path + ".tmp");
     unlink(temporary.c_str());  // Make sure the file does not exist.
@@ -196,4 +206,10 @@ bool Cache::Gc() {
   }
   std::cout << stats.Dump() << std::endl;
   return true;
+}
+
+void Cache::dump() const{
+  for (const auto& p : mapped_files_) {
+    std::cout << p.first << ":" << (intptr_t)p.second.memory_charp() << " " << p.second.size() << std::endl;
+  }
 }
