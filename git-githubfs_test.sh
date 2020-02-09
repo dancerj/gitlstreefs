@@ -1,15 +1,18 @@
 #!/bin/bash
 # Sends requests to github. Should probably not be a continuous test.
+MOUNTPOINT=out/githubfs_mountpoint
 cleanup() {
-    fusermount -u mountpoint || true
+    fusermount -u $MOUNTPOINT || true
+    rmdir ./$MOUNTPOINT || true
 }
 cleanup
 
 trap cleanup exit
 ./configure.js
 ninja
-./out/git-githubfs --user=dancerj --project=gitlstreefs mountpoint/
-ls -l mountpoint
-grep 'git' mountpoint/README.md
-grep 'For testing symlink operation' mountpoint/testdata/symlink
+mkdir -p $MOUNTPOINT || true
+./out/git-githubfs --user=dancerj --project=gitlstreefs $MOUNTPOINT/
+ls -l $MOUNTPOINT
+grep 'git' $MOUNTPOINT/README.md
+grep 'For testing symlink operation' $MOUNTPOINT/testdata/symlink
 echo '*** COMPLETE ***'

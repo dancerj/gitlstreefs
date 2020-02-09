@@ -4,4 +4,22 @@ steps:
     - --destination=gcr.io/$PROJECT_ID/gitlstreefsbuilder
     - --cache=true
 - name: 'gcr.io/$PROJECT_ID/gitlstreefsbuilder'
+  id: 'build'
+- name: 'gcr.io/$PROJECT_ID/gitlstreefsbuilder'
+  entrypoint: '/bin/bash'
+  args: [ './gitlstree_test.sh' ]
+  waitFor: ['build']
+- name: 'gcr.io/$PROJECT_ID/gitlstreefsbuilder'
+  entrypoint: '/bin/bash'
+  args: [ './cowfs_test.sh' ]
+  waitFor: ['build']
+- name: 'gcr.io/$PROJECT_ID/gitlstreefsbuilder'
+  entrypoint: '/bin/bash'
+  args: [ './ninjafs_test.sh' ]
+  waitFor: ['build']
+- name: 'gcr.io/$PROJECT_ID/gitlstreefsbuilder'
+  entrypoint: '/bin/bash'
+  args: [ './git-githubfs_test.sh' ]
+  waitFor: ['build']
+
 
