@@ -13,7 +13,10 @@ mkdir mountpoint mountpoint2 tmp || true
 ninja
 trap cleanup exit
 rm -rf .cache
-./out/gitlstree mountpoint/ -d > out/log.gitlstree_test.sh 2>&1 &
+./out/gitlstree \
+    --path=out/fetch_test_repo/gitlstreefs \
+    mountpoint/ \
+    -d > out/log.gitlstree_test.sh 2>&1 &
 sleep 1
 
 # Minimal testing.
