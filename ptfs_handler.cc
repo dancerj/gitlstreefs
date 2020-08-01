@@ -26,12 +26,12 @@ int PtfsHandler::premount_dirfd_ = -1;
     return 0;					\
   }
 
-#define WRAP_ERRNO_OR_RESULT(T, f)				\
-  T res = f;							\
-  if(-1 == res) {						\
-    return -errno;						\
-  } else {							\
-    return res;							\
+#define WRAP_ERRNO_OR_RESULT(f)			\
+  auto res = f;					\
+  if(-1 == res) {				\
+    return -errno;				\
+  } else {					\
+    return res;					\
   }
 
 #define WITH_FD(relative_path, mode)					\
@@ -52,7 +52,7 @@ int PtfsHandler::GetAttr(const std::string& relative_path, struct stat* stbuf) {
 }
 
 ssize_t PtfsHandler::Read(const FileHandle& fh, char* target, size_t size, off_t offset) {
-  WRAP_ERRNO_OR_RESULT(ssize_t, pread(fh.fd_get(), target, size, offset));
+  WRAP_ERRNO_OR_RESULT(pread(fh.fd_get(), target, size, offset));
 }
 
 int PtfsHandler::ReadBuf(const FileHandle& fh, struct fuse_bufvec &buf, size_t size, off_t offset) {
@@ -65,7 +65,7 @@ int PtfsHandler::ReadBuf(const FileHandle& fh, struct fuse_bufvec &buf, size_t s
 }
 
 ssize_t PtfsHandler::Write(const FileHandle& fh, const char* buf, size_t size, off_t offset) {
-  WRAP_ERRNO_OR_RESULT(ssize_t, pwrite(fh.fd_get(), buf, size, offset));
+  WRAP_ERRNO_OR_RESULT(pwrite(fh.fd_get(), buf, size, offset));
 }
 
 int PtfsHandler::Open(const std::string& relative_path, int access_flags, unique_ptr<FileHandle>* fh) {
@@ -196,12 +196,12 @@ int PtfsHandler::Setxattr(const string& relative_path, const char *name, const c
 ssize_t PtfsHandler::Getxattr(const string& relative_path, const char *name,
 			      char *value, size_t size) {
   WITH_FD(relative_path, O_RDONLY);
-  WRAP_ERRNO_OR_RESULT(ssize_t, fgetxattr(fd.get(), name, value, size));
+  WRAP_ERRNO_OR_RESULT(fgetxattr(fd.get(), name, value, size));
 }
 
 ssize_t PtfsHandler::Listxattr(const string& relative_path, char *list, size_t size) {
   WITH_FD(relative_path, O_RDONLY);
-  WRAP_ERRNO_OR_RESULT(ssize_t, flistxattr(fd.get(), list, size));
+  WRAP_ERRNO_OR_RESULT(flistxattr(fd.get(), list, size));
 }
 
 int PtfsHandler::Removexattr(const string& relative_path, const char *name) {
