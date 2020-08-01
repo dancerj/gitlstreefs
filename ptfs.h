@@ -40,6 +40,11 @@ public:
   virtual ssize_t Read(const FileHandle& fh, char* buf, size_t size, off_t offset);
 
   /**
+   * @return 0 on success, -errno on fail.
+   */
+  virtual int ReadBuf(const FileHandle& fh, struct fuse_bufvec &buf, size_t size, off_t offset);
+
+  /**
    * @return write size >= 0 on success, -errno on fail.
    */
   virtual ssize_t Write(const FileHandle& fh, const char* buf, size_t size, off_t offset);

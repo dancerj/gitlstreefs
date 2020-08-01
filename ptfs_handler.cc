@@ -55,6 +55,15 @@ ssize_t PtfsHandler::Read(const FileHandle& fh, char* target, size_t size, off_t
   WRAP_ERRNO_OR_RESULT(ssize_t, pread(fh.fd_get(), target, size, offset));
 }
 
+int PtfsHandler::ReadBuf(const FileHandle& fh, struct fuse_bufvec &buf, size_t size, off_t offset) {
+  // enum with | becomes int.
+  buf.buf[0].flags = static_cast<fuse_buf_flags>(FUSE_BUF_IS_FD | FUSE_BUF_FD_SEEK);
+  buf.buf[0].fd = fh.fd_get();
+  buf.buf[0].pos = offset;
+
+  return 0;
+}
+
 ssize_t PtfsHandler::Write(const FileHandle& fh, const char* buf, size_t size, off_t offset) {
   WRAP_ERRNO_OR_RESULT(ssize_t, pwrite(fh.fd_get(), buf, size, offset));
 }

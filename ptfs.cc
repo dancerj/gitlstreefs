@@ -142,6 +142,14 @@ static int fs_read(const char *unused, char *target, size_t size, off_t offset,
   return GetContext()->Read(*fh, target, size, offset);
 }
 
+static int fs_read_buf(const char *unused, struct fuse_bufvec **bufp, size_t size,
+		       off_t offset, struct fuse_file_info *fi) {
+  USE_FILEHANDLE(fh, fi);
+  auto buf = *bufp = new struct fuse_bufvec;
+  *buf = FUSE_BUFVEC_INIT(size);
+  return GetContext()->ReadBuf(*fh, *buf, size, offset);
+}
+
 static int fs_write(const char *unused, const char *buf, size_t size,
 		    off_t offset, struct fuse_file_info *fi) {
   USE_FILEHANDLE(fh, fi);
@@ -228,6 +236,7 @@ void FillFuseOperationsInternal(fuse_operations* o) {
   DEFINE_HANDLER(open);
   DEFINE_HANDLER(opendir);
   DEFINE_HANDLER(read);
+  DEFINE_HANDLER(read_buf);
   DEFINE_HANDLER(readdir);
   DEFINE_HANDLER(readlink);
   DEFINE_HANDLER(release);
