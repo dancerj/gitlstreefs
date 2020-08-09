@@ -260,6 +260,7 @@ int main(int argc, char *argv[]) {
   DEFINE_HANDLER(open);
   DEFINE_HANDLER(opendir);
   DEFINE_HANDLER(read);
+  // NOTE: read_buf shouldn't be implemented because using FD isn't useful.
   DEFINE_HANDLER(readdir);
   DEFINE_HANDLER(releasedir);
 #undef DEFINE_HANDLER
