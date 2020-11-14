@@ -13,7 +13,6 @@ RUN apt-get update && \
     libfuse-dev \
     libgit2-dev \
     ninja-build \
-    nodejs \
     unionfs-fuse \
     zlib1g-dev && \
     apt-get clean

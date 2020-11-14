@@ -3,6 +3,6 @@
 set -e
 
 cd /workspace
-./configure.js
+g++ configure.cc -o configure && ./configure
 ninja -t clean
 ninja -k 10

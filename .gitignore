@@ -3,4 +3,6 @@
 /.ninja_deps
 /.ninja_log
 /build.ninja
+/configure
+/configure.o
 /out

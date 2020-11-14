@@ -6,7 +6,7 @@ FUSE, that works with git and help building.
 ## Building
 
 Requires libfuse, libgit2 and zlib as build time library
-dependencies. The build system depends on nodejs and ninja.
+dependencies. The build system depends on ninja.
 
 ```shell-session
 $ sudo apt-get install \
@@ -21,11 +21,10 @@ $ sudo apt-get install \
       libfuse-dev \
       libgit2-dev \
       ninja-build \
-      nodejs \
       unionfs-fuse \
       zlib1g-dev
 
-$ ./configure.js
+$ g++ ./configure.cc -o configure && ./configure
 $ ninja
 ```
 
