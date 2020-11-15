@@ -18,7 +18,7 @@ fi
 
 cleanup
 mkdir mountpoint mountpoint2 tmp || true
-./configure.js
+g++ ./configure.cc -o configure && ./configure
 ninja
 trap cleanup exit
 rm -rf .cache
@@ -37,7 +37,7 @@ unionfs-fuse tmp=RW:mountpoint mountpoint2
     set -ex
     cd mountpoint2
     mkdir out
-    ./configure.js
+    g++ ./configure.cc -o configure && ./configure
     time ninja -k10 -j10 out/hello_world
     time ninja out/hello_world out/gitlstree out/git-githubfs
     ./out/hello_world | grep 'Hello World'

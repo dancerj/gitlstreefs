@@ -8,7 +8,7 @@ cleanup() {
 cleanup
 
 trap cleanup exit
-./configure.js
+g++ ./configure.cc -o configure && ./configure
 ninja
 mkdir -p $MOUNTPOINT || true
 ./out/git-githubfs --user=dancerj --project=gitlstreefs $MOUNTPOINT/
