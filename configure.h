@@ -8,30 +8,21 @@
 #include <set>
 #include <vector>
 
-std::string JoinStrings(std::vector<std::string> ss, std::string prefix, std::string postfix, std::string split) {
-  std::string result;
-  for (size_t i = 0; i < ss.size(); ++i) {
-    if (i) result.append(split);
-    result.append(prefix + ss[i] + postfix);
-  }
-  return result;
-}
-
-
-// Parameter for constructor, for specifying default values for rules.
-//
-// Additional linker rules can be specified with CclinkRule.
-struct NinjaBuilderConfig {
-  NinjaBuilderConfig() {}
-  std::string cxxflags{"-O2 -g --std=c++17 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I."};
-  std::string ldflags{""};
-  std::string gxx{"g++"};
-  std::string gcc{"gcc"};
-};
-
 class NinjaBuilder {
 public:
-  explicit NinjaBuilder(const NinjaBuilderConfig& config)
+  // Parameter for constructor, for specifying default values for rules.
+  //
+  // Additional linker rules can be specified with CclinkRule.
+  struct Config {
+    Config() {}
+
+    std::string cxxflags{"-O2 -g --std=c++17 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I."};
+    std::string ldflags{""};
+    std::string gxx{"g++"};
+    std::string gcc{"gcc"};
+  };
+
+  explicit NinjaBuilder(const Config& config)
     : data_({"cxxflags = " + config.cxxflags,
 	     "ldflags = " + config.ldflags,
 	     "gxx = " + config.gxx,
@@ -74,11 +65,13 @@ public:
   }
 
   struct CompileLinkObject {
-    CompileLinkObject(NinjaBuilder* parent) :
-      parent_(parent) {}
 
-    // TODO: Remove copy constructor
-    // CompileLinkObject& CompileLinkObject(CompileLinkObject&c) = delete;
+    CompileLinkObject(const CompileLinkObject& c) = delete;
+    CompileLinkObject(CompileLinkObject&& c) :
+      target_(std::move(c.target_)),
+      sources_(std::move(c.sources_)),
+      cclink_(std::move(c.cclink_)),
+      parent_(std::move(c.parent_)) {}
 
     ~CompileLinkObject() {
       // link
@@ -95,6 +88,12 @@ public:
       cclink_ = std::string(s);
       return *this;
     }
+
+  private:
+    friend class NinjaBuilder;
+
+    explicit CompileLinkObject(NinjaBuilder* parent) :
+      parent_(parent) {}
 
     std::string target_{};
     std::vector<std::string> sources_{};
@@ -115,14 +114,6 @@ public:
     c.target_ = target;
     return c;
   }
-
-  void RunTest(const char* target,
-	       std::initializer_list<const char*> extra_test_depends = {}) {
-    std::string test = outdir_ + target;
-    std::string stdout = test + ".result";
-    data_.push_back("build " + stdout + ": runtest " + test + MaybeExtraDepends(extra_test_depends));
-  }
-
 
   void RunTestScript(const char* target,
 		     std::initializer_list<const char*> extra_test_depends = {}) {
@@ -150,6 +141,22 @@ private:
     std::vector<std::string> result;
     for (const char* v : sources) {
       result.push_back(v);
+    }
+    return result;
+  }
+
+  void RunTest(const char* target,
+	       std::initializer_list<const char*> extra_test_depends = {}) {
+    std::string test = outdir_ + target;
+    std::string stdout = test + ".result";
+    data_.push_back("build " + stdout + ": runtest " + test + MaybeExtraDepends(extra_test_depends));
+  }
+
+  static std::string JoinStrings(std::vector<std::string> ss, std::string prefix, std::string postfix, std::string split) {
+    std::string result;
+    for (size_t i = 0; i < ss.size(); ++i) {
+      if (i) result.append(split);
+      result.append(prefix + ss[i] + postfix);
     }
     return result;
   }

@@ -1,7 +1,7 @@
 #include "configure.h"
 
 int main() {
-  NinjaBuilderConfig config;
+  NinjaBuilder::Config config;
   config.cxxflags = "-O2 -g --std=c++17 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I.";
   config.ldflags = "-pthread -lfuse";
 
