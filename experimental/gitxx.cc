@@ -20,18 +20,10 @@ public:
 };
 
 GitSingleton::GitSingleton() {
-#if LIBGIT2_SOVERSION == 21
-  git_threads_init();
-#else // 22
   git_libgit2_init();
-#endif
 }
 GitSingleton::~GitSingleton() {
-#if LIBGIT2_SOVERSION == 21
-  git_threads_shutdown();
-#else // 22
   git_libgit2_shutdown();
-#endif
 }
 static GitSingleton git_singleton;
 } // anonymous namespace
