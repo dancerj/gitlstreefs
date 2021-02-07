@@ -39,11 +39,11 @@ template<class T, class U> void utilTestArrayParse(const std::string json,
   }
 }
 
-
 void testConsume() {
   {
     std::string space_tab = " \t\ntrue\n\t";
-    jjson::TrueValue* t = dynamic_cast<jjson::TrueValue*>(jjson::Parse(space_tab).get());
+    auto parsed = jjson::Parse(space_tab);
+    jjson::TrueValue* t = dynamic_cast<jjson::TrueValue*>(parsed.get());
     assert(t != nullptr);
   }
 
