@@ -10,11 +10,7 @@
 
 namespace githubfs {
 
-enum GitFileType {
-  TYPE_blob,
-  TYPE_tree,
-  TYPE_commit
-};
+enum class GitFileType {blob, tree, commit};
 
 // Github api v3 response parsers.
 // Parse tree content.

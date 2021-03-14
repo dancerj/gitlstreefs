@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 #include <sys/stat.h>
+#include <unordered_map>
 
 using githubfs::GitFileType;
 using githubfs::ParseBlob;
@@ -20,6 +21,17 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::unique_ptr;
+using std::unordered_map;
+
+namespace {
+
+#define TYPE(a) {GitFileType::a, #a}
+static unordered_map<GitFileType, string> file_type_to_string_map {
+  TYPE(blob),
+  TYPE(tree),
+  TYPE(commit)
+};
+#undef TYPE
 
 void ParserTest() {
   // 1000 runs takes 1 second, mostly inside json_spirit.
@@ -36,7 +48,7 @@ void ParserTest() {
 		       const string& sha,
 		       const int size,
 		       const string& url){
-	       cout << path << " " << mode << " " << fstype << " " << sha << " " << size << " " << url << endl;
+		      cout << path << " " << mode << " " << file_type_to_string_map[fstype] << " " << sha << " " << size << " " << url << endl;
 	     });
   string ret = ParseBlob(blob);
   cout << "blob content: " << ret << endl;
@@ -86,6 +98,8 @@ void ScenarioTest() {
   // TODO: This obtains a JSON response not the actual content.
   TryReadFileTest(container.get(), "/dummytestdirectory/README");
 }
+
+}  // anonymous
 
 int main(int argc, char** argv) {
   ParserTest();

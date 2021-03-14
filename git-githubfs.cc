@@ -50,7 +50,7 @@ string HttpFetch(const string& url, const string& key) {
   return PopenAndReadOrDie2(request);
 }
 
-#define TYPE(a) {#a, TYPE_##a}
+#define TYPE(a) {#a, GitFileType::a}
 const static unordered_map<string, GitFileType> file_type_map {
   TYPE(blob),
   TYPE(tree),
@@ -232,10 +232,10 @@ void GitTree::LoadDirectoryInternal(const string& subdir, const string& tree_has
 		      const int size,
 		      const string& url){
 		   const std::string slash_path = string("/") + path;
-		   if (fstype == TYPE_blob) {
+		   if (fstype == GitFileType::blob) {
 		     container_->add(slash_path,
 				     std::make_unique<FileElement>(mode, sha, size, this));
-		   } else if (fstype == TYPE_tree) {
+		   } else if (fstype == GitFileType::tree) {
 		     // Nonempty directories get auto-created, but maybe do it here?
 		     container_->add(slash_path,
 				     std::make_unique<directory_container::Directory>());
