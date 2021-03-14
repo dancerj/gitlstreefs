@@ -17,7 +17,10 @@ public:
   std::string Dump();
 private:
   std::mutex m{};
-  std::unordered_map<std::string /* title */, std::map<int /* bucket */, size_t /* count */> > stats{};
+
+  std::unordered_map<
+    std::string /* title */,
+    std::map<int /* bucket */, size_t /* count */> > stats{};
   DISALLOW_COPY_AND_ASSIGN(StatsHolder);
 };
 
