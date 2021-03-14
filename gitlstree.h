@@ -16,12 +16,6 @@ class GitCatFileProcess;
 
 namespace gitlstree {
 
-enum GitFileType {
-  TYPE_blob = 1,
-  TYPE_tree = 2,
-  TYPE_commit = 3
-};
-
 class GitTree;
 
 class FileElement : public directory_container::File {
