@@ -18,7 +18,7 @@
 using GitCatFile::GitCatFileProcess;
 using GitCatFile::GitCatFileMetadata;
 
-const char* kConfigureJsHash = "5c7b5c80891eee3ae35687f3706567544a149e73";
+const char kConfigureJsHash[] = "5c7b5c80891eee3ae35687f3706567544a149e73";
 
 void GitCatFileWithProcess(int n, const std::string& git_dir) {
   GitCatFileProcess d(&git_dir);

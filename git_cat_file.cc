@@ -24,7 +24,7 @@
 namespace GitCatFile {
 
 BidirectionalPopen::BidirectionalPopen(const std::vector<std::string>& command,
-				      const std::string* cwd) {
+				       const std::string* cwd) {
   auto read_pipe = ScopedPipe();
   auto write_pipe = ScopedPipe();
 
@@ -152,7 +152,7 @@ GitCatFileProcess::GitCatFileProcess(const std::string& cwd, const std::string& 
 GitCatFileProcess::~GitCatFileProcess() {}
 
 std::string GitCatFileProcess::Request(const std::string& ref) const {
-  const int kMaxHeaderSize = 4096;
+  constexpr int kMaxHeaderSize = 4096;
   std::lock_guard<std::mutex> l(m_);
 
   process_.Write(ref + "\n");

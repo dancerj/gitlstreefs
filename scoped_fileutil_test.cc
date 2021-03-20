@@ -15,7 +15,7 @@ void locker() {
 
 int main() {
   vector<future<void> > tasks;
-  const int kThreads = 10;
+  constexpr int kThreads = 10;
 
   for (int i = 0; i < kThreads; ++i) {
     tasks.emplace_back(async(locker));
