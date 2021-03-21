@@ -42,7 +42,3 @@ ScopedConcurrencyLimit::~ScopedConcurrencyLimit() {
   }
   cv_.notify_one();
 }
-
-mutex ScopedConcurrencyLimit::m_{};
-condition_variable ScopedConcurrencyLimit::cv_{};
-set<const string*> ScopedConcurrencyLimit::messages_{};

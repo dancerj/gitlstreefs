@@ -65,12 +65,11 @@ public:
     return RoptfsHandler::GetAttr(relative_path, stbuf);
   }
 
-  static string glob_pattern_;
+  inline static string glob_pattern_{};
 private:
 
   DISALLOW_COPY_AND_ASSIGN(GlobFsHandler);
 };
-string GlobFsHandler::glob_pattern_;
 
 struct globfs_config {
   char* glob_pattern{nullptr};

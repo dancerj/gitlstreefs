@@ -16,9 +16,6 @@ using std::string;
 
 namespace ptfs {
 
-// Directory before mount.
-int PtfsHandler::premount_dirfd_ = -1;
-
 #define WRAP_ERRNO(f)				\
   if(-1 == f) {					\
     return -errno;				\

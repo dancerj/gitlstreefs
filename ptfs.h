@@ -110,7 +110,8 @@ public:
    * File descriptor where all operations happen relative to.
    */
   // TODO: Can this be not public and global?
-  static int premount_dirfd_;
+  // Directory before mount.
+  inline static int premount_dirfd_{-1};
 
 private:
   DISALLOW_COPY_AND_ASSIGN(PtfsHandler);

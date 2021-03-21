@@ -16,9 +16,9 @@ private:
   void DumpStatusLocked() const;
 
   static constexpr size_t kLimit = 6;
-  static std::mutex m_;
-  static std::condition_variable cv_;
-  static std::set<const std::string*> messages_;
+  inline static std::mutex m_{};
+  inline static std::condition_variable cv_{};
+  inline static std::set<const std::string*> messages_{};
 
   const std::string message_;
   DISALLOW_COPY_AND_ASSIGN(ScopedConcurrencyLimit);
