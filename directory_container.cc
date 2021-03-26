@@ -19,7 +19,7 @@ namespace directory_container {
 Directory::Directory() {}
 Directory::~Directory() {}
 
-int Directory::Getattr(struct stat *stbuf) {
+int Directory::Getattr(struct stat* stbuf) {
   stbuf->st_uid = getuid();
   stbuf->st_gid = getgid();
   stbuf->st_mode = S_IFDIR | 0755;
@@ -29,7 +29,7 @@ int Directory::Getattr(struct stat *stbuf) {
 
 void Directory::dump(int indent) {
   std::lock_guard<std::mutex> l(mutex_);
-  for (const auto& file: files_) {
+  for (const auto& file : files_) {
     std::cout << std::string(indent, ' ') << file.first << std::endl;
     Directory* d = dynamic_cast<Directory*>(file.second.get());
     if (d) {
@@ -45,10 +45,9 @@ DirectoryContainer::DirectoryContainer() {
 
 DirectoryContainer::~DirectoryContainer() {}
 
-int DirectoryContainer::Getattr(const std::string& path, struct stat *stbuf) {
+int DirectoryContainer::Getattr(const std::string& path, struct stat* stbuf) {
   memset(stbuf, 0, sizeof(struct stat));
-  stbuf->st_atim = stbuf->st_mtim = stbuf->st_ctim =
-    mount_time_;
+  stbuf->st_atim = stbuf->st_mtim = stbuf->st_ctim = mount_time_;
   File* f = mutable_get(path);
   if (!f) return -ENOENT;
   return f->Getattr(stbuf);
@@ -60,13 +59,15 @@ void DirectoryContainer::dump() {
   for (const auto& file : files_) {
     std::cout << file.first << " " << file.second << std::endl;
     std::cout << "Is directory: "
-	      << (dynamic_cast<Directory*>(file.second) != nullptr) << std::endl;
+              << (dynamic_cast<Directory*>(file.second) != nullptr)
+              << std::endl;
   }
   std::cout << "Directory map" << std::endl;
   root_.dump();
 };
 
-void DirectoryContainer::add(const std::string& path, std::unique_ptr<File> file) {
+void DirectoryContainer::add(const std::string& path,
+                             std::unique_ptr<File> file) {
   std::lock_guard<std::mutex> l(path_mutex_);
   std::string dirname(DirName(path));
   Directory* dir = MaybeCreateParentDir(dirname);
@@ -92,7 +93,8 @@ File* DirectoryContainer::mutable_get(const std::string& path) {
     return nullptr;
 }
 
-Directory* DirectoryContainer::MaybeCreateParentDir(const std::string& dirname) {
+Directory* DirectoryContainer::MaybeCreateParentDir(
+    const std::string& dirname) {
   if (dirname == "") return &root_;
   auto it = files_.find(dirname);
   if (it != files_.end()) {
@@ -112,4 +114,4 @@ Directory* DirectoryContainer::MaybeCreateParentDir(const std::string& dirname) 
   parent_directory->add(BaseName(dirname), std::unique_ptr<File>(directory));
   return directory;
 }
-} // namespace directory_container
+}  // namespace directory_container

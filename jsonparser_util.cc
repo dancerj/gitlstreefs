@@ -17,7 +17,7 @@ int main(int ac, char** av) {
   std::string j = ReadFromFileOrDie(AT_FDCWD, av[1]);
   for (size_t i = 0; i < iter; ++i) {
     std::unique_ptr<jjson::Value> p = jjson::Parse(j);
-    assert (p.get() != nullptr);
+    assert(p.get() != nullptr);
   }
   return 0;
 }

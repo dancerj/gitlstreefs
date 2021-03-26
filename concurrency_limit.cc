@@ -7,10 +7,10 @@
 using std::condition_variable;
 using std::cout;
 using std::lock_guard;
-using std::unique_lock;
 using std::mutex;
 using std::set;
 using std::string;
+using std::unique_lock;
 
 void ScopedConcurrencyLimit::DumpStatusLocked() const {
   // TODO: assert lock is held.
@@ -22,14 +22,12 @@ void ScopedConcurrencyLimit::DumpStatusLocked() const {
   cout << output.substr(0, 79) << "\r" << std::flush;
 }
 
-ScopedConcurrencyLimit::ScopedConcurrencyLimit(const string& message) :
-  message_(message) {
+ScopedConcurrencyLimit::ScopedConcurrencyLimit(const string& message)
+    : message_(message) {
   unique_lock<mutex> l(m_);
   if (messages_.size() > kLimit) {
     DumpStatusLocked();
-    cv_.wait(l, []{
-	return messages_.size() <= kLimit;
-      });
+    cv_.wait(l, [] { return messages_.size() <= kLimit; });
   }
   messages_.insert(&message_);
 }

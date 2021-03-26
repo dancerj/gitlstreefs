@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-
 using std::cout;
 using std::endl;
 using std::function;
@@ -24,21 +23,15 @@ using std::vector;
 
 // Concrete class.
 class GitFile : public directory_container::File {
-public:
+ public:
   GitFile() {}
   virtual ~GitFile() {}
-  virtual int Getattr(struct stat *stbuf) override {
-    return 0;
-  }
-  virtual ssize_t Read(char *buf, size_t size, off_t offset) override {
+  virtual int Getattr(struct stat* stbuf) override { return 0; }
+  virtual ssize_t Read(char* buf, size_t size, off_t offset) override {
     return -EINVAL;
   }
-  virtual int Open() override {
-    return -EINVAL;
-  };
-  virtual int Release() override {
-    return -EINVAL;
-  };
+  virtual int Open() override { return -EINVAL; };
+  virtual int Release() override { return -EINVAL; };
 };
 
 int main() {
@@ -63,9 +56,10 @@ int main() {
   assert(d.get("/hoge/ccc"));
 
   int count_hoge = 0;
-  d.for_each("/hoge", [&count_hoge](const string& name, const directory_container::File* f) {
-	cout << "under hoge: " << name << endl;
-	count_hoge ++;
-      });
+  d.for_each("/hoge", [&count_hoge](const string& name,
+                                    const directory_container::File* f) {
+    cout << "under hoge: " << name << endl;
+    count_hoge++;
+  });
   assert(count_hoge == 3);
 }

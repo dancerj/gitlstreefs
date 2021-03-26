@@ -14,8 +14,9 @@ int main(int argc, char** argv) {
 
   // Ignore whitespace characters.
   assert("aGVsbG8gd29ybGQK\n"_b64 == "hello world\n");
-  assert("I2lmICFkZWZpbmVkKFNUUlVUSUxfSF9fKQojZGVmaW5lIFNUUlVUSUxfSF9f\nCiNpbmNsdWRlIDxzdHJpbmc+CnN0ZDo6c3RyaW5nIFJlYWRGcm9tRmlsZU9y\nRGllKGNvbnN0IHN0ZDo6c3RyaW5nJiBmaWxlbmFtZSk7CnN0ZDo6c3RyaW5n\nIFBvcGVuQW5kUmVhZE9yRGllKGNvbnN0IHN0ZDo6c3RyaW5nJiBjb21tYW5k\nLAoJCQkgICAgICBpbnQqIG1heWJlX2V4aXRfY29kZSA9IG51bGxwdHIpOwoj\nZW5kaWYK\n"_b64 ==
-R"(#if !defined(STRUTIL_H__)
+  assert(
+      "I2lmICFkZWZpbmVkKFNUUlVUSUxfSF9fKQojZGVmaW5lIFNUUlVUSUxfSF9f\nCiNpbmNsdWRlIDxzdHJpbmc+CnN0ZDo6c3RyaW5nIFJlYWRGcm9tRmlsZU9y\nRGllKGNvbnN0IHN0ZDo6c3RyaW5nJiBmaWxlbmFtZSk7CnN0ZDo6c3RyaW5n\nIFBvcGVuQW5kUmVhZE9yRGllKGNvbnN0IHN0ZDo6c3RyaW5nJiBjb21tYW5k\nLAoJCQkgICAgICBpbnQqIG1heWJlX2V4aXRfY29kZSA9IG51bGxwdHIpOwoj\nZW5kaWYK\n"_b64 ==
+      R"(#if !defined(STRUTIL_H__)
 #define STRUTIL_H__
 #include <string>
 std::string ReadFromFileOrDie(const std::string& filename);

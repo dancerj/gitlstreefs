@@ -10,14 +10,15 @@
 
 using jjson::Value;
 
-template<class T> void utilTestKeywordParse(const std::string& w) {
+template <class T>
+void utilTestKeywordParse(const std::string& w) {
   std::unique_ptr<Value> v = jjson::Parse(w);
   assert(v.get() != nullptr);
   assert(dynamic_cast<T*>(v.get()) != nullptr);
 }
 
-template<class T, class U> void utilTestValueParse(const std::string json,
-						   const U& value) {
+template <class T, class U>
+void utilTestValueParse(const std::string json, const U& value) {
   std::unique_ptr<Value> v = jjson::Parse(json);
   assert(v.get() != nullptr);
   T* target = dynamic_cast<T*>(v.get());
@@ -26,8 +27,8 @@ template<class T, class U> void utilTestValueParse(const std::string json,
   assert(target->value_ == value);
 }
 
-template<class T, class U> void utilTestArrayParse(const std::string json,
-						   const std::vector<U>& values) {
+template <class T, class U>
+void utilTestArrayParse(const std::string json, const std::vector<U>& values) {
   std::unique_ptr<Value> v = jjson::Parse(json);
   assert(v.get() != nullptr);
   jjson::ArrayValue* target = dynamic_cast<jjson::ArrayValue*>(v.get());
@@ -68,22 +69,25 @@ void testConsume() {
 
   utilTestValueParse<jjson::StringValue>(R"("5.5")", "5.5");
   utilTestValueParse<jjson::StringValue>(R"("unkotest")", "unkotest");
-  utilTestValueParse<jjson::StringValue>(R"("carriage\r\nreturn")", "carriage\r\nreturn");
+  utilTestValueParse<jjson::StringValue>(R"("carriage\r\nreturn")",
+                                         "carriage\r\nreturn");
   utilTestValueParse<jjson::StringValue>(R"("\u0075")", "u");
 
-  utilTestArrayParse<jjson::NumberValue, float>("[1, 2, 3]",
-						{1, 2, 3});
-  utilTestArrayParse<jjson::NumberValue, float>("[ ]",
-						{ });
-
+  utilTestArrayParse<jjson::NumberValue, float>("[1, 2, 3]", {1, 2, 3});
+  utilTestArrayParse<jjson::NumberValue, float>("[ ]", {});
 
   {
-    std::unique_ptr<Value> v = jjson::Parse(R"({"string" : "hoge", "number" : 123})");
+    std::unique_ptr<Value> v =
+        jjson::Parse(R"({"string" : "hoge", "number" : 123})");
     assert(v.get() != nullptr);
     auto target = dynamic_cast<jjson::ObjectValue*>(v.get());
     assert(target != nullptr);
-    assert(dynamic_cast<jjson::StringValue*>(target->value_.find("string")->second.get())->value_ == "hoge");
-    assert(dynamic_cast<jjson::NumberValue*>(target->value_.find("number")->second.get())->value_ == 123);
+    assert(dynamic_cast<jjson::StringValue*>(
+               target->value_.find("string")->second.get())
+               ->value_ == "hoge");
+    assert(dynamic_cast<jjson::NumberValue*>(
+               target->value_.find("number")->second.get())
+               ->value_ == 123);
   }
 
   {
@@ -93,9 +97,15 @@ void testConsume() {
     assert(v.get() != nullptr);
     auto target = dynamic_cast<jjson::ObjectValue*>(v.get());
     assert(target != nullptr);
-    auto num = dynamic_cast<jjson::NumberValue*>(dynamic_cast<jjson::ObjectValue*>(target->value_.find("obj")->second.get())->value_.find("hoge")->second.get());
+    auto num = dynamic_cast<jjson::NumberValue*>(
+        dynamic_cast<jjson::ObjectValue*>(
+            target->value_.find("obj")->second.get())
+            ->value_.find("hoge")
+            ->second.get());
     assert(num->value_ == 12);
-    auto& arr = dynamic_cast<jjson::ArrayValue*>(target->value_.find("arr")->second.get())->value_;
+    auto& arr = dynamic_cast<jjson::ArrayValue*>(
+                    target->value_.find("arr")->second.get())
+                    ->value_;
     assert(dynamic_cast<jjson::NumberValue*>(arr[0].get())->value_ == 1);
     assert(dynamic_cast<jjson::NumberValue*>(arr[1].get())->value_ == 2);
     assert(dynamic_cast<jjson::NumberValue*>(arr[2].get())->value_ == 3);
@@ -116,6 +126,4 @@ void testConsume() {
   }
 }
 
-int main(int ac, char** av) {
-  testConsume();
-}
+int main(int ac, char** av) { testConsume(); }

@@ -2,8 +2,8 @@
 #define GIT_CAT_FILE_H
 
 #include <mutex>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "disallow.h"
 #include "scoped_fd.h"
@@ -12,7 +12,7 @@ namespace GitCatFile {
 
 // Metadata for response from git-cat-file daemon.
 class GitCatFileMetadata {
-public:
+ public:
   explicit GitCatFileMetadata(const std::string& header);
   ~GitCatFileMetadata();
 
@@ -27,13 +27,14 @@ public:
 
 // Internal utility class for bidirectional pipe for daemon process.
 class BidirectionalPopen {
-public:
+ public:
   BidirectionalPopen(const std::vector<std::string>& command,
-		     const std::string* cwd);
+                     const std::string* cwd);
   ~BidirectionalPopen();
   void Write(const std::string& s) const;
   std::string Read(int max_size) const;
-private:
+
+ private:
   ScopedFd read_fd_{-1};
   ScopedFd write_fd_{-1};
   pid_t pid_{-1};
@@ -42,7 +43,7 @@ private:
 };
 
 class GitCatFileProcess {
-public:
+ public:
   explicit GitCatFileProcess(const std::string* cwd);
   GitCatFileProcess(const std::string& cwd, const std::string& ssh);
   ~GitCatFileProcess();
@@ -50,10 +51,10 @@ public:
   std::string Request(const std::string& ref) const;
   struct ObjectNotFoundException {};
 
-private:
+ private:
   const BidirectionalPopen process_;
   mutable std::mutex m_;
 };
-}
+}  // namespace GitCatFile
 
 #endif

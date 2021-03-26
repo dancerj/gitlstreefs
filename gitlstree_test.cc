@@ -1,8 +1,8 @@
 #include <assert.h>
+#include <sys/stat.h>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <sys/stat.h>
 
 #include "get_current_dir.h"
 #include "gitlstree.h"
@@ -12,11 +12,14 @@ using std::endl;
 using std::string;
 using std::unique_ptr;
 
-void TryReadFileTest(directory_container::DirectoryContainer* fs, const string& name) {
+void TryReadFileTest(directory_container::DirectoryContainer* fs,
+                     const string& name) {
   // Try reading a file.
   cout << "Try reading: " << name << endl;
-  gitlstree::FileElement* fe;;
-  assert((fe = dynamic_cast<gitlstree::FileElement*>(fs->mutable_get(name))) != nullptr);
+  gitlstree::FileElement* fe;
+  ;
+  assert((fe = dynamic_cast<gitlstree::FileElement*>(fs->mutable_get(name))) !=
+         nullptr);
   constexpr size_t size = 4096;
   char buf[size];
   size_t read_size;
@@ -29,9 +32,9 @@ void TryReadFileTest(directory_container::DirectoryContainer* fs, const string& 
 
 void ScenarioTest() {
   auto fs = std::make_unique<directory_container::DirectoryContainer>();
-  auto git = gitlstree::GitTree::NewGitTree(GetCurrentDir() + "/out/fetch_test_repo/gitlstreefs", "HEAD", "",
-					    GetCurrentDir() + "/out/gitlstree_test_cache/",
-					    fs.get());
+  auto git = gitlstree::GitTree::NewGitTree(
+      GetCurrentDir() + "/out/fetch_test_repo/gitlstreefs", "HEAD", "",
+      GetCurrentDir() + "/out/gitlstree_test_cache/", fs.get());
   fs->dump();
 
   assert(fs->get("/dummytestdirectory/README") != nullptr);
@@ -52,7 +55,7 @@ void ScenarioTest() {
 }
 
 int main(int argc, char** argv) {
-  int iter = argv[1]?atoi(argv[1]):1;
+  int iter = argv[1] ? atoi(argv[1]) : 1;
   for (int i = 0; i < iter; ++i) {
     ScenarioTest();
   }

@@ -5,22 +5,21 @@
 #include <unordered_map>
 
 #include "cached_file.h"
-#include "disallow.h"
 #include "directory_container.h"
+#include "disallow.h"
 
 namespace githubfs {
 
-enum class GitFileType {blob, tree, commit};
+enum class GitFileType { blob, tree, commit };
 
 // Github api v3 response parsers.
 // Parse tree content.
-bool ParseTrees(const std::string& trees_string,
-		std::function<void(const std::string& path,
-				   int mode,
-				   const GitFileType type,
-				   const std::string& sha,
-				   const int size,
-				   const std::string& url)> file_handler);
+bool ParseTrees(
+    const std::string& trees_string,
+    std::function<void(const std::string& path, int mode,
+                       const GitFileType type, const std::string& sha,
+                       const int size, const std::string& url)>
+        file_handler);
 
 // Parse github commits list and return the tree hash.
 // for /commits endpoint.
@@ -34,15 +33,16 @@ std::string ParseBlob(const std::string& blob_string);
 class GitTree;
 
 struct FileElement : public directory_container::File {
-public:
-  FileElement(int attribute, const std::string& sha1, int size, GitTree* parent);
+ public:
+  FileElement(int attribute, const std::string& sha1, int size,
+              GitTree* parent);
   virtual int Open() override;
-  virtual ssize_t Read(char *buf, size_t size, off_t offset) override;
-  virtual ssize_t Readlink(char *buf, size_t size) override;
-  virtual int Getattr(struct stat *stbuf) override;
+  virtual ssize_t Read(char* buf, size_t size, off_t offset) override;
+  virtual ssize_t Readlink(char* buf, size_t size) override;
+  virtual int Getattr(struct stat* stbuf) override;
   virtual int Release() override;
 
-private:
+ private:
   ssize_t maybe_cat_file_locked();
 
   int attribute_;
@@ -56,17 +56,19 @@ private:
 };
 
 class GitTree {
-public:
+ public:
   GitTree(const char* hash, const char* github_api_prefix,
-	  directory_container::DirectoryContainer* c,
-	  const std::string& cache_dir);
+          directory_container::DirectoryContainer* c,
+          const std::string& cache_dir);
   ~GitTree();
-  const std::string& get_github_api_prefix() const { return github_api_prefix_; }
+  const std::string& get_github_api_prefix() const {
+    return github_api_prefix_;
+  }
   Cache& cache() { return cache_; }
 
-private:
-  void LoadDirectoryInternal(const std::string& subdir, const std::string& tree_hash,
-			     bool remote_recurse);
+ private:
+  void LoadDirectoryInternal(const std::string& subdir,
+                             const std::string& tree_hash, bool remote_recurse);
 
   // Directory for git directory. Needed because fuse chdir to / on
   // becoming a daemon.
@@ -76,5 +78,5 @@ private:
   DISALLOW_COPY_AND_ASSIGN(GitTree);
 };
 
-} // namespace githubfs
+}  // namespace githubfs
 #endif

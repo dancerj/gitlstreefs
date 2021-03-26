@@ -5,6 +5,6 @@ int main(int argc, char** argv) {
   if (c.Gc()) {
     exit(EXIT_SUCCESS);
   } else {
-    exit (EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
 }

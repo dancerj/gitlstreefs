@@ -1,8 +1,8 @@
-#include "stats_holder.h"
 #include "scoped_timer.h"
+#include "stats_holder.h"
 
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <cmath>
 
@@ -13,21 +13,17 @@ namespace scoped_timer {
 namespace {
 // Global scoped variables for tracking metrics.
 stats_holder::StatsHolder timing_stats{};
-}
+}  // namespace
 
 ScopedTimer::~ScopedTimer() {
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  std::chrono::microseconds diff_usec(std::chrono::duration_cast<std::chrono::microseconds>(end - begin_));
-  std::cout << name_ << " " << diff_usec.count() <<
-    std::endl;
-  {
-    timing_stats.Add(name_, diff_usec.count());
-  }
+  std::chrono::microseconds diff_usec(
+      std::chrono::duration_cast<std::chrono::microseconds>(end - begin_));
+  std::cout << name_ << " " << diff_usec.count() << std::endl;
+  { timing_stats.Add(name_, diff_usec.count()); }
 }
 
-/*static*/ std::string ScopedTimer::dump() {
-  return timing_stats.Dump();
-}
+/*static*/ std::string ScopedTimer::dump() { return timing_stats.Dump(); }
 
 StatusHandler::StatusHandler() : message_() {}
 
@@ -45,8 +41,7 @@ int StatusHandler::Getattr(struct stat *stbuf) {
 
 ssize_t StatusHandler::Read(char *buf, size_t size, off_t offset) {
   if (offset < static_cast<off_t>(message_.size())) {
-    if (offset + size > message_.size())
-      size = message_.size() - offset;
+    if (offset + size > message_.size()) size = message_.size() - offset;
     memcpy(buf, message_.data() + offset, size);
   } else
     size = 0;
@@ -58,11 +53,7 @@ int StatusHandler::Open() {
   return 0;
 }
 
-int StatusHandler::Release() {
-  return 0;
-}
+int StatusHandler::Release() { return 0; }
 
-void StatusHandler::RefreshMessage() {
-  message_ = ScopedTimer::dump();
-}
+void StatusHandler::RefreshMessage() { message_ = ScopedTimer::dump(); }
 }  // namespace scoped_timer

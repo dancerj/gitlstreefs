@@ -6,7 +6,7 @@
 #include "disallow.h"
 
 class ScopedFd {
-public:
+ public:
   explicit ScopedFd(int fd) : fd_(fd) {}
 
   // move constructor
@@ -18,9 +18,7 @@ public:
     return *this;
   }
 
-  ~ScopedFd() {
-    MaybeClose();
-  };
+  ~ScopedFd() { MaybeClose(); };
 
   int release() {
     int ret = fd_;
@@ -33,9 +31,7 @@ public:
     fd_ = fd;
   }
 
-  void clear() {
-    reset(-1);
-  }
+  void clear() { reset(-1); }
 
   int get() const { return fd_; }
 

@@ -16,13 +16,14 @@
 namespace scoped_timer {
 
 class ScopedTimer {
-public:
-  explicit ScopedTimer(const std::string name) : name_(name),
-    begin_(std::chrono::steady_clock::now()) {}
+ public:
+  explicit ScopedTimer(const std::string name)
+      : name_(name), begin_(std::chrono::steady_clock::now()) {}
 
   ~ScopedTimer();
   static std::string dump();
-private:
+
+ private:
   const std::string name_;
 
   std::chrono::steady_clock::time_point begin_;
@@ -30,7 +31,7 @@ private:
 };
 
 class StatusHandler : public directory_container::File {
-public:
+ public:
   StatusHandler();
   virtual ~StatusHandler();
 
@@ -38,11 +39,12 @@ public:
   virtual ssize_t Read(char *buf, size_t size, off_t offset) override;
   virtual int Open() override;
   virtual int Release() override;
-private:
+
+ private:
   void RefreshMessage();
   std::string message_;
   DISALLOW_COPY_AND_ASSIGN(StatusHandler);
 };
-} // scoped_timer
+}  // namespace scoped_timer
 
 #endif

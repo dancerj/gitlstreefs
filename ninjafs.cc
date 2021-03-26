@@ -42,7 +42,7 @@ mutex global_ninja_mutex;
 // We will hold the build log in memory and provide the contents per
 // request from user, via a /ninja.log node.
 class NinjaLog : public directory_container::File {
-public:
+ public:
   NinjaLog() : log_(), mutex_() {}
   virtual ~NinjaLog() {}
 
@@ -54,44 +54,39 @@ public:
     return 0;
   }
 
-  virtual int Open() override {
-    return 0;
-  }
+  virtual int Open() override { return 0; }
 
-  virtual int Release() override {
-    return 0;
-  }
+  virtual int Release() override { return 0; }
 
   virtual ssize_t Read(char *target, size_t size, off_t offset) override {
     // Fill in the response
     lock_guard<mutex> l(mutex_);
     if (offset < static_cast<off_t>(log_.size())) {
-      if (offset + size > log_.size())
-	size = log_.size() - offset;
+      if (offset + size > log_.size()) size = log_.size() - offset;
       memcpy(target, log_.c_str() + offset, size);
     } else
       size = 0;
     return size;
   }
 
-  void UpdateLog(const string&& log) {
+  void UpdateLog(const string &&log) {
     lock_guard<mutex> l(mutex_);
     log_ = move(log);
   }
 
-private:
+ private:
   string log_;
   mutex mutex_{};
 };
 
 // TODO: this is a weak global pointer referencing to a unique_ptr.
-NinjaLog* ninja_log = nullptr;
+NinjaLog *ninja_log = nullptr;
 
 // Concrete class.
 class NinjaTarget : public directory_container::File {
-public:
-  NinjaTarget(const string& original_target_name) :
-    original_target_name_(original_target_name) {}
+ public:
+  NinjaTarget(const string &original_target_name)
+      : original_target_name_(original_target_name) {}
   virtual ~NinjaTarget() {}
   virtual int Getattr(struct stat *stbuf) override {
     stbuf->st_mode = S_IFREG | 0555;
@@ -106,7 +101,7 @@ public:
     return 0;
   }
 
-  const string& cwd() {
+  const string &cwd() {
     // TODO;
     return original_cwd;
   }
@@ -119,14 +114,15 @@ public:
       assert(ninja_log);  // Initialization should have set this value.
       lock_guard<mutex> l(global_ninja_mutex);
       ninja_log->UpdateLog(PopenAndReadOrDie2({"ninja", original_target_name_},
-					      &cwd(), &exit_code));
+                                              &cwd(), &exit_code));
 
       if (exit_code == 0) {
-	// success.
-	buf_.reset(new string);
-	*buf_ = ReadFromFileOrDie(AT_FDCWD, cwd() + "/" + original_target_name_);
+        // success.
+        buf_.reset(new string);
+        *buf_ =
+            ReadFromFileOrDie(AT_FDCWD, cwd() + "/" + original_target_name_);
       } else {
-	return -EIO;  // Return IO error on build failure.
+        return -EIO;  // Return IO error on build failure.
       }
     } else {
       // TODO, do I need / want to ever invalidate the cache?
@@ -147,15 +143,14 @@ public:
     }
     lock_guard<mutex> l(mutex_);
     if (offset < static_cast<off_t>(buf_->size())) {
-      if (offset + size > buf_->size())
-	size = buf_->size() - offset;
+      if (offset + size > buf_->size()) size = buf_->size() - offset;
       memcpy(target, buf_->c_str() + offset, size);
     } else
       size = 0;
     return size;
   }
 
-private:
+ private:
   // If file was created already, this is not null.
   unique_ptr<string> buf_{};
   mutex mutex_{};
@@ -172,18 +167,17 @@ bool LoadDirectory() {
   fs->add("/ninja.log", unique_ptr<NinjaLog>(ninja_log));
 
   int status;
-  string ninja_targets = PopenAndReadOrDie2({"ninja", "-t", "targets", "all"},
-					    nullptr,
-					    &status);
+  string ninja_targets =
+      PopenAndReadOrDie2({"ninja", "-t", "targets", "all"}, nullptr, &status);
   if (status) {
     return false;
   }
   const vector<string> lines = SplitStringUsing(ninja_targets, '\n', false);
-  for (const auto& line : lines)  {
+  for (const auto &line : lines) {
     vector<string> elements = SplitStringUsing(line, ':', true);
     if (elements.size() == 2) {
-      assert(elements[0][0] != '/'); // ninja targets do not start with /.
-      const string& filename = elements[0];
+      assert(elements[0][0] != '/');  // ninja targets do not start with /.
+      const string &filename = elements[0];
       // For FUSE, path needs to start with /.
       fs->add(string("/") + filename, make_unique<NinjaTarget>(filename));
     }
@@ -195,55 +189,50 @@ static int fs_getattr(const char *path, struct stat *stbuf) {
   return fs->Getattr(path, stbuf);
 }
 
-static int fs_opendir(const char* path, struct fuse_file_info* fi) {
-  if (*path == 0)
-    return -ENOENT;
-  const auto d = dynamic_cast<
-    directory_container::Directory*>(fs->mutable_get(path));
+static int fs_opendir(const char *path, struct fuse_file_info *fi) {
+  if (*path == 0) return -ENOENT;
+  const auto d =
+      dynamic_cast<directory_container::Directory *>(fs->mutable_get(path));
   fi->fh = reinterpret_cast<uint64_t>(d);
   return 0;
 }
 
-static int fs_releasedir(const char*, struct fuse_file_info* fi) {
-  if (fi->fh == 0)
-    return -EBADF;
+static int fs_releasedir(const char *, struct fuse_file_info *fi) {
+  if (fi->fh == 0) return -EBADF;
   return 0;
 }
 
 static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi) {
+                      off_t offset, struct fuse_file_info *fi) {
   filler(buf, ".", nullptr, 0);
   filler(buf, "..", nullptr, 0);
-  const directory_container::Directory* d = reinterpret_cast<
-    directory_container::Directory*>(fi->fh);
+  const directory_container::Directory *d =
+      reinterpret_cast<directory_container::Directory *>(fi->fh);
   if (!d) return -ENOENT;
-  d->for_each([&](const string& s, const directory_container::File* unused){
-      filler(buf, s.c_str(), nullptr, 0);
-    });
+  d->for_each([&](const string &s, const directory_container::File *unused) {
+    filler(buf, s.c_str(), nullptr, 0);
+  });
   return 0;
 }
 
 static int fs_open(const char *path, struct fuse_file_info *fi) {
-  if (*path == 0)
-    return -ENOENT;
-  directory_container::File* f = fs->mutable_get(path);
-  if (!f)
-    return -ENOENT;
+  if (*path == 0) return -ENOENT;
+  directory_container::File *f = fs->mutable_get(path);
+  if (!f) return -ENOENT;
   fi->fh = reinterpret_cast<uint64_t>(f);
 
   return f->Open();
 }
 
 static int fs_read(const char *path, char *target, size_t size, off_t offset,
-		   struct fuse_file_info *fi) {
-  auto f = reinterpret_cast<directory_container::File*>(fi->fh);
-  if (!f)
-    return -ENOENT;
+                   struct fuse_file_info *fi) {
+  auto f = reinterpret_cast<directory_container::File *>(fi->fh);
+  if (!f) return -ENOENT;
 
   return f->Read(target, size, offset);
 }
 
-} // anonymous namespace
+}  // namespace ninjafs
 
 using namespace ninjafs;
 

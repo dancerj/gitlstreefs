@@ -10,26 +10,24 @@
 #include "relative_path.h"
 #include "scoped_fd.h"
 
-using std::unique_ptr;
 using std::string;
+using std::unique_ptr;
 
 namespace ptfs {
 
 // For path based functions.
-#define DECLARE_RELATIVE(path, relative_path)	\
-  if (*path == 0)				\
-    return -ENOENT;				\
-  string relative_path(GetRelativePath(path));	\
+#define DECLARE_RELATIVE(path, relative_path) \
+  if (*path == 0) return -ENOENT;             \
+  string relative_path(GetRelativePath(path));
 
 // For FileHandle based functions.
-#define USE_FILEHANDLE(fh, fi)			\
-  FileHandle* fh = GetFileHandle(fi);		\
-  if (fh == nullptr || fh->fd_get() == -1)	\
-    return -EBADF;				\
+#define USE_FILEHANDLE(fh, fi)        \
+  FileHandle *fh = GetFileHandle(fi); \
+  if (fh == nullptr || fh->fd_get() == -1) return -EBADF;
 
-PtfsHandler* GetContext() {
-  fuse_context* context = fuse_get_context();
-  return reinterpret_cast<PtfsHandler*>(context->private_data);
+PtfsHandler *GetContext() {
+  fuse_context *context = fuse_get_context();
+  return reinterpret_cast<PtfsHandler *>(context->private_data);
 }
 
 static int fs_chmod(const char *path, mode_t mode) {
@@ -37,8 +35,7 @@ static int fs_chmod(const char *path, mode_t mode) {
   return GetContext()->Chmod(relative_path, mode);
 }
 
-static int fs_chown(const char *path, uid_t uid, gid_t gid)
-{
+static int fs_chown(const char *path, uid_t uid, gid_t gid) {
   DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Chown(relative_path, uid, gid);
 }
@@ -64,15 +61,13 @@ static int fs_link(const char *from, const char *to) {
   return GetContext()->Link(from_s, to_s);
 }
 
-
 static int fs_statfs(const char *path, struct statvfs *stbuf) {
   return GetContext()->Statfs(stbuf);
 }
 
 static int fs_symlink(const char *from, const char *to) {
   DECLARE_RELATIVE(to, to_s);
-  if (*from == 0)
-    return -ENOENT;
+  if (*from == 0) return -ENOENT;
   return GetContext()->Symlink(from, to_s);
 }
 
@@ -82,26 +77,23 @@ static int fs_getattr(const char *path, struct stat *stbuf) {
   return GetContext()->GetAttr(relative_path, stbuf);
 }
 
-static int fs_opendir(const char* path, struct fuse_file_info* fi) {
-  if (*path == 0)
-    return -ENOENT;
+static int fs_opendir(const char *path, struct fuse_file_info *fi) {
+  if (*path == 0) return -ENOENT;
   unique_ptr<string> relative_path(new string(GetRelativePath(path)));
   fi->fh = reinterpret_cast<uint64_t>(relative_path.release());
   return 0;
 }
 
-static int fs_releasedir(const char*, struct fuse_file_info* fi) {
-  if (fi->fh == 0)
-    return -EBADF;
-  unique_ptr<string> auto_delete(reinterpret_cast<string*>(fi->fh));
+static int fs_releasedir(const char *, struct fuse_file_info *fi) {
+  if (fi->fh == 0) return -EBADF;
+  unique_ptr<string> auto_delete(reinterpret_cast<string *>(fi->fh));
   return 0;
 }
 
 static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi) {
-  if (fi->fh == 0)
-    return -ENOENT;
-  string* relative_path(reinterpret_cast<string*>(fi->fh));
+                      off_t offset, struct fuse_file_info *fi) {
+  if (fi->fh == 0) return -ENOENT;
+  string *relative_path(reinterpret_cast<string *>(fi->fh));
   return GetContext()->ReadDir(relative_path->c_str(), buf, filler, offset);
 }
 
@@ -127,23 +119,23 @@ static int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
   return ret;
 }
 
-static FileHandle* GetFileHandle(struct fuse_file_info* fi) {
-  return reinterpret_cast<FileHandle*>(fi->fh);
+static FileHandle *GetFileHandle(struct fuse_file_info *fi) {
+  return reinterpret_cast<FileHandle *>(fi->fh);
 }
 
-static int fs_release(const char* unused, struct fuse_file_info *fi) {
+static int fs_release(const char *unused, struct fuse_file_info *fi) {
   unique_ptr<FileHandle> fh(GetFileHandle(fi));
   return GetContext()->Release(fi->flags, fh.get());
 }
 
 static int fs_read(const char *unused, char *target, size_t size, off_t offset,
-		   struct fuse_file_info *fi) {
+                   struct fuse_file_info *fi) {
   USE_FILEHANDLE(fh, fi);
   return GetContext()->Read(*fh, target, size, offset);
 }
 
-static int fs_read_buf(const char *unused, struct fuse_bufvec **bufp, size_t size,
-		       off_t offset, struct fuse_file_info *fi) {
+static int fs_read_buf(const char *unused, struct fuse_bufvec **bufp,
+                       size_t size, off_t offset, struct fuse_file_info *fi) {
   USE_FILEHANDLE(fh, fi);
   auto buf = *bufp = new struct fuse_bufvec;
   *buf = FUSE_BUFVEC_INIT(size);
@@ -151,7 +143,7 @@ static int fs_read_buf(const char *unused, struct fuse_bufvec **bufp, size_t siz
 }
 
 static int fs_write(const char *unused, const char *buf, size_t size,
-		    off_t offset, struct fuse_file_info *fi) {
+                    off_t offset, struct fuse_file_info *fi) {
   USE_FILEHANDLE(fh, fi);
   return GetContext()->Write(*fh, buf, size, offset);
 }
@@ -176,25 +168,26 @@ static int fs_unlink(const char *path) {
   return GetContext()->Unlink(relative_path);
 }
 
-static int fs_fsync(const char *unused, int isdatasync, struct fuse_file_info *fi) {
+static int fs_fsync(const char *unused, int isdatasync,
+                    struct fuse_file_info *fi) {
   USE_FILEHANDLE(fh, fi);
   return GetContext()->Fsync(fh, isdatasync);
 }
 
 static int fs_fallocate(const char *unused, int mode, off_t offset,
-			off_t length, struct fuse_file_info *fi) {
+                        off_t length, struct fuse_file_info *fi) {
   USE_FILEHANDLE(fh, fi);
   return GetContext()->Fallocate(fh, mode, offset, length);
 }
 
 static int fs_setxattr(const char *path, const char *name, const char *value,
-		       size_t size, int flags) {
+                       size_t size, int flags) {
   DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Setxattr(relative_path, name, value, size, flags);
 }
 
 static int fs_getxattr(const char *path, const char *name, char *value,
-		       size_t size) {
+                       size_t size) {
   DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Getxattr(relative_path, name, value, size);
 }
@@ -215,11 +208,11 @@ static int fs_rename(const char *from, const char *to) {
   return GetContext()->Rename(from_s, to_s);
 }
 
-static void fs_destroy(void* private_data) {
-  delete reinterpret_cast<PtfsHandler*>(private_data);
+static void fs_destroy(void *private_data) {
+  delete reinterpret_cast<PtfsHandler *>(private_data);
 }
 
-void FillFuseOperationsInternal(fuse_operations* o) {
+void FillFuseOperationsInternal(fuse_operations *o) {
 #define DEFINE_HANDLER(n) o->n = &fs_##n
   DEFINE_HANDLER(chmod);
   DEFINE_HANDLER(chown);

@@ -9,10 +9,11 @@
 #include "disallow.h"
 
 class ScopedConcurrencyLimit {
-public:
+ public:
   explicit ScopedConcurrencyLimit(const std::string& message);
   ~ScopedConcurrencyLimit();
-private:
+
+ private:
   void DumpStatusLocked() const;
 
   static constexpr size_t kLimit = 6;

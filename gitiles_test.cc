@@ -18,7 +18,8 @@ std::string FetchBlob(const std::string& blob_text_string) {
 }
 
 void FetchBlobTest() {
-  std::string gitiles_blob(ReadFromFileOrDie(AT_FDCWD, "testdata/gitiles-blob.txt"));
+  std::string gitiles_blob(
+      ReadFromFileOrDie(AT_FDCWD, "testdata/gitiles-blob.txt"));
   std::string fetched = FetchBlob(gitiles_blob);
   assert(fetched.size() == 1325);
   assert(fetched.find("NOTE!") != std::string::npos);
@@ -30,14 +31,12 @@ void FetchBlobTest() {
 // http://HOST/PROJECT/+/BRANCH that is used for the original tree
 // request which should have been
 // http://HOST/PROJECT/+/BRANCH/?format=JSON&recursive=TRUE&long=1
-bool ParseTrees(const std::string host_project_branch_url,
-		const std::string& trees_string,
-		std::function<void(const std::string& path,
-				   int mode,
-				   const std::string& sha,
-				   const int size,
-				   const std::string& target,
-				   const std::string& url)> file_handler) {
+bool ParseTrees(
+    const std::string host_project_branch_url, const std::string& trees_string,
+    std::function<void(const std::string& path, int mode,
+                       const std::string& sha, const int size,
+                       const std::string& target, const std::string& url)>
+        file_handler) {
   // I assume the URL doesn't end at /.
   assert(host_project_branch_url[host_project_branch_url.size() - 1] != '/');
 
@@ -51,7 +50,8 @@ bool ParseTrees(const std::string host_project_branch_url,
     // "id": "0eca3e92941236b77ad23a02dc0c000cd0da7a18",
     // "name": ".gitignore",
     // "size": 1325
-    // size can be none if mode is 40960, in which case 'target' contains the symlink target.
+    // size can be none if mode is 40960, in which case 'target' contains the
+    // symlink target.
     mode_t mode = file->get("mode").get_int();
 
     int size = 0;
@@ -70,12 +70,8 @@ bool ParseTrees(const std::string host_project_branch_url,
     std::string name = file->get("name").get_string();
     std::string url = host_project_branch_url + "/" + name + "?format=TEXT";
     assert(file != nullptr);
-    file_handler(name,
-		 mode,
-		 std::string(file->get("id").get_string()),
-		 size,
-		 target,
-		 url);
+    file_handler(name, mode, std::string(file->get("id").get_string()), size,
+                 target, url);
   }
   return true;
 }
@@ -97,19 +93,19 @@ void GitilesParserTest() {
     https://github.com/google/gitiles/blob/master/java/com/google/gitiles/GitilesFilter.java
     https://github.com/google/gitiles/blob/master/java/com/google/gitiles/TreeJsonData.java
   */
-  std::string gitiles_trees(ReadFromFileOrDie(AT_FDCWD, "testdata/gitiles-tree-recursive.json"));
+  std::string gitiles_trees(
+      ReadFromFileOrDie(AT_FDCWD, "testdata/gitiles-tree-recursive.json"));
 
-  ParseTrees("https://chromium.googlesource.com/chromiumos/third_party/kernel/+/chromeos-4.4",
-	     gitiles_trees.substr(5), [](const std::string& path,
-					 int mode,
-					 const std::string& sha,
-					 int size,
-					 const std::string& target,
-					 const std::string& url) {
-	       std::cout << "gitiles:" << path << " " << std::oct << mode << " " << sha << " "
-			 << std::dec << size
-			 << (target.empty()?"":"->") << " " << target << " " << url << std::endl;
-	     });
+  ParseTrees(
+      "https://chromium.googlesource.com/chromiumos/third_party/kernel/+/"
+      "chromeos-4.4",
+      gitiles_trees.substr(5),
+      [](const std::string& path, int mode, const std::string& sha, int size,
+         const std::string& target, const std::string& url) {
+        std::cout << "gitiles:" << path << " " << std::oct << mode << " " << sha
+                  << " " << std::dec << size << (target.empty() ? "" : "->")
+                  << " " << target << " " << url << std::endl;
+      });
 }
 
 int main(int argc, char** argv) {

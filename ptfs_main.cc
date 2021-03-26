@@ -18,12 +18,11 @@ struct ptfs_config {
   char* underlying_path{nullptr};
 };
 
-#define MYFS_OPT(t, p, v) { t, offsetof(ptfs_config, p), v }
+#define MYFS_OPT(t, p, v) \
+  { t, offsetof(ptfs_config, p), v }
 
 static struct fuse_opt ptfs_opts[] = {
-  MYFS_OPT("--underlying_path=%s", underlying_path, 0),
-  FUSE_OPT_END
-};
+    MYFS_OPT("--underlying_path=%s", underlying_path, 0), FUSE_OPT_END};
 #undef MYFS_OPT
 
 int main(int argc, char** argv) {
@@ -38,12 +37,11 @@ int main(int argc, char** argv) {
   fuse_opt_parse(&args, &conf, ptfs_opts, nullptr);
 
   if (!conf.underlying_path) {
-    cerr << argv[0]
-	 << " [mountpoint] --underlying_path="
-	 << endl;
+    cerr << argv[0] << " [mountpoint] --underlying_path=" << endl;
     return 1;
   }
-  ptfs::PtfsHandler::premount_dirfd_ = open(conf.underlying_path, O_PATH|O_DIRECTORY);
+  ptfs::PtfsHandler::premount_dirfd_ =
+      open(conf.underlying_path, O_PATH | O_DIRECTORY);
 
   int ret = fuse_main(args.argc, args.argv, &o, nullptr);
   fuse_opt_free_args(&args);

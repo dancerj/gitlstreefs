@@ -15,8 +15,8 @@
 // ForkExec 2329447
 // Daemon 80830
 
-using GitCatFile::GitCatFileProcess;
 using GitCatFile::GitCatFileMetadata;
+using GitCatFile::GitCatFileProcess;
 
 const char kConfigureJsHash[] = "5c7b5c80891eee3ae35687f3706567544a149e73";
 
@@ -34,9 +34,8 @@ void GitCatFileWithProcess(int n, const std::string& git_dir) {
 
 void GitCatFileWithoutProcess(int n, const std::string& git_dir) {
   for (int i = 0; i < n; ++i) {
-    std::string result = PopenAndReadOrDie2({"git", "cat-file", "blob",
-	  kConfigureJsHash},
-      &git_dir, nullptr);
+    std::string result = PopenAndReadOrDie2(
+        {"git", "cat-file", "blob", kConfigureJsHash}, &git_dir, nullptr);
     assert(result.find("#!/usr/bin/env nodejs") == 0);
     assert(result.rfind("Emit()\n") == 7170);
     assert(result.size() == 7177);
@@ -69,7 +68,8 @@ int main(int argc, char** argv) {
   if (argc == 2) {
     n = atoi(argv[1]);
   }
-  const std::string git_dir = GetCurrentDir() + "/out/fetch_test_repo/gitlstreefs";
+  const std::string git_dir =
+      GetCurrentDir() + "/out/fetch_test_repo/gitlstreefs";
   {
     scoped_timer::ScopedTimer timer("ForkExec");
     GitCatFileWithoutProcess(n, git_dir);

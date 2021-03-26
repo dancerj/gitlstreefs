@@ -9,10 +9,10 @@
 #include "scoped_fd.h"
 
 class Cache {
-public:
+ public:
   // Holds mmap result and frees it if necessary.
   class Memory {
-  public:
+   public:
     Memory(void* m, size_t s);
 
     // Move constructor.
@@ -27,7 +27,7 @@ public:
     // For debugging.
     std::string get_copy() const;
 
-  private:
+   private:
     void* memory_;
     size_t size_;
     DISALLOW_COPY_AND_ASSIGN(Memory);
@@ -37,7 +37,8 @@ public:
   ~Cache();
 
   // Get sha1 hash, and use fetch method to fetch if not available already.
-  const Memory* get(const std::string& name, std::function<bool(std::string*)> fetch);
+  const Memory* get(const std::string& name,
+                    std::function<bool(std::string*)> fetch);
   bool release(const std::string& name, const Memory* item);
 
   // Garbage collect old cache items.
@@ -45,7 +46,7 @@ public:
 
   void dump() const;
 
-private:
+ private:
   void GetFileName(const std::string& key, std::string*, std::string*) const;
 
   std::unordered_map<std::string, Memory> mapped_files_{};

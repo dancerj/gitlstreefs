@@ -36,8 +36,8 @@ string gcrypt_string(const string& buf) {
 }
 
 void gcrypt_string_get_git_style_relpath(string* dir_name, string* file_name,
-					 const string& buf) {
+                                         const string& buf) {
   string b(gcrypt_string(buf));
-  *dir_name = b.substr(0,2);
+  *dir_name = b.substr(0, 2);
   *file_name = b.substr(2);
 }

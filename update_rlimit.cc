@@ -1,5 +1,5 @@
-#include <sys/resource.h>
 #include <stdio.h>
+#include <sys/resource.h>
 
 #include <iostream>
 
@@ -14,8 +14,8 @@ void UpdateRlimit() {
     perror("getrlimit");
     return;
   }
-  cout << "Updating file open limit: "
-       << r.rlim_cur << " to " << r.rlim_max << endl;
+  cout << "Updating file open limit: " << r.rlim_cur << " to " << r.rlim_max
+       << endl;
   r.rlim_cur = r.rlim_max;
   if (-1 == setrlimit(RLIMIT_NOFILE, &r)) {
     perror("setrlimit");

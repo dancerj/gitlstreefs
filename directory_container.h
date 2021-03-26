@@ -16,38 +16,36 @@ namespace directory_container {
 // Abstract file class, Directory is implemented here, concrete File
 // should be implemented by the user.
 class File {
-public:
+ public:
   File() {}
   virtual ~File() {}
 
   /**
    * @return 0 on success, -errno on fail.
    */
-  virtual int Getattr(struct stat *stbuf) = 0;
+  virtual int Getattr(struct stat* stbuf) = 0;
 
   /**
    * @return >= 0 on success, -errno on fail.
    */
-  virtual ssize_t Read(char *buf, size_t size, off_t offset) = 0;
-  virtual ssize_t Readlink(char *buf, size_t size) {
-    return -ENOSYS;
-  }
+  virtual ssize_t Read(char* buf, size_t size, off_t offset) = 0;
+  virtual ssize_t Readlink(char* buf, size_t size) { return -ENOSYS; }
 
   virtual int Open() = 0;
   virtual int Release() = 0;
 
-private:
+ private:
   DISALLOW_COPY_AND_ASSIGN(File);
 };
 
 class Directory : public File {
-public:
+ public:
   Directory();
   virtual ~Directory();
 
-  virtual int Getattr(struct stat *stbuf) override;
+  virtual int Getattr(struct stat* stbuf) override;
 
-  virtual ssize_t Read(char *buf, size_t size, off_t offset) override {
+  virtual ssize_t Read(char* buf, size_t size, off_t offset) override {
     // Can't read from a directory.
     return -EINVAL;
   }
@@ -62,9 +60,7 @@ public:
     return -EINVAL;
   }
 
-  virtual ssize_t Readlink(char *buf, size_t size) {
-    return -EINVAL;
-  }
+  virtual ssize_t Readlink(char* buf, size_t size) { return -EINVAL; }
 
   void add(const std::string& path, std::unique_ptr<File> f) {
     std::lock_guard<std::mutex> l(mutex_);
@@ -80,18 +76,19 @@ public:
     return nullptr;
   }
 
-  void for_each(std::function<void(const std::string& filename, const File* f)> callback) const {
+  void for_each(std::function<void(const std::string& filename, const File* f)>
+                    callback) const {
     std::lock_guard<std::mutex> l(mutex_);
-    for (const auto& file: files_) {
+    for (const auto& file : files_) {
       callback(file.first, file.second.get());
     }
   }
 
   void dump(int indent = 0);
 
-private:
-  typedef std::unordered_map<std::string,
-			     std::unique_ptr<File> > FileElementMap;
+ private:
+  typedef std::unordered_map<std::string, std::unique_ptr<File> >
+      FileElementMap;
   mutable std::mutex mutex_{};
 
   FileElementMap files_{};
@@ -99,7 +96,7 @@ private:
 };
 
 class DirectoryContainer {
-public:
+ public:
   DirectoryContainer();
   ~DirectoryContainer();
 
@@ -114,31 +111,33 @@ public:
     return false;
   }
 
-  int Getattr(const std::string& path, struct stat *stbuf);
+  int Getattr(const std::string& path, struct stat* stbuf);
 
   void dump();
 
   void for_each(const std::string& path,
-		std::function<void(const std::string& name, const File* f)> callback) const {
+                std::function<void(const std::string& name, const File* f)>
+                    callback) const {
     const Directory* d = dynamic_cast<const Directory*>(get(path));
     if (d) {
-      d->for_each([&callback](const std::string& name, const File* f){
-	  callback(name, f);
-	});
+      d->for_each([&callback](const std::string& name, const File* f) {
+        callback(name, f);
+      });
     }
   }
 
-private:
-  // Maybe recursively create directories up to path, and return the Directory object.
+ private:
+  // Maybe recursively create directories up to path, and return the Directory
+  // object.
   Directory* MaybeCreateParentDir(const std::string& dirname);
 
-  std::unordered_map<std::string /* fullpath */ , File*> files_{};
+  std::unordered_map<std::string /* fullpath */, File*> files_{};
   Directory root_{};
   mutable std::mutex path_mutex_{};
 
-  struct timespec mount_time_{};
+  struct timespec mount_time_ {};
   DISALLOW_COPY_AND_ASSIGN(DirectoryContainer);
 };
-} // namespace directory_container
+}  // namespace directory_container
 
 #endif

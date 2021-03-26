@@ -4,11 +4,11 @@
 
 #ifndef GIT_ADAPTER_H_
 #define GIT_ADAPTER_H_
-#include "directory_container.h"
 #include <fuse.h>
+#include "directory_container.h"
 
 namespace git_adapter {
 directory_container::DirectoryContainer* GetDirectoryContainer();
 fuse_operations GetFuseOperations();
-}
+}  // namespace git_adapter
 #endif

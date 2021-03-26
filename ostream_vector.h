@@ -13,5 +13,5 @@ std::ostream& operator<<(std::ostream& os, const std::vector<std::string>& v) {
   os << std::endl;
   return os;
 }
-} // namespace
+}  // namespace
 #endif

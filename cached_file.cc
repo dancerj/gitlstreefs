@@ -56,38 +56,34 @@ std::string Cache::Memory::get_copy() const {
   return std::string(memory_charp(), size_);
 }
 
-Cache::Cache(const string& cache_dir) :
-  cache_dir_(cache_dir),
-  file_lock_(-1) {
+Cache::Cache(const string& cache_dir) : cache_dir_(cache_dir), file_lock_(-1) {
   if (-1 == mkdir(cache_dir_.c_str(), 0700) && errno != EEXIST) {
     perror((string("Cannot create cache dir ") + cache_dir).c_str());
     abort();
   }
   assert(cache_dir_[cache_dir_.size() - 1] == '/');
   string lock_file_name{cache_dir + "lock"};
-  file_lock_.reset(open(lock_file_name.c_str(),
-			O_CREAT|O_RDWR|O_CLOEXEC, 0700));
+  file_lock_.reset(
+      open(lock_file_name.c_str(), O_CREAT | O_RDWR | O_CLOEXEC, 0700));
   if (file_lock_.get() == -1) {
     perror((string("Cannot open ") + lock_file_name).c_str());
     abort();
   }
   assert(flock(file_lock_.get(), LOCK_EX) != -1);
-  assert(cache_dir_[cache_dir_.size()-1] == '/');
+  assert(cache_dir_[cache_dir_.size() - 1] == '/');
 }
 
-Cache::~Cache() {
-  assert(flock(file_lock_.get(), LOCK_UN) != -1);
-}
+Cache::~Cache() { assert(flock(file_lock_.get(), LOCK_UN) != -1); }
 
-void Cache::GetFileName(const string& name,
-			string* dir_name, string* file_name) const {
+void Cache::GetFileName(const string& name, string* dir_name,
+                        string* file_name) const {
   *dir_name = cache_dir_ + name.substr(0, 2);
   *file_name = name.substr(2);
 }
 
 // Get sha1 hash, and use fetch method to fetch if not available already.
 const Cache::Memory* Cache::get(const string& name,
-				function<bool(string*)> fetch) {
+                                function<bool(string*)> fetch) {
   unique_lock<mutex> l(mutex_);
   // Check if we've already mapped the cache to memory.
   {
@@ -135,16 +131,16 @@ const Cache::Memory* Cache::get(const string& name,
     {
       fd.reset(open(temporary.c_str(), O_RDWR | O_CREAT | O_EXCL, 0666));
       if (fd.get() == -1) {
-	perror((string("open ") + temporary).c_str());
-	return nullptr;
+        perror((string("open ") + temporary).c_str());
+        return nullptr;
       }
-      assert(result.size() ==
-	     static_cast<size_t>(write(fd.get(), result.data(), result.size())));
+      assert(result.size() == static_cast<size_t>(write(fd.get(), result.data(),
+                                                        result.size())));
     }
     assert(-1 != rename(temporary.c_str(), cache_file_path.c_str()));
   }
   struct stat stbuf;
-  assert(0==fstat(fd.get(), &stbuf));
+  assert(0 == fstat(fd.get(), &stbuf));
   size_t size = stbuf.st_size;
   void* m = mmap(nullptr, size, PROT_READ, MAP_SHARED, fd.get(), 0);
   if (m == MAP_FAILED) {
@@ -168,9 +164,6 @@ bool Cache::release(const string& name, const Cache::Memory* item) {
   return true;
 }
 
-namespace {
-}  // anonymous namespace
-
 bool Cache::Gc() {
   lock_guard<mutex> l(mutex_);
 
@@ -178,25 +171,26 @@ bool Cache::Gc() {
   std::vector<std::string> to_delete{};
   stats_holder::StatsHolder stats;
   assert(WalkFilesystem(cache_dir_, [&to_delete, now, &stats](FTSENT* entry) {
-      if (entry->fts_info == FTS_F) {
-	std::string path(entry->fts_path, entry->fts_pathlen);
-	std::string name(entry->fts_name, entry->fts_namelen);
-	struct stat* st = entry->fts_statp;
-	time_t delta = now - st->st_atime;
-	/*
-	   std::cout << path <<
-	   " atime_delta_days:" << (delta / 60 / 60 / 24) <<
-	   " size:" << st->st_size << std::endl;
-	*/
-	stats.Add("size", st->st_size);
-	stats.Add("age", delta);
-	// .cache/bf/82c3eab3768308dfe445c7f8a314858cec09e0
-	if (name.size() == 38 && (delta / 60 / 60 / 24) > 60) {
-	  // This is probably a cache file, and is probably hasn't been used for a while
-	  to_delete.emplace_back(path);
-	}
+    if (entry->fts_info == FTS_F) {
+      std::string path(entry->fts_path, entry->fts_pathlen);
+      std::string name(entry->fts_name, entry->fts_namelen);
+      struct stat* st = entry->fts_statp;
+      time_t delta = now - st->st_atime;
+      /*
+         std::cout << path <<
+         " atime_delta_days:" << (delta / 60 / 60 / 24) <<
+         " size:" << st->st_size << std::endl;
+      */
+      stats.Add("size", st->st_size);
+      stats.Add("age", delta);
+      // .cache/bf/82c3eab3768308dfe445c7f8a314858cec09e0
+      if (name.size() == 38 && (delta / 60 / 60 / 24) > 60) {
+        // This is probably a cache file, and is probably hasn't been used for a
+        // while
+        to_delete.emplace_back(path);
       }
-    }));
+    }
+  }));
   for (const auto& path : to_delete) {
     std::cout << "garbage collect old files : " << path << std::endl;
     if (-1 == unlink(path.c_str())) {
@@ -208,8 +202,9 @@ bool Cache::Gc() {
   return true;
 }
 
-void Cache::dump() const{
+void Cache::dump() const {
   for (const auto& p : mapped_files_) {
-    std::cout << p.first << ":" << (intptr_t)p.second.memory_charp() << " " << p.second.size() << std::endl;
+    std::cout << p.first << ":" << (intptr_t)p.second.memory_charp() << " "
+              << p.second.size() << std::endl;
   }
 }

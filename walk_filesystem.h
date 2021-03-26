@@ -4,19 +4,19 @@
 
 #include <functional>
 
-bool WalkFilesystem(const std::string& dir, std::function<void(FTSENT* entry)> cb) {
+bool WalkFilesystem(const std::string& dir,
+                    std::function<void(FTSENT* entry)> cb) {
   // fts wants a mutable directory name, why?
   std::string mutable_dir(dir);
-  char * const paths[] = { &mutable_dir[0], nullptr };
-  FTS *f = fts_open(paths, FTS_PHYSICAL,
-		    nullptr /* use default ordering */);
+  char* const paths[] = {&mutable_dir[0], nullptr};
+  FTS* f = fts_open(paths, FTS_PHYSICAL, nullptr /* use default ordering */);
   if (!f) {
     perror("fts_open");
     return false;
   }
 
   FTSENT* entry;
-  while((entry = fts_read(f)) != nullptr) {
+  while ((entry = fts_read(f)) != nullptr) {
     cb(entry);
   }
   if (errno) {

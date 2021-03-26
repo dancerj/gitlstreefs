@@ -1,7 +1,7 @@
 #include "relative_path.h"
 
-#include <string>
 #include <assert.h>
+#include <string>
 
 using std::string;
 
@@ -11,7 +11,7 @@ string GetRelativePath(const char* path) {
 
   assert(*path != 0);
 
-  if(path[1] == 0) {
+  if (path[1] == 0) {
     // special-case / ? "" isn't a good relative path.
     return "./";
   }

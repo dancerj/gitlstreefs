@@ -10,7 +10,7 @@
 namespace jjson {
 
 class Value {
-public:
+ public:
   Value() {}
   virtual ~Value() {}
 
@@ -43,33 +43,33 @@ public:
   /** Check if this was 'null' */
   bool is_null() const;
 
-private:
+ private:
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
 
-template <class T> class SpecialValue : public Value {
-public:
+template <class T>
+class SpecialValue : public Value {
+ public:
   explicit SpecialValue(T&& value) : value_(std::move(value)) {}
   const T value_;
 };
 
 typedef SpecialValue<float> NumberValue;
-typedef SpecialValue<std::string> StringValue;;
-typedef SpecialValue<std::map<std::string, std::unique_ptr<Value> > > ObjectValue;
-typedef SpecialValue<std::vector<std::unique_ptr<Value> > > ArrayValue;;
+typedef SpecialValue<std::string> StringValue;
+;
+typedef SpecialValue<std::map<std::string, std::unique_ptr<Value> > >
+    ObjectValue;
+typedef SpecialValue<std::vector<std::unique_ptr<Value> > > ArrayValue;
+;
 
-class TrueValue : public Value {
-};
+class TrueValue : public Value {};
 
-class FalseValue : public Value {
-};
+class FalseValue : public Value {};
 
-class NullValue : public Value {
-};
+class NullValue : public Value {};
 
 std::unique_ptr<Value> Parse(const std::string& s);
 
-} // end namespace jjson
+}  // end namespace jjson
 
-
-#endif // JSON_PARSER_H_
+#endif  // JSON_PARSER_H_

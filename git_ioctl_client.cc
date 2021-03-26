@@ -19,8 +19,8 @@ int main(int argc, char** argv) {
   int fd = open(argv[1], O_RDONLY);
   assert(fd != -1);
   gitlstree::GetHashIoctlArg ioctl_arg{};
-  cout << "ioctl size: " << _IOC_SIZE(gitlstree::IOCTL_GIT_HASH) <<
-    " sizeof " << sizeof ioctl_arg << endl;
+  cout << "ioctl size: " << _IOC_SIZE(gitlstree::IOCTL_GIT_HASH) << " sizeof "
+       << sizeof ioctl_arg << endl;
   if (ioctl(fd, gitlstree::IOCTL_GIT_HASH, &ioctl_arg) == -1) {
     perror("ioctl");
   } else {
