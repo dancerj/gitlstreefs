@@ -13,6 +13,7 @@ RUN apt-get update && \
     libfuse-dev \
     libgit2-dev \
     ninja-build \
+    pkg-config \
     unionfs-fuse \
     zlib1g-dev && \
     apt-get clean

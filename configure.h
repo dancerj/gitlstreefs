@@ -148,7 +148,11 @@ class NinjaBuilder {
       retval += readbuf.substr(0, read_length);
     }
     int exit_code = pclose(f);
-    if (maybe_exit_code) *maybe_exit_code = exit_code;
+    if (maybe_exit_code) {
+      *maybe_exit_code = exit_code;
+    } else {
+      assert(exit_code == 0);
+    }
 
     return retval;
   }
