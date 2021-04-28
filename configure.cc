@@ -1,10 +1,16 @@
 #include "configure.h"
 
 int main() {
+  std::string fuse_cflags =
+      NinjaBuilder::PopenAndReadOrDie("pkg-config fuse --cflags");
+  std::string fuse_libs =
+      NinjaBuilder::PopenAndReadOrDie("pkg-config fuse --libs");
   NinjaBuilder::Config config;
   config.cxxflags =
-      "-O2 -g --std=c++17 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I.";
-  config.ldflags = "-pthread -lfuse";
+      std::string(
+          "-O2 -g --std=c++17 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I. ") +
+      fuse_cflags;
+  config.ldflags = std::string("-pthread ") + fuse_libs;
 
   NinjaBuilder n(config);
   n.CclinkRule("cclinkwithgit2", "$gxx $in -o $out -lgit2 $ldflags");
