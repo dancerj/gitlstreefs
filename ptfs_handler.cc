@@ -46,6 +46,10 @@ int PtfsHandler::GetAttr(const std::string& relative_path, struct stat* stbuf) {
                      AT_SYMLINK_NOFOLLOW));
 }
 
+int PtfsHandler::GetAttr(const FileHandle& fh, struct stat* stbuf) {
+  WRAP_ERRNO(fstat(fh.fd_get(), stbuf));
+}
+
 ssize_t PtfsHandler::Read(const FileHandle& fh, char* target, size_t size,
                           off_t offset) {
   WRAP_ERRNO_OR_RESULT(pread(fh.fd_get(), target, size, offset));

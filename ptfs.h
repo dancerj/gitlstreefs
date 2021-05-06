@@ -36,6 +36,11 @@ class PtfsHandler {
   virtual int GetAttr(const std::string& path, struct stat* stbuf);
 
   /**
+   * @return >= 0 on success, -errno on fail.
+   */
+  virtual int GetAttr(const FileHandle& fh, struct stat* stbuf);
+
+  /**
    * @return read size >= 0 on success, -errno on fail.
    */
   virtual ssize_t Read(const FileHandle& fh, char* buf, size_t size,

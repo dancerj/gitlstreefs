@@ -80,8 +80,13 @@ static int fs_symlink(const char *from, const char *to) {
 static int fs_getattr(const char *path, struct stat *stbuf,
                       fuse_file_info *fi) {
   memset(stbuf, 0, sizeof(struct stat));
-  DECLARE_RELATIVE(path, relative_path);
-  return GetContext()->GetAttr(relative_path, stbuf);
+  if (fi) {
+    USE_FILEHANDLE(fh, fi);
+    return GetContext()->GetAttr(*fh, stbuf);
+  } else {
+    DECLARE_RELATIVE(path, relative_path);
+    return GetContext()->GetAttr(relative_path, stbuf);
+  }
 }
 
 static int fs_opendir(const char *path, struct fuse_file_info *fi) {
