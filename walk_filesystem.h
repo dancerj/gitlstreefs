@@ -3,6 +3,7 @@
 #include <fts.h>
 
 #include <functional>
+#include <string>
 
 bool WalkFilesystem(const std::string& dir,
                     std::function<void(FTSENT* entry)> cb) {
