@@ -2,7 +2,7 @@
 set -ex
 TESTDIR=out/unkofstmp
 cleanup() {
-    fusermount -z -u $TESTDIR || true
+    fusermount3 -z -u $TESTDIR || true
 }
 cleanup
 trap cleanup exit
@@ -15,7 +15,7 @@ cp README.md $TESTDIR/
 
 # start file system
 out/experimental/unkofs \
-    $TESTDIR -o nonempty
+    $TESTDIR
 
 ls -l $TESTDIR
 if cat $TESTDIR/DOES_NOT_EXIST; then

@@ -1,4 +1,4 @@
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 35
 
 #include <assert.h>
 #include <fuse.h>

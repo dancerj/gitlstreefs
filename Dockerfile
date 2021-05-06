@@ -6,11 +6,11 @@ RUN apt-get update && \
     coreutils \
     curl \
     file \
-    fuse \
+    fuse3 \
     g++ \
     git \
     libattr1-dev \
-    libfuse-dev \
+    libfuse3-dev \
     libgit2-dev \
     ninja-build \
     pkg-config \

@@ -4,17 +4,18 @@ set -e
 TESTDIR=out/ninjafstemp
 
 cleanup() {
-    fusermount -z -u $TESTDIR || true
+    fusermount3 -z -u $TESTDIR || true
 }
 cleanup
 trap cleanup exit
 
-mkdir $TESTDIR || true
+mkdir $TESTDIR 2> /dev/null || true
 
 (
     cd ./testdata/failninja/
     ninja -t clean
-    ../../out/ninjafs ../../$TESTDIR -o attr_timeout=0
+    # add `-d &` at end for more debugging
+    ../../out/ninjafs ../../$TESTDIR -o attr_timeout=0 
 )
 ls -l $TESTDIR/
 if cat $TESTDIR/does_not_exist; then

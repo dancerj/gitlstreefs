@@ -1,4 +1,4 @@
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 35
 
 #include "roptfs.h"
 
@@ -62,7 +62,7 @@ int RoptfsHandler::ReadDir(const std::string& relative_path, void* buf,
     return -ENOENT;
   }
   for (int i = 0; i < scandir_count; ++i) {
-    filler(buf, namelist[i]->d_name, nullptr, 0);
+    filler(buf, namelist[i]->d_name, nullptr, 0, fuse_fill_dir_flags{});
     free(namelist[i]);
   }
   free(namelist);
@@ -74,7 +74,7 @@ int RoptfsHandler::ReadDir(const std::string& relative_path, void* buf,
   if (*path == 0) return -ENOENT;             \
   string relative_path(GetRelativePath(path));
 
-static int fs_getattr(const char* path, struct stat* stbuf) {
+static int fs_getattr(const char* path, struct stat* stbuf, fuse_file_info*) {
   memset(stbuf, 0, sizeof(struct stat));
   DECLARE_RELATIVE(path, relative_path);
   return GetContext()->GetAttr(relative_path, stbuf);
@@ -94,7 +94,8 @@ static int fs_releasedir(const char*, struct fuse_file_info* fi) {
 }
 
 static int fs_readdir(const char* unused, void* buf, fuse_fill_dir_t filler,
-                      off_t offset, struct fuse_file_info* fi) {
+                      off_t offset, struct fuse_file_info* fi,
+                      fuse_readdir_flags) {
   if (fi->fh == 0) return -ENOENT;
   string* relative_path(reinterpret_cast<string*>(fi->fh));
   return GetContext()->ReadDir(relative_path->c_str(), buf, filler, offset);
@@ -144,7 +145,6 @@ void FillFuseOperationsInternal(fuse_operations* o) {
   DEFINE_HANDLER(release);
   DEFINE_HANDLER(releasedir);
 #undef DEFINE_HANDLER
-  o->flag_nopath = true;
 }
 
 };  // namespace roptfs

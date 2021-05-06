@@ -1,8 +1,8 @@
 #!/bin/bash
 set -ex
 cleanup() {
-    fusermount -u -z mountpoint2 || true
-    fusermount -u -z mountpoint || true
+    fusermount3 -u -z mountpoint2 || true
+    fusermount3 -u -z mountpoint || true
     rm -rf tmp
     rmdir mountpoint || true
     rmdir mountpoint2 || true

@@ -2,7 +2,7 @@
 set -ex
 TESTDIR=out/globfstmp
 cleanup() {
-    fusermount -z -u $TESTDIR || true
+    fusermount3 -z -u $TESTDIR || true
 }
 cleanup
 trap cleanup exit

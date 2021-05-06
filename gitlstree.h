@@ -92,7 +92,7 @@ struct GetHashIoctlArg {
 constexpr int IOCTL_MAGIC_NUMBER = 0;
 constexpr int IOCTL_GIT_HASH_COMMAND = 1;
 
-constexpr int IOCTL_GIT_HASH =
+constexpr unsigned int IOCTL_GIT_HASH =
     _IOR(IOCTL_MAGIC_NUMBER, IOCTL_GIT_HASH_COMMAND, GetHashIoctlArg);
 
 }  // namespace gitlstree

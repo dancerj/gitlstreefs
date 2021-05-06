@@ -10,4 +10,4 @@
 sudo ./out/cowfs -d --lock_path=out/sid-chroot/lock \
      --underlying_path=out/sid-chroot/chroot \
      --repository=out/sid-chroot/repo out/sid-chroot/chroot \
-     -o nonempty,allow_other,dev,suid,default_permissions
+     -o allow_other,dev,suid,default_permissions

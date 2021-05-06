@@ -4,8 +4,8 @@
 // Proof of concept that you can overlay mountpoint over existing
 // directory and still read it.
 //
-// unkofs mountpoint -o nonempty
-#define FUSE_USE_VERSION 26
+// unkofs mountpoint
+#define FUSE_USE_VERSION 35
 
 #include <fuse.h>
 #include <string.h>
@@ -57,7 +57,7 @@ class UnkoFsHandler : public roptfs::RoptfsHandler {
 
   int ReadDir(const std::string& relative_path, void* buf,
               fuse_fill_dir_t filler, off_t offset) override {
-    filler(buf, "unko", nullptr, 0);
+    filler(buf, "unko", nullptr, 0, fuse_fill_dir_flags{});
     return RoptfsHandler::ReadDir(relative_path, buf, filler, offset);
   }
 

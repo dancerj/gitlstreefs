@@ -1,4 +1,4 @@
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 35
 
 #include "git_adapter.h"
 #include "git-githubfs.h"
@@ -12,8 +12,14 @@ namespace {
 // Global scope to make it accessible from callback.
 auto fs = std::make_unique<directory_container::DirectoryContainer>();
 
-static int fs_getattr(const char *path, struct stat *stbuf) {
-  return fs->Getattr(path, stbuf);
+static int fs_getattr(const char *path, struct stat *stbuf,
+                      fuse_file_info *fi) {
+  if (fi) {
+    auto fe = reinterpret_cast<directory_container::File *>(fi->fh);
+    return fe->Getattr(stbuf);
+  } else {
+    return fs->Getattr(path, stbuf);
+  }
 }
 
 static int fs_opendir(const char *path, struct fuse_file_info *fi) {
@@ -33,14 +39,15 @@ static int fs_releasedir(const char *, struct fuse_file_info *fi) {
 }
 
 static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-                      off_t offset, struct fuse_file_info *fi) {
-  filler(buf, ".", nullptr, 0);
-  filler(buf, "..", nullptr, 0);
+                      off_t offset, struct fuse_file_info *fi,
+                      fuse_readdir_flags) {
+  filler(buf, ".", nullptr, 0, fuse_fill_dir_flags{});
+  filler(buf, "..", nullptr, 0, fuse_fill_dir_flags{});
   auto *d = reinterpret_cast<const directory_container::Directory *>(fi->fh);
   if (!d) return -ENOENT;
   d->for_each(
       [&](const std::string &s, const directory_container::File *unused) {
-        filler(buf, s.c_str(), nullptr, 0);
+        filler(buf, s.c_str(), nullptr, 0, fuse_fill_dir_flags{});
       });
   return 0;
 }
@@ -83,12 +90,19 @@ static int fs_release(const char *path, struct fuse_file_info *fi) {
   }
   return fe->Release();
 }
+
+void *fs_init(fuse_conn_info *, fuse_config *config) {
+  config->nullpath_ok = 1;
+  return nullptr;
+}
+
 }  // namespace
 
 struct fuse_operations GetFuseOperations() {
   struct fuse_operations o = {};
 #define DEFINE_HANDLER(n) o.n = &fs_##n
   DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(init);
   DEFINE_HANDLER(open);
   DEFINE_HANDLER(opendir);
   DEFINE_HANDLER(read);
@@ -97,7 +111,6 @@ struct fuse_operations GetFuseOperations() {
   DEFINE_HANDLER(release);
   DEFINE_HANDLER(releasedir);
 #undef DEFINE_HANDLER
-  o.flag_nopath = true;
   return o;
 }
 

@@ -2,9 +2,9 @@
 
 int main() {
   std::string fuse_cflags =
-      NinjaBuilder::PopenAndReadOrDie("pkg-config fuse --cflags");
+      NinjaBuilder::PopenAndReadOrDie("pkg-config fuse3 --cflags");
   std::string fuse_libs =
-      NinjaBuilder::PopenAndReadOrDie("pkg-config fuse --libs");
+      NinjaBuilder::PopenAndReadOrDie("pkg-config fuse3 --libs");
   NinjaBuilder::Config config;
   config.cxxflags =
       std::string(
@@ -99,6 +99,7 @@ int main() {
   n.RunTestScript("cowfs_test.sh", {"out/cowfs", "out/hello_world"});
   n.CompileLink("ptfs", {"ptfs_main", "ptfs", "ptfs_handler", "relative_path",
                          "scoped_fileutil", "strutil", "update_rlimit"});
+  n.RunTestScript("ptfs_test.sh", {"out/ptfs"});
   n.CompileLink("file_copy_test", {"file_copy", "file_copy_test"});
   n.CompileLink("experimental/parallel_writer",
                 {"experimental/parallel_writer"});

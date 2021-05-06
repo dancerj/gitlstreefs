@@ -3,7 +3,7 @@
 
   Lists the targets as accessible file.
  */
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 35
 
 #include "directory_container.h"
 #include "get_current_dir.h"
@@ -185,8 +185,17 @@ bool LoadDirectory() {
   return true;
 }
 
-static int fs_getattr(const char *path, struct stat *stbuf) {
-  return fs->Getattr(path, stbuf);
+static int fs_getattr(const char *path, struct stat *stbuf,
+                      fuse_file_info *fi) {
+  // First request for .Trash after mount from GNOME gets called with
+  // path and fi == null.
+  if (fi) {
+    auto f = reinterpret_cast<directory_container::File *>(fi->fh);
+    assert(f != nullptr);
+    return f->Getattr(stbuf);
+  } else {
+    return fs->Getattr(path, stbuf);
+  }
 }
 
 static int fs_opendir(const char *path, struct fuse_file_info *fi) {
@@ -202,15 +211,16 @@ static int fs_releasedir(const char *, struct fuse_file_info *fi) {
   return 0;
 }
 
-static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
-                      off_t offset, struct fuse_file_info *fi) {
-  filler(buf, ".", nullptr, 0);
-  filler(buf, "..", nullptr, 0);
+static int fs_readdir(const char *, void *buf, fuse_fill_dir_t filler,
+                      off_t offset, struct fuse_file_info *fi,
+                      fuse_readdir_flags) {
+  filler(buf, ".", nullptr, 0, fuse_fill_dir_flags{});
+  filler(buf, "..", nullptr, 0, fuse_fill_dir_flags{});
   const directory_container::Directory *d =
       reinterpret_cast<directory_container::Directory *>(fi->fh);
   if (!d) return -ENOENT;
   d->for_each([&](const string &s, const directory_container::File *unused) {
-    filler(buf, s.c_str(), nullptr, 0);
+    filler(buf, s.c_str(), nullptr, 0, fuse_fill_dir_flags{});
   });
   return 0;
 }
@@ -224,12 +234,17 @@ static int fs_open(const char *path, struct fuse_file_info *fi) {
   return f->Open();
 }
 
-static int fs_read(const char *path, char *target, size_t size, off_t offset,
+static int fs_read(const char *, char *target, size_t size, off_t offset,
                    struct fuse_file_info *fi) {
   auto f = reinterpret_cast<directory_container::File *>(fi->fh);
   if (!f) return -ENOENT;
 
   return f->Read(target, size, offset);
+}
+
+void *fs_init(fuse_conn_info *, fuse_config *config) {
+  config->nullpath_ok = 1;
+  return nullptr;
 }
 
 }  // namespace ninjafs
@@ -246,6 +261,7 @@ int main(int argc, char *argv[]) {
   struct fuse_operations o = {};
 #define DEFINE_HANDLER(n) o.n = &fs_##n
   DEFINE_HANDLER(getattr);
+  DEFINE_HANDLER(init);
   DEFINE_HANDLER(open);
   DEFINE_HANDLER(opendir);
   DEFINE_HANDLER(read);
@@ -253,7 +269,6 @@ int main(int argc, char *argv[]) {
   DEFINE_HANDLER(readdir);
   DEFINE_HANDLER(releasedir);
 #undef DEFINE_HANDLER
-  o.flag_nopath = true;
 
   return fuse_main(argc, argv, &o, nullptr);
 }

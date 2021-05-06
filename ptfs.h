@@ -109,7 +109,8 @@ class PtfsHandler {
                             size_t size);
   virtual int Removexattr(const std::string& relative_path, const char* name);
   virtual int Rename(const std::string& relative_path_from,
-                     const std::string& relative_path_to);
+                     const std::string& relative_path_to,
+                     unsigned int rename_flags);
 
   /**
    * File descriptor where all operations happen relative to.
@@ -123,11 +124,13 @@ class PtfsHandler {
 };
 
 template <class T>
-void* fs_init(fuse_conn_info* unused) {
+void* fs_init(fuse_conn_info*, fuse_config* config) {
+  config->nullpath_ok = 1;
   return new T();
 }
 
 void FillFuseOperationsInternal(fuse_operations* o);
+
 /**
    Initialization interface. Call this with your class of choice as
    template parameter.

@@ -14,11 +14,11 @@ $ sudo apt-get install \
       coreutils \
       curl \
       file \
-      fuse \
+      fuse3 \
       g++ \
       git \
       libattr1-dev \
-      libfuse-dev \
+      libfuse3-dev \
       libgit2-dev \
       ninja-build \
       pkg-config \
@@ -39,14 +39,14 @@ execution and mounts to the directory given as the first parameter.
 
 ```shell-session
 $ ./out/gitlstree mountpoint
-$ fusermount -u mountpoint
+$ fusermount3 -u mountpoint
 ```
 
 To mount a local repo from a different path
 
 ```shell-session
 $ ./out/gitlstree --path=dir/to/some.git mountpoint
-$ fusermount -u mountpoint
+$ fusermount3 -u mountpoint
 ```
 
 To mount a remote repo via ssh connection, using `ssh SERVER 'cd PATH
@@ -54,7 +54,7 @@ To mount a remote repo via ssh connection, using `ssh SERVER 'cd PATH
 
 ```shell-session
 $ ./out/gitlstree --ssh=server --path=repos/some.git mountpoint/
-$ fusermount -u mountpoint
+$ fusermount3 -u mountpoint
 ```
 
 ### Development
@@ -83,7 +83,7 @@ github rest API v3.
 $ ./out/git-githubfs --user=dancerj --project=gitlstreefs mountpoint/
 $ ls mountpoint/
 $ cat mountpoint/README.md
-$ fusermount -u mountpoint
+$ fusermount3 -u mountpoint
 ```
 
 ### Development
@@ -111,8 +111,10 @@ to mountpoint.  uses libgit2
 Takes the git repository from the current working directory as of
 execution and mounts to the directory given as the first parameter.
 
-    $ ./out/experimental/gitfs mountpoint
-    $ fusermount -u mountpoint
+```shell-session
+$ ./out/experimental/gitfs mountpoint
+$ fusermount3 -u mountpoint
+```
 
 Although this was the initial approach, compared to other
 implementations this implementation is slower and consumes more
@@ -132,7 +134,7 @@ $ out/ninjafs mountpoint/
 $ ls mountpoint/
 $ file mountpoint/out/hello_world
 $ ./mountpoint/out/hello_world
-$ fusermount -u mountpoint
+$ fusermount3 -u mountpoint
 ```
 
 ### cow file system
@@ -143,13 +145,13 @@ A reimplementation of what cowdancer would have probably been, using
 FUSE. Not quite feature complete but basic features started working.
 
 ```shell-session
-$ ./out/cowfs out/cowfstmp/workdir -o nonempty \
+$ ./out/cowfs out/cowfstmp/workdir \
 	--lock_path=out/cowfstmp/lock \
 	--underlying_path=out/cowfstmp/workdir \
 	--repository=out/cowfstmp/repo
 $ ls -l out/cowfstmp/workdir
 $ echo "hello world" > out/cowfstmp/workdir
-$ fusermount -z -u mountpoint
+$ fusermount3 -z -u mountpoint
 ```
 
 Some extra mount options are required along with running as root to
@@ -161,7 +163,7 @@ $ sudo ./out/cowfs --lock_path=out/sid-chroot/lock \
       --underlying_path=out/sid-chroot/chroot \
       --repository=out/sid-chroot/repo \
       out/sid-chroot/chroot \
-      -o nonempty,allow_other,dev,suid,default_permissions
+      -o allow_other,dev,suid,default_permissions
 ```
 
 ## Copying

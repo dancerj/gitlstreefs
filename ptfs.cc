@@ -1,4 +1,4 @@
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 35
 
 #include "ptfs.h"
 
@@ -30,22 +30,28 @@ PtfsHandler *GetContext() {
   return reinterpret_cast<PtfsHandler *>(context->private_data);
 }
 
-static int fs_chmod(const char *path, mode_t mode) {
+static FileHandle *GetFileHandle(struct fuse_file_info *fi) {
+  return reinterpret_cast<FileHandle *>(fi->fh);
+}
+
+static int fs_chmod(const char *path, mode_t mode, fuse_file_info *fi) {
   DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Chmod(relative_path, mode);
 }
 
-static int fs_chown(const char *path, uid_t uid, gid_t gid) {
+static int fs_chown(const char *path, uid_t uid, gid_t gid,
+                    fuse_file_info *fi) {
   DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Chown(relative_path, uid, gid);
 }
 
-static int fs_truncate(const char *path, off_t size) {
+static int fs_truncate(const char *path, off_t size, fuse_file_info *fi) {
   DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Truncate(relative_path, size);
 }
 
-static int fs_utimens(const char *path, const struct timespec ts[2]) {
+static int fs_utimens(const char *path, const struct timespec ts[2],
+                      fuse_file_info *) {
   DECLARE_RELATIVE(path, relative_path);
   return GetContext()->Utimens(relative_path, ts);
 }
@@ -71,7 +77,8 @@ static int fs_symlink(const char *from, const char *to) {
   return GetContext()->Symlink(from, to_s);
 }
 
-static int fs_getattr(const char *path, struct stat *stbuf) {
+static int fs_getattr(const char *path, struct stat *stbuf,
+                      fuse_file_info *fi) {
   memset(stbuf, 0, sizeof(struct stat));
   DECLARE_RELATIVE(path, relative_path);
   return GetContext()->GetAttr(relative_path, stbuf);
@@ -91,7 +98,8 @@ static int fs_releasedir(const char *, struct fuse_file_info *fi) {
 }
 
 static int fs_readdir(const char *unused, void *buf, fuse_fill_dir_t filler,
-                      off_t offset, struct fuse_file_info *fi) {
+                      off_t offset, struct fuse_file_info *fi,
+                      fuse_readdir_flags) {
   if (fi->fh == 0) return -ENOENT;
   string *relative_path(reinterpret_cast<string *>(fi->fh));
   return GetContext()->ReadDir(relative_path->c_str(), buf, filler, offset);
@@ -117,10 +125,6 @@ static int fs_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
     fi->fh = reinterpret_cast<uint64_t>(fh.release());
   }
   return ret;
-}
-
-static FileHandle *GetFileHandle(struct fuse_file_info *fi) {
-  return reinterpret_cast<FileHandle *>(fi->fh);
 }
 
 static int fs_release(const char *unused, struct fuse_file_info *fi) {
@@ -202,10 +206,11 @@ static int fs_removexattr(const char *path, const char *name) {
   return GetContext()->Removexattr(relative_path, name);
 }
 
-static int fs_rename(const char *from, const char *to) {
+static int fs_rename(const char *from, const char *to,
+                     unsigned int rename_flags) {
   DECLARE_RELATIVE(from, from_s);
   DECLARE_RELATIVE(to, to_s);
-  return GetContext()->Rename(from_s, to_s);
+  return GetContext()->Rename(from_s, to_s, rename_flags);
 }
 
 static void fs_destroy(void *private_data) {
@@ -222,6 +227,7 @@ void FillFuseOperationsInternal(fuse_operations *o) {
   DEFINE_HANDLER(fsync);
   DEFINE_HANDLER(getattr);
   DEFINE_HANDLER(getxattr);
+  // DEFINE_HANDLER(init);  // initialized in ptfs.h
   DEFINE_HANDLER(link);
   DEFINE_HANDLER(listxattr);
   DEFINE_HANDLER(mkdir);
@@ -245,7 +251,6 @@ void FillFuseOperationsInternal(fuse_operations *o) {
   DEFINE_HANDLER(utimens);
   DEFINE_HANDLER(write);
 #undef DEFINE_HANDLER
-  o->flag_nopath = true;
 }
 
 }  // namespace ptfs

@@ -1,4 +1,4 @@
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 35
 
 #include <assert.h>
 #include <fuse.h>
@@ -16,12 +16,13 @@ namespace gitfs {
 // Global scope to make it accessible from callback.
 unique_ptr<GitTree> fs;
 
-static int fs_getattr(const char *path, struct stat *stbuf) {
+static int fs_getattr(const char *path, struct stat *stbuf, fuse_file_info *) {
   return fs->Getattr(path, stbuf);
 }
 
 static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-                      off_t offset, struct fuse_file_info *fi) {
+                      off_t offset, struct fuse_file_info *fi,
+                      fuse_readdir_flags) {
   (void)offset;
   (void)fi;
 
@@ -35,10 +36,10 @@ static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
     return -ENOENT;
   }
 
-  filler(buf, ".", nullptr, 0);
-  filler(buf, "..", nullptr, 0);
+  filler(buf, ".", nullptr, 0, fuse_fill_dir_flags{});
+  filler(buf, "..", nullptr, 0, fuse_fill_dir_flags{});
   fe->for_each_filename([&](const string &filename) {
-    filler(buf, filename.c_str(), nullptr, 0);
+    filler(buf, filename.c_str(), nullptr, 0, fuse_fill_dir_flags{});
   });
 
   return 0;

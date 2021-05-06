@@ -1,7 +1,7 @@
 /*
   Excercise to handle additional flags in libfuse.
  */
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 35
 
 #include <stddef.h>
 #include <stdio.h>
@@ -54,7 +54,7 @@ class FlagFs {
 
 unique_ptr<FlagFs> fs;
 
-static int fs_getattr(const char* path, struct stat* stbuf) {
+static int fs_getattr(const char* path, struct stat* stbuf, fuse_file_info*) {
   memset(stbuf, 0, sizeof(struct stat));
   if (strcmp(path, "/") == 0) {
     stbuf->st_mode = S_IFDIR | 0755;
@@ -73,13 +73,15 @@ static int fs_getattr(const char* path, struct stat* stbuf) {
 }
 
 static int fs_readdir(const char* path, void* buf, fuse_fill_dir_t filler,
-                      off_t offset, struct fuse_file_info* fi) {
+                      off_t offset, struct fuse_file_info* fi,
+                      fuse_readdir_flags) {
   if (strcmp(path, "/") != 0) return -ENOENT;
 
-  filler(buf, ".", nullptr, 0);
-  filler(buf, "..", nullptr, 0);
-  fs->for_each_filename(
-      [&](const string& s) { filler(buf, s.c_str(), nullptr, 0); });
+  filler(buf, ".", nullptr, 0, fuse_fill_dir_flags{});
+  filler(buf, "..", nullptr, 0, fuse_fill_dir_flags{});
+  fs->for_each_filename([&](const string& s) {
+    filler(buf, s.c_str(), nullptr, 0, fuse_fill_dir_flags{});
+  });
 
   return 0;
 }

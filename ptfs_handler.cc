@@ -1,4 +1,4 @@
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 35
 
 #include "ptfs.h"
 
@@ -103,7 +103,7 @@ int PtfsHandler::ReadDir(const std::string& relative_path, void* buf,
     return -ENOENT;
   }
   for (int i = 0; i < scandir_count; ++i) {
-    filler(buf, namelist[i]->d_name, nullptr, 0);
+    filler(buf, namelist[i]->d_name, nullptr, 0, fuse_fill_dir_flags{});
     free(namelist[i]);
   }
   free(namelist);
@@ -208,9 +208,11 @@ int PtfsHandler::Removexattr(const string& relative_path, const char* name) {
 }
 
 int PtfsHandler::Rename(const string& relative_path_from,
-                        const string& relative_path_to) {
-  WRAP_ERRNO(renameat(premount_dirfd_, relative_path_from.c_str(),
-                      premount_dirfd_, relative_path_to.c_str()));
+                        const string& relative_path_to,
+                        unsigned int rename_flags) {
+  WRAP_ERRNO(renameat2(premount_dirfd_, relative_path_from.c_str(),
+                       premount_dirfd_, relative_path_to.c_str(),
+                       rename_flags));
 }
 
 }  // namespace ptfs

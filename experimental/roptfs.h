@@ -61,12 +61,13 @@ class RoptfsHandler {
   DISALLOW_COPY_AND_ASSIGN(RoptfsHandler);
 };
 
-template <class T>
-void* fs_init(fuse_conn_info* unused) {
+template<class T> void* fs_init(fuse_conn_info* unused, struct fuse_config* config) {
+  config->nullpath_ok = 1;
   return new T();
 }
 
 void FillFuseOperationsInternal(fuse_operations* o);
+
 /**
    Initialization interface. Call this with your class of choice as
    template parameter.

@@ -2,7 +2,7 @@
 set -ex
 TESTDIR=out/cowfstmp
 cleanup() {
-    fusermount -z -u $TESTDIR/workdir || true
+    fusermount3 -z -u $TESTDIR/workdir || true
 }
 cleanup
 trap cleanup exit
@@ -15,7 +15,7 @@ cp README.md $TESTDIR/workdir/
 echo old > $TESTDIR/workdir/existing_file
 
 # start file system
-out/cowfs $TESTDIR/workdir -o nonempty \
+out/cowfs $TESTDIR/workdir \
 	  --lock_path=out/cowfstmp/lock \
 	  --underlying_path=out/cowfstmp/workdir \
 	  --repository=out/cowfstmp/repo \

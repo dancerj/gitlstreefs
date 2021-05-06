@@ -1,7 +1,7 @@
 // A filesystem that filters filenames with a glob.
 //
 // globfs mountpoint --glob_pattern='hoge*' --underlying_path=./
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 35
 
 #include <dirent.h>
 #include <fnmatch.h>
@@ -27,8 +27,8 @@ class GlobFsHandler : public roptfs::RoptfsHandler {
 
   int ReadDir(const std::string& relative_path, void* buf,
               fuse_fill_dir_t filler, off_t offset) override {
-    filler(buf, ".", nullptr, 0);
-    filler(buf, "..", nullptr, 0);
+    filler(buf, ".", nullptr, 0, fuse_fill_dir_flags{});
+    filler(buf, "..", nullptr, 0, fuse_fill_dir_flags{});
     struct dirent** namelist{nullptr};
     int scandir_count = scandirat(premount_dirfd_, relative_path.c_str(),
                                   &namelist, nullptr, nullptr);
@@ -37,7 +37,7 @@ class GlobFsHandler : public roptfs::RoptfsHandler {
     }
     for (int i = 0; i < scandir_count; ++i) {
       if (!fnmatch(glob_pattern_.c_str(), namelist[i]->d_name, FNM_PATHNAME)) {
-        filler(buf, namelist[i]->d_name, nullptr, 0);
+        filler(buf, namelist[i]->d_name, nullptr, 0, fuse_fill_dir_flags{});
       }
       free(namelist[i]);
     }

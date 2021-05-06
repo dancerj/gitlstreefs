@@ -2,7 +2,7 @@
 # Sends requests to github. Should probably not be a continuous test.
 MOUNTPOINT=out/githubfs_mountpoint
 cleanup() {
-    fusermount -u $MOUNTPOINT || true
+    fusermount3 -u $MOUNTPOINT || true
     rmdir ./$MOUNTPOINT || true
 }
 cleanup
