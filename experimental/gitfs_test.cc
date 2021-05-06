@@ -1,8 +1,8 @@
 #include <assert.h>
+#include <sys/stat.h>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <sys/stat.h>
 
 #include "get_current_dir.h"
 #include "gitfs.h"
@@ -15,7 +15,8 @@ using std::unique_ptr;
 void TryReadFileTest(gitfs::GitTree* fs, const string& name) {
   // Try reading a file.
   cout << "Try reading: " << name << endl;
-  gitfs::FileElement* fe;;
+  gitfs::FileElement* fe;
+  ;
   assert((fe = fs->get(name)) != nullptr);
   constexpr size_t size = 4096;
   char buf[size];
@@ -27,7 +28,8 @@ void TryReadFileTest(gitfs::GitTree* fs, const string& name) {
 }
 
 void ScenarioTest() {
-  auto fs = std::make_unique<gitfs::GitTree>("HEAD", GetCurrentDir() + "/out/fetch_test_repo/gitlstreefs");
+  auto fs = std::make_unique<gitfs::GitTree>(
+      "HEAD", GetCurrentDir() + "/out/fetch_test_repo/gitlstreefs");
   fs->dump();
 
   assert(fs->get("dummytestdirectory/README") != nullptr);
@@ -48,7 +50,7 @@ void ScenarioTest() {
 }
 
 int main(int argc, char** argv) {
-  int iter = argv[1]?atoi(argv[1]):1;
+  int iter = argv[1] ? atoi(argv[1]) : 1;
   for (int i = 0; i < iter; ++i) {
     ScenarioTest();
   }

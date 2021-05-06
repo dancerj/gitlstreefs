@@ -22,11 +22,10 @@ using std::unordered_map;
 namespace flag_fs {
 
 class FlagFs {
-public:
+ public:
   class File {
-  public:
-    File(string buf) :
-      buf_(buf) {}
+   public:
+    File(string buf) : buf_(buf) {}
     // If file was created already, this is not null.
     string buf_;
   };
@@ -36,7 +35,7 @@ public:
   }
 
   void for_each_filename(function<void(const string& s)> f) {
-    for (const auto& it: files_) {
+    for (const auto& it : files_) {
       f(it.first);
     }
   }
@@ -49,25 +48,23 @@ public:
     return nullptr;
   }
 
-private:
+ private:
   unordered_map<string, unique_ptr<File> > files_{};
 };
 
 unique_ptr<FlagFs> fs;
 
-static int fs_getattr(const char *path, struct stat *stbuf) {
+static int fs_getattr(const char* path, struct stat* stbuf) {
   memset(stbuf, 0, sizeof(struct stat));
   if (strcmp(path, "/") == 0) {
     stbuf->st_mode = S_IFDIR | 0755;
     stbuf->st_nlink = 2;
     return 0;
   }
-  if (*path == 0)
-    return -ENOENT;
+  if (*path == 0) return -ENOENT;
 
   FlagFs::File* f = fs->get(path + 1);
-  if (!f)
-    return -ENOENT;
+  if (!f) return -ENOENT;
 
   stbuf->st_mode = S_IFREG | 0555;
   stbuf->st_nlink = 1;
@@ -75,47 +72,41 @@ static int fs_getattr(const char *path, struct stat *stbuf) {
   return 0;
 }
 
-static int fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi) {
-  if (strcmp(path, "/") != 0)
-    return -ENOENT;
+static int fs_readdir(const char* path, void* buf, fuse_fill_dir_t filler,
+                      off_t offset, struct fuse_file_info* fi) {
+  if (strcmp(path, "/") != 0) return -ENOENT;
 
   filler(buf, ".", nullptr, 0);
   filler(buf, "..", nullptr, 0);
-  fs->for_each_filename([&](const string& s){
-      filler(buf, s.c_str(), nullptr, 0);
-    });
+  fs->for_each_filename(
+      [&](const string& s) { filler(buf, s.c_str(), nullptr, 0); });
 
   return 0;
 }
 
-static int fs_open(const char *path, struct fuse_file_info *fi) {
-  if (*path == 0)
-    return -ENOENT;
+static int fs_open(const char* path, struct fuse_file_info* fi) {
+  if (*path == 0) return -ENOENT;
   FlagFs::File* f = fs->get(path + 1);
-  if (!f)
-    return -ENOENT;
+  if (!f) return -ENOENT;
   fi->fh = reinterpret_cast<uint64_t>(f);
   return 0;
 }
 
-static int fs_read(const char *path, char *target, size_t size, off_t offset,
-		   struct fuse_file_info *fi) {
+static int fs_read(const char* path, char* target, size_t size, off_t offset,
+                   struct fuse_file_info* fi) {
   FlagFs::File* f = reinterpret_cast<FlagFs::File*>(fi->fh);
-  if (!f)
-    return -ENOENT;
+  if (!f) return -ENOENT;
 
   // Fill in the response
   if (offset < static_cast<off_t>(f->buf_.size())) {
-    if (offset + size > f->buf_.size())
-      size = f->buf_.size() - offset;
+    if (offset + size > f->buf_.size()) size = f->buf_.size() - offset;
     memcpy(target, f->buf_.c_str() + offset, size);
   } else
     size = 0;
   return size;
 }
 
-} // anonymous namespace
+}  // namespace flag_fs
 
 using namespace flag_fs;
 
@@ -124,16 +115,14 @@ struct hellofs_config {
   char* content{nullptr};
 };
 
-#define MYFS_OPT(t, p, v) { t, offsetof(hellofs_config, p), v }
+#define MYFS_OPT(t, p, v) \
+  { t, offsetof(hellofs_config, p), v }
 
-static struct fuse_opt hellofs_opts[] = {
-  MYFS_OPT("--filename=%s", filename, 0),
-  MYFS_OPT("--content=%s", content, 0),
-  FUSE_OPT_END
-};
+static struct fuse_opt hellofs_opts[] = {MYFS_OPT("--filename=%s", filename, 0),
+                                         MYFS_OPT("--content=%s", content, 0),
+                                         FUSE_OPT_END};
 
-int main(int argc, char *argv[]) {
-
+int main(int argc, char* argv[]) {
   fuse_operations o{};
   o.getattr = &fs_getattr;
   o.readdir = &fs_readdir;

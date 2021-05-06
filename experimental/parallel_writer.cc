@@ -23,14 +23,15 @@ const char kData[] = "This is one kind of data";
 int num_iteration;
 string path_prefix;
 
-#define ASSERT_ERRNO(A) if ((A) == -1) {   \
-    perror(#A);				   \
-    abort();				   \
+#define ASSERT_ERRNO(A) \
+  if ((A) == -1) {      \
+    perror(#A);         \
+    abort();            \
   }
 
 void TruncateAndWrite(const string& filename) {
   // Truncate and write at beginning
-  ScopedFd fd(open(filename.c_str(), O_TRUNC|O_WRONLY|O_CREAT, 0777));
+  ScopedFd fd(open(filename.c_str(), O_TRUNC | O_WRONLY | O_CREAT, 0777));
   ASSERT_ERRNO(fd.get());
   ASSERT_ERRNO(write(fd.get(), kData, sizeof kData));
 }
@@ -58,8 +59,6 @@ int main(int argc, char** argv) {
   num_iteration = atoi(argv[3]);
   vector<future<void> > tasks;
   for (int i = 0; i < kFiles; ++i) {
-    tasks.emplace_back(async([i](){
-	  writer(i);
-	}));
+    tasks.emplace_back(async([i]() { writer(i); }));
   }
 }

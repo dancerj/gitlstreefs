@@ -1,4 +1,5 @@
-// A file system that adds a file 'unko' on all directories containing 'unkounko'
+// A file system that adds a file 'unko' on all directories containing
+// 'unkounko'
 //
 // Proof of concept that you can overlay mountpoint over existing
 // directory and still read it.
@@ -9,8 +10,8 @@
 #include <fuse.h>
 #include <string.h>
 
-#include <string>
 #include <memory>
+#include <string>
 
 #include "../relative_path.h"
 #include "../update_rlimit.h"
@@ -20,30 +21,33 @@ using std::string;
 using std::unique_ptr;
 
 class UnkoFileHandle : public roptfs::FileHandle {
-public:
-  UnkoFileHandle() :
-    FileHandle(-1) {}
+ public:
+  UnkoFileHandle() : FileHandle(-1) {}
   virtual ~UnkoFileHandle() {}
-private:
+
+ private:
   DISALLOW_COPY_AND_ASSIGN(UnkoFileHandle);
 };
 
 class UnkoFsHandler : public roptfs::RoptfsHandler {
-public:
+ public:
   UnkoFsHandler() {}
   virtual ~UnkoFsHandler() {}
 
-  ssize_t Read(const roptfs::FileHandle& fh, char* target,
-	       size_t size, off_t offset) override {
+  ssize_t Read(const roptfs::FileHandle& fh, char* target, size_t size,
+               off_t offset) override {
     if (dynamic_cast<const UnkoFileHandle*>(&fh) != nullptr) {
-      if (size <= 8) { return -EIO; }
+      if (size <= 8) {
+        return -EIO;
+      }
       memcpy(target, "unkounko", 8);
       return 8;
     }
     return RoptfsHandler::Read(fh, target, size, offset);
   }
 
-  int Open(const std::string& relative_path, unique_ptr<roptfs::FileHandle>* fh) override {
+  int Open(const std::string& relative_path,
+           unique_ptr<roptfs::FileHandle>* fh) override {
     if (relative_path == "unko") {
       fh->reset(new UnkoFileHandle);
       return 0;
@@ -51,13 +55,11 @@ public:
     return RoptfsHandler::Open(relative_path, fh);
   }
 
-  int ReadDir(const std::string& relative_path,
-	      void *buf, fuse_fill_dir_t filler,
-	      off_t offset) override {
+  int ReadDir(const std::string& relative_path, void* buf,
+              fuse_fill_dir_t filler, off_t offset) override {
     filler(buf, "unko", nullptr, 0);
     return RoptfsHandler::ReadDir(relative_path, buf, filler, offset);
   }
-
 
   int GetAttr(const std::string& relative_path, struct stat* stbuf) override {
     if (relative_path == "unko") {
@@ -71,7 +73,7 @@ public:
     return RoptfsHandler::GetAttr(relative_path, stbuf);
   }
 
-private:
+ private:
   DISALLOW_COPY_AND_ASSIGN(UnkoFsHandler);
 };
 
@@ -87,4 +89,3 @@ int main(int argc, char** argv) {
 
   return fuse_main(argc, argv, &o, nullptr);
 }
-

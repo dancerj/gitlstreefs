@@ -21,27 +21,23 @@ using std::string;
 using std::unique_ptr;
 
 class GlobFsHandler : public roptfs::RoptfsHandler {
-public:
+ public:
   GlobFsHandler() {}
   virtual ~GlobFsHandler() {}
 
-  int ReadDir(const std::string& relative_path,
-	      void *buf, fuse_fill_dir_t filler,
-	      off_t offset) override {
+  int ReadDir(const std::string& relative_path, void* buf,
+              fuse_fill_dir_t filler, off_t offset) override {
     filler(buf, ".", nullptr, 0);
     filler(buf, "..", nullptr, 0);
-    struct dirent **namelist{nullptr};
-    int scandir_count = scandirat(premount_dirfd_,
-				  relative_path.c_str(),
-				  &namelist,
-				  nullptr,
-				  nullptr);
+    struct dirent** namelist{nullptr};
+    int scandir_count = scandirat(premount_dirfd_, relative_path.c_str(),
+                                  &namelist, nullptr, nullptr);
     if (scandir_count == -1) {
       return -ENOENT;
     }
-    for(int i = 0; i < scandir_count; ++i) {
+    for (int i = 0; i < scandir_count; ++i) {
       if (!fnmatch(glob_pattern_.c_str(), namelist[i]->d_name, FNM_PATHNAME)) {
-	filler(buf, namelist[i]->d_name, nullptr, 0);
+        filler(buf, namelist[i]->d_name, nullptr, 0);
       }
       free(namelist[i]);
     }
@@ -49,8 +45,8 @@ public:
     return 0;
   }
 
-
-  int Open(const std::string& relative_path, unique_ptr<roptfs::FileHandle>* fh) override {
+  int Open(const std::string& relative_path,
+           unique_ptr<roptfs::FileHandle>* fh) override {
     if (fnmatch(glob_pattern_.c_str(), relative_path.c_str(), FNM_PATHNAME)) {
       return -ENOENT;
     }
@@ -59,15 +55,15 @@ public:
 
   int GetAttr(const std::string& relative_path, struct stat* stbuf) override {
     if (fnmatch(glob_pattern_.c_str(), relative_path.c_str(), FNM_PATHNAME) &&
-	relative_path != "./") {
+        relative_path != "./") {
       return -ENOENT;
     }
     return RoptfsHandler::GetAttr(relative_path, stbuf);
   }
 
   inline static string glob_pattern_{};
-private:
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(GlobFsHandler);
 };
 
@@ -76,13 +72,12 @@ struct globfs_config {
   char* underlying_path{nullptr};
 };
 
-#define MYFS_OPT(t, p, v) { t, offsetof(globfs_config, p), v }
+#define MYFS_OPT(t, p, v) \
+  { t, offsetof(globfs_config, p), v }
 
 static struct fuse_opt globfs_opts[] = {
-  MYFS_OPT("--glob_pattern=%s", glob_pattern, 0),
-  MYFS_OPT("--underlying_path=%s", underlying_path, 0),
-  FUSE_OPT_END
-};
+    MYFS_OPT("--glob_pattern=%s", glob_pattern, 0),
+    MYFS_OPT("--underlying_path=%s", underlying_path, 0), FUSE_OPT_END};
 #undef MYFS_OPT
 
 int main(int argc, char** argv) {
@@ -92,17 +87,17 @@ int main(int argc, char** argv) {
   globfs_config conf{};
   fuse_opt_parse(&args, &conf, globfs_opts, nullptr);
 
-  if (conf.glob_pattern == nullptr ||
-      conf.underlying_path == nullptr) {
+  if (conf.glob_pattern == nullptr || conf.underlying_path == nullptr) {
     fprintf(stderr,
-	    "Usage: %s [mountpoint] --glob_pattern=[pattern] --underlying_path=path\n",
-	    argv[0]);
+            "Usage: %s [mountpoint] --glob_pattern=[pattern] "
+            "--underlying_path=path\n",
+            argv[0]);
     printf("%p %p\n", conf.glob_pattern, conf.underlying_path);
     return 1;
   }
   GlobFsHandler::glob_pattern_ = conf.glob_pattern;
-  roptfs::RoptfsHandler::premount_dirfd_ = open(conf.underlying_path,
-						O_DIRECTORY);
+  roptfs::RoptfsHandler::premount_dirfd_ =
+      open(conf.underlying_path, O_DIRECTORY);
 
   struct fuse_operations o = {};
   roptfs::FillFuseOperations<GlobFsHandler>(&o);
@@ -111,4 +106,3 @@ int main(int argc, char** argv) {
   fuse_opt_free_args(&args);
   return ret;
 }
-

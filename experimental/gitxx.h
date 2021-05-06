@@ -12,28 +12,28 @@ class Object;
 
 // Representation of a Tree.
 class Tree {
-public:
+ public:
   Tree(const Repository* repo, git_tree* tree);
   ~Tree();
-  void for_each_file(std::function<void(const std::string& name,
-					int attribute,
-					git_otype file_type,
-					const std::string& sha1,
-					int size,
-					std::unique_ptr<Object> object)> file_handler,
-		     std::function<void(const std::string& name,
-					Tree* tree)> tree_handler) const;
+  void for_each_file(
+      std::function<void(const std::string& name, int attribute,
+                         git_otype file_type, const std::string& sha1, int size,
+                         std::unique_ptr<Object> object)>
+          file_handler,
+      std::function<void(const std::string& name, Tree* tree)> tree_handler)
+      const;
   void dump(const std::string& path_prepend) const;
-private:
+
+ private:
   const Repository* repo_;
-  git_tree *tree_;
+  git_tree* tree_;
 
   DISALLOW_COPY_AND_ASSIGN(Tree);
 };
 
 // Representation of a Git object, such as blob...
 class Object {
-public:
+ public:
   Object(const Repository* repo, const std::string& rev);
   Object(const Repository* repo, git_object* object);
   ~Object();
@@ -41,23 +41,24 @@ public:
   size_t size() const;
   std::unique_ptr<Tree> GetTreeFromCommit() const;
 
-private:
-  git_object *obj_;
+ private:
+  git_object* obj_;
   const Repository* repo_;
   DISALLOW_COPY_AND_ASSIGN(Object);
 };
 
 class Repository {
-public:
+ public:
   explicit Repository(const std::string& repo_path);
   ~Repository();
 
   // Obtain object matching the revision.
   std::unique_ptr<Object> GetRevision(const std::string& rev);
-private:
+
+ private:
   friend Object;
   friend Tree;
-  git_repository *repo;
+  git_repository* repo;
   DISALLOW_COPY_AND_ASSIGN(Repository);
 };
 }  // namespace gitxx
