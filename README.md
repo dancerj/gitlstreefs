@@ -99,8 +99,8 @@ $ ./git-githubfs_test.sh
 `-d` is usually a good option so that it won't daemonize.
 
 ```shell-session
-$ gdb out/git-githubfs
-(gdb) run --user=torvalds --project=linux ../mountpoint -d 
+$ gdb -ex=r --args out/git-githubfs \
+  --user=torvalds --project=linux ../mountpoint -d
 ```
 
 ## A git file system using libgit2
