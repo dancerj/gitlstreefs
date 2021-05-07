@@ -1,7 +1,8 @@
 #!/bin/bash
 # Integration testing for ninja file system.
-set -e
+set -ex
 TESTDIR=out/ptfstmp
+TESTSRC=out/ptfstmpsrc
 
 cleanup() {
     fusermount3 -z -u $TESTDIR || true
@@ -11,7 +12,10 @@ trap cleanup exit
 
 mkdir $TESTDIR 2> /dev/null || true
 
-out/ptfs $TESTDIR --underlying_path=testdata/
+rm -r $TESTSRC || true
+cp -r testdata $TESTSRC
+
+out/ptfs $TESTDIR --underlying_path=$TESTSRC
 
 ls -l $TESTDIR/
 if cat $TESTDIR/does_not_exist; then
@@ -23,3 +27,16 @@ fi
 
 grep git $TESTDIR/README.md
 
+touch $TESTDIR/one
+echo hoge > $TESTDIR/two
+
+if out/renameat2 $TESTDIR/two $TESTDIR/one RENAME_NOREPLACE; then
+    echo unexpected success
+    exit 1
+else
+    echo 'expected'
+fi
+
+out/renameat2 $TESTDIR/two $TESTDIR/one RENAME_EXCHANGE
+ls -l $TESTDIR/
+grep hoge $TESTDIR/one

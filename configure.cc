@@ -117,6 +117,7 @@ int main() {
                          "scoped_fileutil", "strutil", "update_rlimit"});
   n.RunTestScript("ptfs_test.sh", {"out/ptfs"});
   n.CompileLink("file_copy_test", {"file_copy", "file_copy_test"});
+  n.CompileLink("renameat2", {"renameat2"});
 
   // Experimental code.
   CompileExperimental(n);
