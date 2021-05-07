@@ -64,6 +64,30 @@ int main() {
                        {"base64decode", "base64decode_test"});
   n.CompileLinkRunTest("base64decode_benchmark",
                        {"base64decode", "base64decode_benchmark", "strutil"});
+  n.CompileLinkRunTest("scoped_fileutil_test",
+                       {"scoped_fileutil_test", "scoped_fileutil"});
+  n.CompileLinkRunTest("jsonparser_test", {"jsonparser_test", "jsonparser"});
+  n.CompileLink("jsonparser_util",
+                {"jsonparser_util", "jsonparser", "strutil"});
+  n.CompileLinkRunTest("scoped_timer_test",
+                       {"scoped_timer", "scoped_timer_test", "stats_holder"});
+  n.CompileLinkRunTest("gitiles_test", {"base64decode", "gitiles_test",
+                                        "jsonparser", "strutil"});
+  n.CompileLinkRunTest("git_cat_file_test",
+                       {"get_current_dir", "git_cat_file", "git_cat_file_test",
+                        "scoped_timer", "stats_holder", "strutil"});
+  n.RunTestScript("fetch_test_repo.sh");
+  n.CompileLink("cowfs", {"cowfs", "cowfs_crypt", "file_copy", "ptfs",
+                          "ptfs_handler", "relative_path", "scoped_fileutil",
+                          "strutil", "update_rlimit"})
+      .Cclink("cclinkcowfs");
+  n.CompileLinkRunTest("cowfs_crypt_test", {"cowfs_crypt", "cowfs_crypt_test"})
+      .Cclink("cclinkcowfs");
+  n.RunTestScript("cowfs_test.sh", {"out/cowfs", "out/hello_world"});
+  n.CompileLink("ptfs", {"ptfs_main", "ptfs", "ptfs_handler", "relative_path",
+                         "scoped_fileutil", "strutil", "update_rlimit"});
+  n.RunTestScript("ptfs_test.sh", {"out/ptfs"});
+  n.CompileLink("file_copy_test", {"file_copy", "file_copy_test"});
 
   // Experimental code.
   n.CompileLink("experimental/gitfs",
@@ -90,30 +114,6 @@ int main() {
                 {"experimental/globfs", "experimental/roptfs", "relative_path",
                  "update_rlimit"});
   n.RunTestScript("experimental/globfs_test.sh", {"out/experimental/globfs"});
-  n.CompileLink("cowfs", {"cowfs", "cowfs_crypt", "file_copy", "ptfs",
-                          "ptfs_handler", "relative_path", "scoped_fileutil",
-                          "strutil", "update_rlimit"})
-      .Cclink("cclinkcowfs");
-  n.CompileLinkRunTest("cowfs_crypt_test", {"cowfs_crypt", "cowfs_crypt_test"})
-      .Cclink("cclinkcowfs");
-  n.RunTestScript("cowfs_test.sh", {"out/cowfs", "out/hello_world"});
-  n.CompileLink("ptfs", {"ptfs_main", "ptfs", "ptfs_handler", "relative_path",
-                         "scoped_fileutil", "strutil", "update_rlimit"});
-  n.RunTestScript("ptfs_test.sh", {"out/ptfs"});
-  n.CompileLink("file_copy_test", {"file_copy", "file_copy_test"});
   n.CompileLink("experimental/parallel_writer",
                 {"experimental/parallel_writer"});
-  n.CompileLinkRunTest("scoped_fileutil_test",
-                       {"scoped_fileutil_test", "scoped_fileutil"});
-  n.CompileLinkRunTest("jsonparser_test", {"jsonparser_test", "jsonparser"});
-  n.CompileLink("jsonparser_util",
-                {"jsonparser_util", "jsonparser", "strutil"});
-  n.CompileLinkRunTest("scoped_timer_test",
-                       {"scoped_timer", "scoped_timer_test", "stats_holder"});
-  n.CompileLinkRunTest("gitiles_test", {"base64decode", "gitiles_test",
-                                        "jsonparser", "strutil"});
-  n.CompileLinkRunTest("git_cat_file_test",
-                       {"get_current_dir", "git_cat_file", "git_cat_file_test",
-                        "scoped_timer", "stats_holder", "strutil"});
-  n.RunTestScript("fetch_test_repo.sh");
 }
