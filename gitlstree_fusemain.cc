@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
       path, revision, ssh, cache_path, git_adapter::GetDirectoryContainer());
   if (!git.get()) {
     fprintf(stderr, "Loading directory %s failed\n", path.c_str());
-    return 1;
+    return EXIT_FAILURE;
   }
 
   int ret = fuse_main(args.argc, args.argv, &o, nullptr);

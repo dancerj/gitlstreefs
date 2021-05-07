@@ -83,6 +83,10 @@ int main(int argc, char** argv) {
   const char* mountpoint = argv[1];
   assert(argc > 1);
   roptfs::RoptfsHandler::premount_dirfd_ = open(mountpoint, O_DIRECTORY);
+  if (-1 == roptfs::RoptfsHandler::premount_dirfd_) {
+    perror("open argv1");
+    return EXIT_FAILURE;
+  }
 
   struct fuse_operations o = {};
   roptfs::FillFuseOperations<UnkoFsHandler>(&o);

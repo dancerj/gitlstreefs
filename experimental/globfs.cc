@@ -93,11 +93,15 @@ int main(int argc, char** argv) {
             "--underlying_path=path\n",
             argv[0]);
     printf("%p %p\n", conf.glob_pattern, conf.underlying_path);
-    return 1;
+    return EXIT_FAILURE;
   }
   GlobFsHandler::glob_pattern_ = conf.glob_pattern;
   roptfs::RoptfsHandler::premount_dirfd_ =
       open(conf.underlying_path, O_DIRECTORY);
+  if (-1 == roptfs::RoptfsHandler::premount_dirfd_) {
+    perror("open underlying_path");
+    return EXIT_FAILURE;
+  }
 
   struct fuse_operations o = {};
   roptfs::FillFuseOperations<GlobFsHandler>(&o);

@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
          << " --user=USER --project=PROJECT MOUNTPOINT --revision=HEAD" << endl
          << " example: " << argv[0]
          << " --user=dancerj --project=gitlstreefs mountpoint/" << endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   const string cache_path(conf.cache_path ? conf.cache_path

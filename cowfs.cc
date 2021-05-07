@@ -429,7 +429,7 @@ int main(int argc, char** argv) {
     cerr << argv[0]
          << " [mountpoint] --lock_path= --underlying_path= --repository= "
          << endl;
-    return 1;
+    return EXIT_FAILURE;
   }
   ScopedLock fslock(conf.lock_path, "cowfs");
   repository_path = Canonicalize(conf.repository);
@@ -437,7 +437,10 @@ int main(int argc, char** argv) {
   HardlinkTree(conf.repository, conf.underlying_path);
   ptfs::PtfsHandler::premount_dirfd_ =
       open(conf.underlying_path, O_PATH | O_DIRECTORY);
-
+  if (-1 == ptfs::PtfsHandler::premount_dirfd_) {
+    perror("open underlying_path");
+    return EXIT_FAILURE;
+  }
   int ret = fuse_main(args.argc, args.argv, &o, nullptr);
   fuse_opt_free_args(&args);
   return ret;

@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
   fs.reset(new directory_container::DirectoryContainer());
   if (!LoadDirectory()) {
     cout << "Failed to run ninja to obtain target." << endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   struct fuse_operations o = {};

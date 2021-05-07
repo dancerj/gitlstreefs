@@ -38,10 +38,14 @@ int main(int argc, char** argv) {
 
   if (!conf.underlying_path) {
     cerr << argv[0] << " [mountpoint] --underlying_path=" << endl;
-    return 1;
+    return EXIT_FAILURE;
   }
   ptfs::PtfsHandler::premount_dirfd_ =
       open(conf.underlying_path, O_PATH | O_DIRECTORY);
+  if (-1 == ptfs::PtfsHandler::premount_dirfd_) {
+    perror("open underlying_path");
+    return EXIT_FAILURE;
+  }
 
   int ret = fuse_main(args.argc, args.argv, &o, nullptr);
   fuse_opt_free_args(&args);
