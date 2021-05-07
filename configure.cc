@@ -1,5 +1,34 @@
 #include "configure.h"
 
+void CompileExperimental(NinjaBuilder& n) {
+  n.CompileLink("experimental/gitfs",
+                {"experimental/gitfs", "experimental/gitfs_fusemain", "strutil",
+                 "get_current_dir", "experimental/gitxx", "basename"})
+      .Cclink("cclinkwithgit2");
+  n.CompileLinkRunTest(
+       "experimental/gitfs_test",
+       {"experimental/gitfs", "experimental/gitfs_test", "strutil",
+        "get_current_dir", "experimental/gitxx", "basename"},
+       {"out/fetch_test_repo.sh.result"})
+      .Cclink("cclinkwithgit2");
+  n.CompileLinkRunTest("experimental/libgit2test",
+                       {"experimental/libgit2test", "experimental/gitxx"},
+                       {"out/fetch_test_repo.sh.result"})
+      .Cclink("cclinkwithgit2");
+  n.CompileLink("experimental/hello_fuseflags",
+                {"experimental/hello_fuseflags"});
+  n.CompileLink("experimental/unkofs",
+                {"experimental/unkofs", "experimental/roptfs", "relative_path",
+                 "update_rlimit"});
+  n.RunTestScript("experimental/unkofs_test.sh", {"out/experimental/unkofs"});
+  n.CompileLink("experimental/globfs",
+                {"experimental/globfs", "experimental/roptfs", "relative_path",
+                 "update_rlimit"});
+  n.RunTestScript("experimental/globfs_test.sh", {"out/experimental/globfs"});
+  n.CompileLink("experimental/parallel_writer",
+                {"experimental/parallel_writer"});
+}
+
 int main() {
   std::string fuse_cflags =
       NinjaBuilder::PopenAndReadOrDie("pkg-config fuse3 --cflags");
@@ -90,30 +119,5 @@ int main() {
   n.CompileLink("file_copy_test", {"file_copy", "file_copy_test"});
 
   // Experimental code.
-  n.CompileLink("experimental/gitfs",
-                {"experimental/gitfs", "experimental/gitfs_fusemain", "strutil",
-                 "get_current_dir", "experimental/gitxx", "basename"})
-      .Cclink("cclinkwithgit2");
-  n.CompileLinkRunTest(
-       "experimental/gitfs_test",
-       {"experimental/gitfs", "experimental/gitfs_test", "strutil",
-        "get_current_dir", "experimental/gitxx", "basename"},
-       {"out/fetch_test_repo.sh.result"})
-      .Cclink("cclinkwithgit2");
-  n.CompileLinkRunTest("experimental/libgit2test",
-                       {"experimental/libgit2test", "experimental/gitxx"},
-                       {"out/fetch_test_repo.sh.result"})
-      .Cclink("cclinkwithgit2");
-  n.CompileLink("experimental/hello_fuseflags",
-                {"experimental/hello_fuseflags"});
-  n.CompileLink("experimental/unkofs",
-                {"experimental/unkofs", "experimental/roptfs", "relative_path",
-                 "update_rlimit"});
-  n.RunTestScript("experimental/unkofs_test.sh", {"out/experimental/unkofs"});
-  n.CompileLink("experimental/globfs",
-                {"experimental/globfs", "experimental/roptfs", "relative_path",
-                 "update_rlimit"});
-  n.RunTestScript("experimental/globfs_test.sh", {"out/experimental/globfs"});
-  n.CompileLink("experimental/parallel_writer",
-                {"experimental/parallel_writer"});
+  CompileExperimental(n);
 }
