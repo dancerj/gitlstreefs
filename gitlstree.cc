@@ -93,7 +93,7 @@ string GitTree::RunGitCommand(const vector<string>& commands, int* exit_code,
                               const std::string& log_tag) {
   constexpr bool verbose = false;
   if (verbose) {
-    std::cout << commands << std::endl;
+    std::cout << "Command: " << commands << std::endl;
   }
   scoped_timer::ScopedTimer time(log_tag);
   if (!ssh_.empty()) {
