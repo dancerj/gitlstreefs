@@ -6,7 +6,7 @@
 //
 // While mounted it would:
 // - try to unlink the hardlinks before modification.
-#define FUSE_USE_VERSION 35
+#define FUSE_USE_VERSION 32
 
 #include <assert.h>
 #include <fcntl.h>

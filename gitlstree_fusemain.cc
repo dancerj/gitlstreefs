@@ -1,4 +1,4 @@
-#define FUSE_USE_VERSION 35
+#define FUSE_USE_VERSION 32
 
 #include <fuse.h>
 #include <stddef.h>
@@ -13,7 +13,7 @@ using std::string;
 
 namespace gitlstree {
 
-static int fs_ioctl(const char *path, unsigned int cmd, void *arg,
+static int fs_ioctl(const char *path, int cmd, void *arg,
                     struct fuse_file_info *fi, unsigned int flags, void *data) {
   if (flags & FUSE_IOCTL_COMPAT) return -ENOSYS;
 

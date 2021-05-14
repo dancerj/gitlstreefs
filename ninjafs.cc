@@ -3,7 +3,7 @@
 
   Lists the targets as accessible file.
  */
-#define FUSE_USE_VERSION 35
+#define FUSE_USE_VERSION 32
 
 #include "directory_container.h"
 #include "get_current_dir.h"
