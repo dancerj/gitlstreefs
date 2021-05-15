@@ -20,6 +20,8 @@ mount-able filesystem.
 #include <memory>
 #include <vector>
 
+#define FUSE_USE_VERSION 32
+
 #include "concurrency_limit.h"
 #include "git_cat_file.h"
 #include "gitlstree.h"

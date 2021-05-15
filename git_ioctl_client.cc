@@ -8,6 +8,8 @@
 #include <iostream>
 #include <string>
 
+#define FUSE_USE_VERSION 32
+
 #include "gitlstree.h"
 
 using std::cout;

@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 
+#define FUSE_USE_VERSION 32
+
 #include "get_current_dir.h"
 #include "gitlstree.h"
 

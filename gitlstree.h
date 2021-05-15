@@ -92,7 +92,18 @@ struct GetHashIoctlArg {
 constexpr int IOCTL_MAGIC_NUMBER = 0;
 constexpr int IOCTL_GIT_HASH_COMMAND = 1;
 
-constexpr unsigned int IOCTL_GIT_HASH =
+// Type of IOCTL_GIT_HASH changed from int to unsigned int around
+// FUSE_USE_VERSION 35, it's probably not possible to have a constexpr
+// typesafe expression.
+#if !defined(FUSE_USE_VERSION)
+#error "define FUSE_USE_VERSION please"
+#endif
+#if FUSE_USE_VERSION < 35
+using ioctl_cmd_type = int;
+#else
+using ioctl_cmd_type = unsigned int;
+#endif
+constexpr ioctl_cmd_type IOCTL_GIT_HASH =
     _IOR(IOCTL_MAGIC_NUMBER, IOCTL_GIT_HASH_COMMAND, GetHashIoctlArg);
 
 }  // namespace gitlstree
