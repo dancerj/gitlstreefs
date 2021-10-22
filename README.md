@@ -29,6 +29,17 @@ $ g++ ./configure.cc -o configure && ./configure
 $ ninja
 ```
 
+### Container images
+
+`Dockerfile` provides configuration for container images. A sample is
+provided as `podman_build.sh` as for how to use it.
+
+### Continuous integration
+
+Google Cloud Build service is used for running continuous
+integration. Configuration file is in `cloudbuild.yaml` and
+`Dockerfile`.
+
 ## gitlstree: git file system using git ls-tree, optionally via ssh
 
 gitlstree -- mounts a filesystem based on directory and hash, to
