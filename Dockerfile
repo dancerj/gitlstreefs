@@ -11,6 +11,7 @@ RUN apt-get update && \
     git \
     libattr1-dev \
     libfuse3-dev \
+    libgcrypt-dev \
     libgit2-dev \
     ninja-build \
     pkg-config \
