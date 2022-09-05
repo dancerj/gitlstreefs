@@ -37,7 +37,7 @@ int main() {
   NinjaBuilder::Config config;
   config.cxxflags =
       std::string(
-          "-O2 -g --std=c++17 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I. ") +
+          "-O2 -g --std=c++20 -Wall -Werror -D_FILE_OFFSET_BITS=64 -I. ") +
       fuse_cflags;
   config.ldflags = std::string("-pthread ") + fuse_libs;
 
@@ -116,6 +116,7 @@ int main() {
   n.CompileLink("ptfs", {"ptfs_main", "ptfs", "ptfs_handler", "relative_path",
                          "scoped_fileutil", "strutil", "update_rlimit"});
   n.RunTestScript("ptfs_test.sh", {"out/ptfs", "out/renameat2"});
+  n.CompileLink("ptfs_exercise", {"ptfs_exercise"});
   n.CompileLink("file_copy_test", {"file_copy", "file_copy_test"});
   n.CompileLink("renameat2", {"renameat2"});
 
