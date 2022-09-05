@@ -38,5 +38,8 @@ else
 fi
 
 out/renameat2 $TESTDIR/two $TESTDIR/one RENAME_EXCHANGE
+
+out/ptfs_exercise
+
 ls -l $TESTDIR/
 grep hoge $TESTDIR/one

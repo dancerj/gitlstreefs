@@ -115,7 +115,7 @@ int main() {
   n.RunTestScript("cowfs_test.sh", {"out/cowfs", "out/hello_world"});
   n.CompileLink("ptfs", {"ptfs_main", "ptfs", "ptfs_handler", "relative_path",
                          "scoped_fileutil", "strutil", "update_rlimit"});
-  n.RunTestScript("ptfs_test.sh", {"out/ptfs", "out/renameat2"});
+  n.RunTestScript("ptfs_test.sh", {"out/ptfs", "out/renameat2", "out/ptfs_exercise"});
   n.CompileLink("ptfs_exercise", {"ptfs_exercise"});
   n.CompileLink("file_copy_test", {"file_copy", "file_copy_test"});
   n.CompileLink("renameat2", {"renameat2"});
