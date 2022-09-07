@@ -17,6 +17,8 @@ cp -r testdata $TESTSRC
 
 out/ptfs $TESTDIR --underlying_path=$TESTSRC
 
+out/ptfs_exercise
+
 ls -l $TESTDIR/
 if cat $TESTDIR/does_not_exist; then
     echo unexpected success
@@ -38,8 +40,6 @@ else
 fi
 
 out/renameat2 $TESTDIR/two $TESTDIR/one RENAME_EXCHANGE
-
-out/ptfs_exercise
 
 ls -l $TESTDIR/
 grep hoge $TESTDIR/one
