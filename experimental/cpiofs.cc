@@ -21,15 +21,6 @@ Example:
 
 #include <iostream>
 
-using std::cout;
-using std::endl;
-using std::function;
-using std::make_unique;
-using std::string;
-using std::unique_ptr;
-using std::unordered_map;
-using std::vector;
-
 namespace {
 
 // Cpio header contains numbers in hex in 8 byte ASCII format.
@@ -166,7 +157,7 @@ class CpioFile : public directory_container::File {
   const CpioHeader &c_;
 };
 
-unique_ptr<directory_container::DirectoryContainer> fs;
+std::unique_ptr<directory_container::DirectoryContainer> fs;
 
 bool LoadDirectory(const char *cpio_file) {
   assert(cpio_file != nullptr);
@@ -198,7 +189,7 @@ bool LoadDirectory(const char *cpio_file) {
       case S_IFLNK:
         // TODO support more file types.
         std::string filename(std::string("/") + std::string(c->FileName()));
-        fs->add(filename, make_unique<CpioFile>(c));
+        fs->add(filename, std::make_unique<CpioFile>(c));
     }
     c = c->Next();
   }
@@ -240,7 +231,7 @@ static int fs_readdir(const char *, void *buf, fuse_fill_dir_t filler,
   const directory_container::Directory *d =
       reinterpret_cast<directory_container::Directory *>(fi->fh);
   if (!d) return -ENOENT;
-  d->for_each([&](const string &s, const directory_container::File *unused) {
+  d->for_each([&](const std::string &s, const directory_container::File *unused) {
     filler(buf, s.c_str(), nullptr, 0, fuse_fill_dir_flags{});
   });
   return 0;
@@ -319,7 +310,7 @@ int main(int argc, char *argv[]) {
 
   fs.reset(new directory_container::DirectoryContainer());
   if (!LoadDirectory(conf.underlying_file)) {
-    cout << "Failed to load cpio file." << endl;
+    std::cout << "Failed to load cpio file." << std::endl;
     return EXIT_FAILURE;
   }
 
