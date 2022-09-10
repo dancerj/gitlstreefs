@@ -17,8 +17,6 @@ Example:
 
 #include <assert.h>
 #include <fuse.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/mman.h>
 
 #include <iostream>
@@ -145,7 +143,7 @@ class CpioFile : public directory_container::File {
     const auto &contents = c_.Contents();
     if (offset < static_cast<off_t>(contents.size())) {
       if (offset + size > contents.size()) size = contents.size() - offset;
-      memcpy(target, contents.data() + offset, size);
+      contents.copy(target, size, offset);
     } else
       size = 0;
     return size;
@@ -160,7 +158,7 @@ class CpioFile : public directory_container::File {
     } else {
       // TODO: is this an error condition that we can't fit in the final 0 ?
     }
-    memcpy(target, contents.data(), size);
+    contents.copy(target, size);
     return 0;
   }
 
