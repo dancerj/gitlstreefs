@@ -1,8 +1,14 @@
 /*
-  Ninja file system.
+  cpio file system.
 
-  Lists the targets as accessible file.
- */
+  Allows you to mount cpio files.
+
+Example:
+
+ sudo ../out/experimental/cpiofs ~/mnt/ \
+   --underlying_file=$(readlink -f ~/tmp/initrd.img.gunzip )
+
+*/
 #define FUSE_USE_VERSION 32
 
 #include "directory_container.h"
@@ -258,7 +264,6 @@ static int fs_read(const char *, char *target, size_t size, off_t offset,
 
   return f->Read(target, size, offset);
 }
-
 
 static int fs_readlink(const char *path, char *buf, size_t size) {
   if (*path == 0) return -ENOENT;
