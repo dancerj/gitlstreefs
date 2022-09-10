@@ -27,6 +27,11 @@ void CompileExperimental(NinjaBuilder& n) {
   n.RunTestScript("experimental/globfs_test.sh", {"out/experimental/globfs"});
   n.CompileLink("experimental/parallel_writer",
                 {"experimental/parallel_writer"});
+
+  n.CompileLink("experimental/cpiofs",
+                {"basename", "directory_container", "get_current_dir",
+                 "experimental/cpiofs", "strutil"});
+  n.RunTestScript("experimental/cpiofs_test.sh", {"out/experimental/cpiofs"});
 }
 
 int main() {
@@ -61,6 +66,7 @@ int main() {
   n.CompileLink("ninjafs", {"basename", "directory_container",
                             "get_current_dir", "ninjafs", "strutil"});
   n.RunTestScript("ninjafs_test.sh", {"out/ninjafs"});
+
   n.CompileLink("hello_world", {"hello_world"});
   n.CompileLinkRunTest("basename_test", {"basename_test", "basename"});
   n.CompileLinkRunTest(
@@ -115,7 +121,8 @@ int main() {
   n.RunTestScript("cowfs_test.sh", {"out/cowfs", "out/hello_world"});
   n.CompileLink("ptfs", {"ptfs_main", "ptfs", "ptfs_handler", "relative_path",
                          "scoped_fileutil", "strutil", "update_rlimit"});
-  n.RunTestScript("ptfs_test.sh", {"out/ptfs", "out/renameat2", "out/ptfs_exercise"});
+  n.RunTestScript("ptfs_test.sh",
+                  {"out/ptfs", "out/renameat2", "out/ptfs_exercise"});
   n.CompileLink("ptfs_exercise", {"ptfs_exercise"});
   n.CompileLink("file_copy_test", {"file_copy", "file_copy_test"});
   n.CompileLink("renameat2", {"renameat2"});

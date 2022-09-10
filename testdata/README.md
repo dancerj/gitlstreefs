@@ -26,3 +26,8 @@ A base64-encoded base64encode.cc
 
 For testing symlink operation.
 This string is used for integration testing, do not change.
+
+## test.cpio
+
+A cpio file containing README.md
+

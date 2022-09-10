@@ -177,6 +177,18 @@ $ sudo ./out/cowfs --lock_path=out/sid-chroot/lock \
       -o allow_other,dev,suid,default_permissions
 ```
 
+## A cpio file system.
+
+cpiofs -- a filesystem that mounts cpio files.
+
+Allows mounting things like initramfs.
+
+```shell-session
+$ zcat /boot/initramfs... > /tmp/cpio-file
+$ ./out/experimental/cpiofs mountpoint/ --underlying_file=/tmp/cpio-file
+$ ls -l mountpoint
+```
+
 ## Copying
 
 A BSD-style license.
