@@ -122,7 +122,7 @@ class CpioFile : public directory_container::File {
   virtual ~CpioFile() {}
 
   virtual int Getattr(struct stat *stbuf) override {
-    stbuf->st_mode = S_IFREG | 0555;
+    stbuf->st_mode = c_.mode.get();
     stbuf->st_nlink = 1;
     stbuf->st_size = c_.filesize.get();
     return 0;
@@ -143,6 +143,19 @@ class CpioFile : public directory_container::File {
     } else
       size = 0;
     return size;
+  }
+
+  virtual ssize_t Readlink(char *target, size_t size) override {
+    const auto &contents = c_.Contents();
+
+    if (size > contents.size()) {
+      size = contents.size();
+      target[size] = 0;
+    } else {
+      // TODO: is this an error condition that we can't fit in the final 0 ?
+    }
+    memcpy(target, contents.data(), size);
+    return 0;
   }
 
  private:
@@ -173,9 +186,16 @@ bool LoadDirectory(const char *cpio_file) {
       return true;
     }
     std::cout << "filename: " << c->FileName()
-              << " size: " << c->Contents().size() << std::endl;
-    std::string filename(std::string("/") + std::string(c->FileName()));
-    fs->add(filename, make_unique<CpioFile>(c));
+              << " size: " << c->Contents().size()
+              << " mode: " << ((c->mode.get() & S_IFREG) ? true : false)
+              << std::endl;
+    switch (c->mode.get() & S_IFMT) {
+      case S_IFREG:
+      case S_IFLNK:
+        // TODO support more file types.
+        std::string filename(std::string("/") + std::string(c->FileName()));
+        fs->add(filename, make_unique<CpioFile>(c));
+    }
     c = c->Next();
   }
 
@@ -239,6 +259,15 @@ static int fs_read(const char *, char *target, size_t size, off_t offset,
   return f->Read(target, size, offset);
 }
 
+
+static int fs_readlink(const char *path, char *buf, size_t size) {
+  if (*path == 0) return -ENOENT;
+  directory_container::File *f = fs->mutable_get(path);
+  if (!f) return -ENOENT;
+
+  return f->Readlink(buf, size);
+}
+
 void *fs_init(fuse_conn_info *, fuse_config *config) {
   config->nullpath_ok = 1;
   return nullptr;
@@ -269,6 +298,7 @@ int main(int argc, char *argv[]) {
   DEFINE_HANDLER(read);
   // NOTE: read_buf shouldn't be implemented because using FD isn't useful.
   DEFINE_HANDLER(readdir);
+  DEFINE_HANDLER(readlink);
   DEFINE_HANDLER(releasedir);
 #undef DEFINE_HANDLER
 
