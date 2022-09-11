@@ -20,13 +20,14 @@ Example:
 #include <sys/mman.h>
 
 #include <iostream>
+#include <map>
 
 namespace {
 
 // Cpio header contains numbers in hex in 8 byte ASCII format.
 struct Number {
  public:
-  long get() const noexcept {
+  int32_t get() const noexcept {
     std::string s(data_, 8);
     return strtol(s.c_str(), nullptr, 16);
   }
@@ -107,19 +108,51 @@ struct CpioHeader {
   ~CpioHeader() = delete;
 };
 
+struct HardlinkKey {
+  int32_t major;
+  int32_t minor;
+  int32_t inode;
+  bool operator<(const HardlinkKey &b) const {
+    return major < b.major || minor < b.minor || inode < b.inode;
+  }
+};
+
+std::map<HardlinkKey, const CpioHeader *> hardlink_map;
+
 }  // namespace
 
 namespace cpiofs {
 
 class CpioFile : public directory_container::File {
  public:
-  CpioFile(const CpioHeader *c) : c_(*c) {}
+  CpioFile(const CpioHeader *c) : c_(*c), nlink_(c->nlink.get()) {}
   virtual ~CpioFile() {}
+
+  const CpioHeader &resolveHardlink() {
+    if (nlink_ == 1) return c_;
+    if (t_) return *t_;
+    assert(nlink_ > 1);
+
+    if (c_.Contents().size() == 0) {
+      // See the hard link target.
+      HardlinkKey key = {
+        major : c_.major.get(),
+        minor : c_.minor.get(),
+        inode : c_.ino.get(),
+      };
+      t_ = hardlink_map[key];
+    } else {
+      t_ = &c_;
+    }
+    return *t_;
+  }
 
   virtual int Getattr(struct stat *stbuf) override {
     stbuf->st_mode = c_.mode.get();
-    stbuf->st_nlink = 1;
-    stbuf->st_size = c_.filesize.get();
+
+    const CpioHeader &c = resolveHardlink();
+    stbuf->st_size = c.filesize.get();
+
     return 0;
   }
 
@@ -131,7 +164,9 @@ class CpioFile : public directory_container::File {
   }
 
   virtual ssize_t Read(char *target, size_t size, off_t offset) override {
-    const auto &contents = c_.Contents();
+    const CpioHeader &c = resolveHardlink();
+
+    const auto &contents = c.Contents();
     if (offset < static_cast<off_t>(contents.size())) {
       if (offset + size > contents.size()) size = contents.size() - offset;
       contents.copy(target, size, offset);
@@ -155,6 +190,8 @@ class CpioFile : public directory_container::File {
 
  private:
   const CpioHeader &c_;
+  int nlink_;
+  const CpioHeader *t_{nullptr};
 };
 
 std::unique_ptr<directory_container::DirectoryContainer> fs;
@@ -190,6 +227,17 @@ bool LoadDirectory(const char *cpio_file) {
         // TODO support more file types.
         std::string filename(std::string("/") + std::string(c->FileName()));
         fs->add(filename, std::make_unique<CpioFile>(c));
+
+        // Handle hard links.
+        HardlinkKey key = {
+          major : c->major.get(),
+          minor : c->minor.get(),
+          inode : c->ino.get(),
+        };
+        if (c->nlink.get() > 1 && c->Contents().size() > 0) {
+          // the actual content.
+          hardlink_map[key] = c;
+        }
     }
     c = c->Next();
   }
@@ -231,9 +279,10 @@ static int fs_readdir(const char *, void *buf, fuse_fill_dir_t filler,
   const directory_container::Directory *d =
       reinterpret_cast<directory_container::Directory *>(fi->fh);
   if (!d) return -ENOENT;
-  d->for_each([&](const std::string &s, const directory_container::File *unused) {
-    filler(buf, s.c_str(), nullptr, 0, fuse_fill_dir_flags{});
-  });
+  d->for_each(
+      [&](const std::string &s, const directory_container::File *unused) {
+        filler(buf, s.c_str(), nullptr, 0, fuse_fill_dir_flags{});
+      });
   return 0;
 }
 
