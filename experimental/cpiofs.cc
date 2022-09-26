@@ -198,7 +198,7 @@ std::unique_ptr<directory_container::DirectoryContainer> fs;
 
 bool LoadDirectory(const char *cpio_file) {
   assert(cpio_file != nullptr);
-  int fd = open(cpio_file, O_RDONLY);
+  int fd = open(cpio_file, O_RDONLY | O_CLOEXEC);
   assert(fd != -1);
   struct stat st;
   assert(-1 != fstat(fd, &st));
@@ -208,8 +208,7 @@ bool LoadDirectory(const char *cpio_file) {
     perror("mmap");
     exit(1);
   }
-  assert(m != MAP_FAILED);
-
+  assert(-1 != close(fd));
   const CpioHeader *c = reinterpret_cast<CpioHeader *>(m);
   while (c->CheckHeader()) {
     if (c->FileName() == "TRAILER!!!") {
