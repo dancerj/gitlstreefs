@@ -131,6 +131,9 @@ class PtfsHandler {
 template <class T>
 void* fs_init(fuse_conn_info*, fuse_config* config) {
   config->nullpath_ok = 1;
+
+  // Allow caching, not great if you share underlying mutable files with others.
+  config->auto_cache = 1;
   return new T();
 }
 

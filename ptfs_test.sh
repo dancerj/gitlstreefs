@@ -43,3 +43,5 @@ out/renameat2 $TESTDIR/two $TESTDIR/one RENAME_EXCHANGE
 
 ls -l $TESTDIR/
 grep hoge $TESTDIR/one
+
+fincore $TESTDIR/*
