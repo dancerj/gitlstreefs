@@ -1,4 +1,4 @@
-#define FUSE_USE_VERSION 32
+#define FUSE_USE_VERSION 35
 
 #include "ptfs.h"
 

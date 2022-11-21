@@ -1,7 +1,7 @@
 // A filesystem that filters filenames with a glob.
 //
 // globfs mountpoint --glob_pattern='hoge*' --underlying_path=./
-#define FUSE_USE_VERSION 32
+#define FUSE_USE_VERSION 35
 
 #include <dirent.h>
 #include <fnmatch.h>

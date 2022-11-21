@@ -1,7 +1,7 @@
 /*
   Excercise to handle additional flags in libfuse.
  */
-#define FUSE_USE_VERSION 32
+#define FUSE_USE_VERSION 35
 
 #include <stddef.h>
 #include <stdio.h>

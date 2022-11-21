@@ -5,7 +5,7 @@
 // directory and still read it.
 //
 // unkofs mountpoint
-#define FUSE_USE_VERSION 32
+#define FUSE_USE_VERSION 35
 
 #include <fuse.h>
 #include <string.h>
