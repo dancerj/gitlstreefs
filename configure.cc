@@ -32,6 +32,9 @@ void CompileExperimental(NinjaBuilder& n) {
                 {"basename", "directory_container", "get_current_dir",
                  "experimental/cpiofs", "strutil"});
   n.RunTestScript("experimental/cpiofs_test.sh", {"out/experimental/cpiofs"});
+  n.CompileLink("experimental/ext2",
+                {"experimental/ext2", "basename", "directory_container",
+                 "get_current_dir", "strutil"});
 }
 
 int main() {
