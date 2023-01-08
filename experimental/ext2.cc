@@ -37,43 +37,22 @@ namespace {
     assert(a == b);                                                     \
   }
 
-class InodeCache;
 
 // File content derived from inode metadata.
 struct FileContent {
-  explicit FileContent(size_t initial_size) : size(initial_size) {}
+  FileContent(size_t initial_size) : size(initial_size) {}
   // Delete copy constructor
   FileContent(const FileContent &) = delete;
   FileContent operator=(const FileContent &) = delete;
 
   size_t size{0};
-  // a vector of blocks of BlockSize() blocks.
+  // a vector of blocks of block_size blocks.
   std::vector<const char *> blocks{};
 
-  // TODO: My brain hurts. I need a unit test.
-  void copy(size_t block_size, char *target, size_t size,
-            off_t offset = 0) const {
-    size_t b = offset / block_size;
-    if (offset % block_size) {
-      size_t to_copy = std::min(size, size - offset % block_size);
-      memcpy(target, blocks[b] + offset % block_size, to_copy);
-
-      b++;
-      size -= to_copy;
-      target += to_copy;
-    }
-    while (size > block_size) {
-      memcpy(target, blocks[b], block_size);
-
-      b++;
-      size -= block_size;
-      target += block_size;
-    }
-    if (size) {
-      memcpy(target, blocks[b], size);
-    }
-  }
+  void copy(char *target, size_t remaining_size, off_t offset = 0) const;
 };
+
+class InodeCache;
 
 class Ext2Reader {
  public:
@@ -237,6 +216,32 @@ class InodeCache {
 std::unique_ptr<Ext2Reader> global_ext2_reader{};
 std::unique_ptr<directory_container::DirectoryContainer> fs;
 
+// TODO: My brain hurts. I need a unit test.
+void FileContent::copy(char *target, size_t remaining_size,
+                       off_t offset) const {
+  const size_t block_size = global_ext2_reader->BlockSize();
+  size_t b = offset / block_size;
+  if (offset % block_size) {
+    size_t to_copy =
+        std::min(remaining_size, remaining_size - offset % block_size);
+    memcpy(target, blocks[b] + offset % block_size, to_copy);
+
+    b++;
+    remaining_size -= to_copy;
+    target += to_copy;
+  }
+  while (remaining_size > block_size) {
+    memcpy(target, blocks[b], block_size);
+
+    b++;
+    remaining_size -= block_size;
+    target += block_size;
+  }
+  if (remaining_size) {
+    memcpy(target, blocks[b], remaining_size);
+  }
+}
+
 }  // namespace
 
 namespace ext2fs {
@@ -267,7 +272,7 @@ class Ext2File : public directory_container::File {
       if (offset + size > contents->size) {
         size = contents->size - offset;
       }
-      contents->copy(global_ext2_reader->BlockSize(), target, size, offset);
+      contents->copy(target, size, offset);
     } else
       size = 0;
     return size;
@@ -287,7 +292,7 @@ class Ext2File : public directory_container::File {
 
     if (contents_size > EXT4_N_BLOCKS * 4) {
       // data is in direct blocks.
-      contents->copy(global_ext2_reader->BlockSize(), target, size);
+      contents->copy(target, size);
     } else {
       // data is directly written in block[] area.
       memcpy(target, name, size);
