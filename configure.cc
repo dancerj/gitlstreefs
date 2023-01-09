@@ -35,6 +35,7 @@ void CompileExperimental(NinjaBuilder& n) {
   n.CompileLink("experimental/ext2",
                 {"experimental/ext2", "basename", "directory_container",
                  "get_current_dir", "strutil"});
+  n.RunTestScript("experimental/ext2_test.sh", {"out/experimental/ext2"});
 }
 
 int main() {
