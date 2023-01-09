@@ -37,7 +37,6 @@ namespace {
     assert(a == b);                                                     \
   }
 
-
 // File content derived from inode metadata.
 struct FileContent {
   FileContent(size_t initial_size) : size(initial_size) {}
@@ -290,7 +289,7 @@ class Ext2File : public directory_container::File {
       // TODO: is this an error condition that we can't fit in the final 0 ?
     }
 
-    if (contents_size > EXT4_N_BLOCKS * 4) {
+    if (contents_size > EXT4_N_BLOCKS * sizeof(Le32)) {
       // data is in direct blocks.
       contents->copy(target, size);
     } else {
@@ -413,11 +412,16 @@ void Ext2Reader::WalkDir(std::string_view path, int block) {
         // TODO walk all blocks.
         WalkDir(new_path + "/", inode->block[0].get());
       } else {
+        // Handling of inode cache. May already exist as there might be more
+        // than one path pointing to the same inode (hard link)
         InodeCache *icache = inode_cache_[inode].get();
         if (!icache) {
+          // Create a new instance if it's not already there. Ownership is in
+          // inode_cache_ map.
           icache =
               (inode_cache_[inode] = std::make_unique<InodeCache>(inode)).get();
         }
+
         fs_->add(new_path, std::make_unique<ext2fs::Ext2File>(icache));
       }
     }
