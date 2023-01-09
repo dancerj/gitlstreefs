@@ -37,3 +37,5 @@ else
 fi
 
 grep "Test data directory" $TESTDIR/README.md
+
+echo '*** COMPLETE ***'

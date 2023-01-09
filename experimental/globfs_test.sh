@@ -29,3 +29,5 @@ else
 fi
 
 grep cowfs $TESTDIR/cowfs.cc
+
+echo '*** COMPLETE ***'

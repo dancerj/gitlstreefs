@@ -27,3 +27,4 @@ fi
 grep git $TESTDIR/README.md
 grep unkounko $TESTDIR/unko
 
+echo '*** COMPLETE ***'
