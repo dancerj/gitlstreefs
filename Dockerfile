@@ -5,6 +5,7 @@ RUN apt-get update && \
     attr \
     coreutils \
     curl \
+    e2fsprogs \
     file \
     fuse3 \
     g++ \
