@@ -13,7 +13,7 @@ mkdir -p $TESTDIR
 TESTDATA=out/ext2.testdata
 rm -f "${TESTDATA}"
 truncate --size 10M "${TESTDATA}"
-/usr/sbin/mke2fs -d ./testdata/ "${TESTDATA}"
+/sbin/mke2fs -d ./testdata/ "${TESTDATA}"
 
 # start file system
 out/experimental/ext2 \
