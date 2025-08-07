@@ -1,6 +1,7 @@
 #include "base64decode.h"
 
 #include <assert.h>
+#include <stdint.h>
 
 #include <array>
 #include <string>
