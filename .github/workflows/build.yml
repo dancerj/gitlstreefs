@@ -1,0 +1,42 @@
+name: Try to build
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+jobs:
+  build:
+    runs-on: ubuntu-latest # Use a Debian-based runner
+    container: debian:bookworm-slim
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4 # Action to check out your repository code
+
+    - name: Update apt
+      run: |
+        sudo apt-get update # Update package lists
+        apt-get install -yq \
+        attr \
+        coreutils \
+        curl \
+        e2fsprogs \
+        file \
+        fuse3 \
+        g++ \
+        git \
+        libattr1-dev \
+        libfuse3-dev \
+        libgcrypt-dev \
+        libgit2-dev \
+        ninja-build \
+        pkg-config \
+        unionfs-fuse \
+        zlib1g-dev
+
+    - name: build
+      run: |
+      	g++ -o configure configure.cc
+	./configure
+	ninja -t clean
+	ninja -k 10
