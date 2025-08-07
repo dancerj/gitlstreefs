@@ -1,9 +1,9 @@
-name: Try to build
+name: gitlstreefs build
 
 on:
   push:
     branches:
-      - main # Trigger on pushes to the main branch
+      - main  # Trigger on pushes to the main branch
 jobs:
   build:
     runs-on: ubuntu-latest # Use a Debian-based runner
@@ -36,7 +36,7 @@ jobs:
 
     - name: build
       run: |
-      	g++ -o configure configure.cc
-	./configure
-	ninja -t clean
-	ninja -k 10
+        g++ -o configure configure.cc
+        ./configure
+        ninja -t clean
+        ninja -k 10
