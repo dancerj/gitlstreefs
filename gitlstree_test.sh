@@ -33,7 +33,6 @@ unionfs-fuse tmp=RW:mountpoint mountpoint2
     cd mountpoint2
     mkdir out
     g++ ./configure.cc -o configure && ./configure
-    ninja -k10 -j10 out/hello_world
     ninja out/hello_world out/gitlstree out/git-githubfs
     ./out/hello_world | grep 'Hello World'
 )
