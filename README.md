@@ -3,6 +3,8 @@
 This project contains some experimental file system implemented using
 FUSE, that works with git and help building.
 
+[![gitlstreefs build](https://github.com/dancerj/gitlstreefs/actions/workflows/build.yml/badge.svg)](https://github.com/dancerj/gitlstreefs/actions/workflows/build.yml)
+
 ## Building
 
 Requires libfuse, libgit2 and zlib as build time library
