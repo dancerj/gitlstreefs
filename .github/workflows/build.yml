@@ -3,7 +3,7 @@ name: gitlstreefs build
 on:
   push:
     branches:
-      - main  # Trigger on pushes to the main branch
+      - master
 jobs:
   build:
     runs-on: ubuntu-latest # Use a Debian-based runner
