@@ -7,6 +7,7 @@ RUN apt-get update && \
     curl \
     e2fsprogs \
     file \
+    fuse-overlayfs \
     fuse3 \
     g++ \
     git \
@@ -16,7 +17,6 @@ RUN apt-get update && \
     libgit2-dev \
     ninja-build \
     pkg-config \
-    unionfs-fuse \
     zlib1g-dev && \
     apt-get clean
 

@@ -3,12 +3,12 @@ set -ex
 cleanup() {
     fusermount3 -u -z mountpoint2 || true
     fusermount3 -u -z mountpoint || true
-    rm -rf tmp
+    rm -rf tmp tmp-work
     rmdir mountpoint || true
     rmdir mountpoint2 || true
 }
 cleanup
-mkdir mountpoint mountpoint2 tmp || true
+mkdir mountpoint mountpoint2 tmp tmp-work || true
 g++ ./configure.cc -o configure && ./configure
 ninja
 trap cleanup exit
@@ -25,7 +25,7 @@ grep 'git' mountpoint/README.md
 grep 'For testing symlink operation' mountpoint/testdata/symlink
 
 # Create a read-write portion.
-unionfs-fuse tmp=RW:mountpoint mountpoint2
+fuse-overlayfs -o lowerdir=mountpoint,upperdir=tmp,workdir=tmp-work mountpoint2
 
 # Start of building the first copy.
 (

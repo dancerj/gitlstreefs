@@ -16,6 +16,7 @@ $ sudo apt-get install \
       coreutils \
       curl \
       file \
+      fuse-overlayfs \
       fuse3 \
       g++ \
       git \
@@ -24,7 +25,6 @@ $ sudo apt-get install \
       libgit2-dev \
       ninja-build \
       pkg-config \
-      unionfs-fuse \
       zlib1g-dev
 
 $ g++ ./configure.cc -o configure && ./configure

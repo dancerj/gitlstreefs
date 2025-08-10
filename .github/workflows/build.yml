@@ -22,6 +22,7 @@ jobs:
         curl \
         e2fsprogs \
         file \
+        fuse-overlayfs \
         fuse3 \
         g++ \
         git \
@@ -31,7 +32,6 @@ jobs:
         libgit2-dev \
         ninja-build \
         pkg-config \
-        unionfs-fuse \
         zlib1g-dev
 
     - name: build
