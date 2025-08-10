@@ -20,15 +20,20 @@ using GitCatFile::GitCatFileProcess;
 
 const char kConfigureJsHash[] = "5c7b5c80891eee3ae35687f3706567544a149e73";
 
+#define ASSERT_EQ(a, b, message)                                            \
+  if (a != b) {                                                             \
+    std::cout << #a << " " << a << ", " << #b << " " << b << " " << message \
+              << std::endl;                                                 \
+    assert(a == b);                                                         \
+  }
+
 void GitCatFileWithProcess(int n, const std::string& git_dir) {
   GitCatFileProcess d(&git_dir);
-  // BidirectionalPopen p({"/usr/bin/git", "cat-file", "--batch"}, nullptr);
   for (int i = 0; i < n; ++i) {
     std::string result = d.Request(kConfigureJsHash);
-    // std::cout << result << std::endl;
-    assert(result.find("#!/usr/bin/env nodejs") == 0);
-    assert(result.rfind("Emit()\n") == 7170);
-    assert(result.size() == 7177);
+    ASSERT_EQ(result.find("#!/usr/bin/env nodejs"), 0u, result);
+    ASSERT_EQ(result.rfind("Emit()\n"), 7170u, result);
+    ASSERT_EQ(result.size(), 7177u, result);
   }
 }
 
@@ -36,20 +41,19 @@ void GitCatFileWithoutProcess(int n, const std::string& git_dir) {
   for (int i = 0; i < n; ++i) {
     std::string result = PopenAndReadOrDie2(
         {"git", "cat-file", "blob", kConfigureJsHash}, &git_dir, nullptr);
-    assert(result.find("#!/usr/bin/env nodejs") == 0);
-    assert(result.rfind("Emit()\n") == 7170);
-    assert(result.size() == 7177);
+    ASSERT_EQ(result.find("#!/usr/bin/env nodejs"), 0u, result);
+    ASSERT_EQ(result.rfind("Emit()\n"), 7170u, result);
+    ASSERT_EQ(result.size(), 7177u, result);
   }
-  // std::cout << result << std::endl;
 }
 
 void testParseFirstLine() {
   GitCatFileMetadata m("5c7b5c80891eee3ae35687f3706567544a149e73 blob 7177\n");
 
-  assert(m.sha1_ == "5c7b5c80891eee3ae35687f3706567544a149e73");
-  assert(m.type_ == "blob");
-  assert(m.size_ == 7177);
-  assert(m.first_line_size_ == 51);
+  ASSERT_EQ(m.sha1_, "5c7b5c80891eee3ae35687f3706567544a149e73", "metadata wrong");
+  ASSERT_EQ(m.type_, "blob", "blob wrong");
+  ASSERT_EQ(m.size_, 7177, "size wrong");
+  ASSERT_EQ(m.first_line_size_, 51, "first line size wrong");
 }
 
 void testFailureCase(const std::string& git_dir) {
