@@ -7,7 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest # Use a Debian-based runner
-    container: debian:bookworm-slim
 
     steps:
     - name: Checkout repository
@@ -17,27 +16,7 @@ jobs:
       run: |
         apt-get update # Update package lists
         apt-get install -yq \
-        attr \
-        coreutils \
-        curl \
-        e2fsprogs \
-        file \
-        fuse-overlayfs \
-        fuse3 \
-        g++ \
-        git \
-        libattr1-dev \
-        libfuse3-dev \
-        libgcrypt-dev \
-        libgit2-dev \
-        ninja-build \
-        pkg-config \
-        util-linux-extra \
-        zlib1g-dev
+        podman
 
     - name: build
-      run: |
-        g++ -o configure configure.cc
-        ./configure
-        ninja -t clean
-        ninja -k 10
+      run: ./podman_build.sh
