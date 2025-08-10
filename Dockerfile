@@ -17,6 +17,7 @@ RUN apt-get update && \
     libgit2-dev \
     ninja-build \
     pkg-config \
+    util-linux-extra \
     zlib1g-dev && \
     apt-get clean
 

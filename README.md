@@ -25,6 +25,7 @@ $ sudo apt-get install \
       libgit2-dev \
       ninja-build \
       pkg-config \
+      util-linux-extra \
       zlib1g-dev
 
 $ g++ ./configure.cc -o configure && ./configure
