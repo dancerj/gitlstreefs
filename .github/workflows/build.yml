@@ -15,7 +15,7 @@ jobs:
 
     - name: Update apt
       run: |
-        sudo apt-get update # Update package lists
+        apt-get update # Update package lists
         apt-get install -yq \
         attr \
         coreutils \
